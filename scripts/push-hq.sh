@@ -7,6 +7,10 @@
 # בדיקה-ללא-דחיפה/קומיט:  PUSH_HQ_DRYRUN=1 scripts/push-hq.sh   (עוצר-אחרי-הסריקה)
 set -euo pipefail
 
+# שומר-מפני-קריאה-ב-sh (dash): הסקריפט-משתמש-ב-bashisms (מערכים · ${var:0:4}) —
+# קריאה-שגויה `sh push-hq.sh` תיכשל-ב"Bad substitution" בשעת-חירום. עכשיו-מתוקן-אוטומטית:
+if [ -z "${BASH_VERSION:-}" ]; then exec bash "$0" "$@"; fi
+
 SANBOX="/home/z/my-project/sanbox"
 SECRETS="$SANBOX/secrets"
 RECEIPTS="$SANBOX/receipts"
