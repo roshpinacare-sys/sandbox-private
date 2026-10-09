@@ -126,40 +126,52 @@ if ! git diff --cached --quiet; then
 fi
 COMMIT="$(git rev-parse --short HEAD)"
 
-# --- זיהוי-משתמש ---
-command -v curl >/dev/null 2>&1 || { echo 'curl לא זמין'; log_push false auth "$COMMIT" 'sanbox' true; exit 1; }
-LOGIN="$(curl -fsS --max-time 20 -H "Authorization: Bearer $PAT" -H 'User-Agent: hq' https://api.github.com/user \
-  | grep -oE '"login"[[:space:]]*:[[:space:]]*"[^"]*"' | head -n1 \
-  | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/')" || {
-  echo 'PAT נדחה על ידי GitHub'; log_push false auth "$COMMIT" 'sanbox' true; exit 1; }
-[ -n "$LOGIN" ] || { echo 'PAT נדחה על ידי GitHub'; log_push false auth "$COMMIT" 'sanbox' true; exit 1; }
-REPO_FULL="$LOGIN/sanbox"
-echo "משתמש: $LOGIN"
+# --- מסלול-מהיר: origin-קיים-ונקי → ה-git-הוא-שופט-האמת; אין-צורך-ב-API-bootstrap
+#     (לקח-T-49: 403-של-מגבלת-קצב-ב-/user-חסם-דחיפות-תקינות-לגמרי-למרות-שה-PAT-תקין) ---
+ORIGIN_URL="$(git remote get-url origin 2>/dev/null || true)"
+case "$ORIGIN_URL" in
+  https://github.com/*/*.git)
+    REPO_FULL="$(printf '%s' "$ORIGIN_URL" | sed -E 's#https://github.com/([^/]+/.+)\.git#\1#')"
+    echo "מסלול-מהיר: remote-קיים → $REPO_FULL (אין-קריאות-API)"
+    ;;
+  *)
+    # --- זיהוי-משתמש (רק-באתחול-ראשון; 403/429 = ניסיון-חוזר — לקח-T-48b) ---
+    command -v curl >/dev/null 2>&1 || { echo 'curl לא זמין'; log_push false auth "$COMMIT" 'sanbox' true; exit 1; }
+    LOGIN=""
+    for attempt in 1 2 3; do
+      HTTP_CODE="$(curl -sS --max-time 20 -o /tmp/hq-user.json -w '%{http_code}' \
+        -H "Authorization: Bearer $PAT" -H 'User-Agent: hq' https://api.github.com/user 2>/dev/null)" || HTTP_CODE="000"
+      if [ "$HTTP_CODE" = "200" ]; then
+        LOGIN="$(grep -oE '"login"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/hq-user.json | head -n1 \
+          | sed -E 's/.*:[[:space:]]*"([^"]*)".*/\1/')"
+        [ -n "$LOGIN" ] && break
+      fi
+      # 403/429 = מגבלת-קצב (לא-דחיית-PAT) — המתנה-וניסיון-חוזר
+      echo "… /user החזיר $HTTP_CODE (ניסיון $attempt/3) — המתנה-לפני-חוזר"
+      sleep $((attempt * 4))
+    done
+    rm -f /tmp/hq-user.json
+    [ -n "$LOGIN" ] || { echo 'זיהוי-משתמש נכשל (גם אחרי חוזרים)'; log_push false auth "$COMMIT" 'sanbox' true; exit 1; }
+    REPO_FULL="$LOGIN/sanbox"
+    echo "משתמש: $LOGIN"
 
-# --- יצירת-ריפו-אם-חסר (422 = קיים) ---
-CODE="$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' -X POST \
-  -H "Authorization: Bearer $PAT" -H 'User-Agent: hq' -H 'Accept: application/vnd.github+json' \
-  -H 'Content-Type: application/json' \
-  -d '{"name":"sanbox","private":true,"auto_init":false}' \
-  https://api.github.com/user/repos)" || CODE="000"
-case "$CODE" in
-  201|422) : ;;
-  000) echo 'GitHub לא נגיש'; log_push false repo-create "$COMMIT" "$REPO_FULL" true; exit 1 ;;
-  *)   echo "יצירת-ריפו נכשלה (HTTP $CODE)"; log_push false repo-create "$COMMIT" "$REPO_FULL" true; exit 1 ;;
+    # --- יצירת-ריפו-אם-חסר (422 = קיים) ---
+    CODE="$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' -X POST \
+      -H "Authorization: Bearer $PAT" -H 'User-Agent: hq' -H 'Accept: application/vnd.github+json' \
+      -H 'Content-Type: application/json' \
+      -d '{"name":"sanbox","private":true,"auto_init":false}' \
+      https://api.github.com/user/repos)" || CODE="000"
+    case "$CODE" in
+      201|422) : ;;
+      000) echo 'GitHub לא נגיש'; log_push false repo-create "$COMMIT" "$REPO_FULL" true; exit 1 ;;
+      *)   echo "יצירת-ריפו נכשלה (HTTP $CODE)"; log_push false repo-create "$COMMIT" "$REPO_FULL" true; exit 1 ;;
+    esac
+
+    # --- remote-נקי-ללא-טוקן (אתחול-ראשון) ---
+    URL="https://github.com/$LOGIN/sanbox.git"
+    git remote add origin "$URL" 2>/dev/null || true
+    ;;
 esac
-
-# --- remote-נקי-ללא-טוקן ---
-URL="https://github.com/$LOGIN/sanbox.git"
-if git remote get-url origin >/dev/null 2>&1; then
-  CUR="$(git remote get-url origin)"
-  case "$CUR" in
-    "$URL") : ;;
-    *"$PAT"*|*x-access-token*|https://*@*) git remote set-url origin "$URL" ;;
-    *) : ;;
-  esac
-else
-  git remote add origin "$URL"
-fi
 
 # --- דחיפה-עם-askpass-זמני (נמחק-בכל-יציאה) ---
 mkdir -p "$DB"
