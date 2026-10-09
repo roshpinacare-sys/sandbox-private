@@ -64,7 +64,12 @@ BASE_SPECS=(
   "google-ai-key|gsk_[A-Za-z0-9]{20,}"
   "private-key|-----BEGIN [A-Z ]*PRIVATE KEY-----"
   "master-password-prefix|${MASTER_PREFIX}"
-  "generic-long|[A-Za-z0-9]{40,}"
+  # T-50: התאמה-מלאה-לחוק-T-47-ב-core/scan-patterns.ts (מדוד: 32/32-היטים-היו-כוזבים-בחוק-הישן)
+  # WIF/xprv — כללים-עצמאיים (השלילות-הציבוריות-של-גנרי-ארוך-מחליקים-WIF-שמתחיל-ב-5)
+  "wif-private-key|(?<![A-Za-z0-9])[5KL][1-9A-HJ-NP-Za-km-z]{50,51}(?![A-Za-z0-9])"
+  "bip32-xprv|(?<![A-Za-z0-9])xprv[1-9A-HJ-NP-Za-km-z]{100,107}(?![A-Za-z0-9])"
+  # גנרי-ארוך-חכם: lookbehind-גבול-טוקן + שלילות-צורות-ציבוריות (EVM/tx-0x · הקס-חשוף-SHA/מרקל · bc1 · בסיס58-ציבורי · חתימת-סולנה)
+  "generic-long|(?<![A-Za-z0-9])(?!0[xX][0-9a-fA-F]{40}(?![A-Za-z0-9]))(?!0[xX][0-9a-fA-F]{64}(?![A-Za-z0-9]))(?![0-9a-fA-F]{40,64}(?![A-Za-z0-9]))(?!bc1[a-z0-9]{20,87}(?![A-Za-z0-9]))(?![1-9A-HJ-NP-Za-km-z]{43,53}(?![A-Za-z0-9]))(?![1-9A-HJ-NP-Za-km-z]{87,88}(?![A-Za-z0-9]))[A-Za-z0-9]{40,}"
 )
 
 # דפוסים-דינמיים: כל-טוקן-ארוך (>=20) מקבצי-הכספת → grep -F
@@ -83,7 +88,7 @@ while IFS= read -r -d '' f; do
   scanned=$((scanned + 1))
   for spec in "${BASE_SPECS[@]}"; do
     kind="${spec%%|*}"; pattern="${spec#*|}"
-    if grep -qE -- "$pattern" "$f" 2>/dev/null; then
+    if grep -qP -- "$pattern" "$f" 2>/dev/null; then
       HIT_LINES+=("${f}|${kind}")
       scan_hits=$((scan_hits + 1))
     fi

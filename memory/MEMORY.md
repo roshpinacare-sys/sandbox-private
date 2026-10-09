@@ -1,78 +1,40 @@
-# MEMORY — זיכרון-הרשת (הוקם-מחדש Task 42, הקודם נמחק-עם-הסנדבוקס)
+# MEMORY.md — זיכרון מזוקק (מעודכן 2026-10-08 · מקור-אמת: worklog.md)
 
-## עוגן-הבעלים
-- שחזור-מפתחות-LLM → כספת-מוצפנת → דחיפה-מאומתת-לגיט. **אף-מפתח-לא-מגיע-לריפו.**
-- ריבונות-מפתחות = הישות-חייה-תמיד. זרימה: אימות→ביצוע→בדיקה→הוכחה→דחיפה.
-- כנות-מלאה. אסור-לכתוב-סינית — עברית-בלבד.
-- 08/10: הבעלים-צדק — הכל-היה-תלוי-סנדבוקס-שנמחק. תיקון: **sanbox/** (איות-מדויק) = השרת-המפעיל-הקבוע. הבעלים-שלח-5 סוכנים-משותפים (Task 42).
+## Estate
+- Org/User: `roshpinacare-sys` · 22 repos · mother=`saos-control-center` (private).
+- Ports: 3000 mother · 3003 relay · 3010 dex-engine (`/saos-dex`) · 3012 legion · 3042 governor.
 
-## המבנה-החי (אחרי-Task 42)
-- **sanbox/** = git-repo → **github.com/roshpinacare-sys/sanbox (פרטי)**, קומיט-ראשון 54c205c, 12 קבצים, אפס-סודות.
-- שרת-HQ: `bun server.ts` ב-sanbox, פורט-**3010**, Bun-stdlib-בלבד.
-- כניסה: סיסמת-headcorner-הראשית (49 תווים; hash-scrypt ב-db/auth.json; מקור: secrets/hq.password-צ'מוד-600).
-- כספת: secrets/{pat.env, hq.password, openrouter.keys, cloudflare.txt} — כולם-מנוטרלים-מגיט-כפול.
-- פורטל-הבעלים: `/` (3000) → פרוקסי-API (/api/sandbox/*) → HQ. cookie: hq_session-HttpOnly-7d.
-- **הבטחת-חיים:** src/lib/ensure-hq.ts — אם-פורט-3010-מת, כל-קריאת-סטטוס-מקימה-אותו (הוכח-חי). HQ-יולד-מעץ-ה-boot → שורד-את-ה-reaper.
-- סריקת-סודות-לפני-כל-דחיפה: 11 דפוסי-בסיס + דפוסים-דינמיים-מהכספת. fail-closed. טוקן-לעולם-לא-ב-argv/.git/config/URL — רק-GIT_ASKPASS-זמני-מ-env, נמחק-תמיד.
+## Custody (האוטונומיה = הבעלים — PROVEN)
+- כספת: `fleet-vault` (private). Trust v2: wraps = `sha256(C)`-keyed P transport.
+- **UNSEAL PROVEN**: PAT → wrap → P → `keys.env.enc` (18 slots: GITHUB_PAT, OPENROUTER×3, xAI, CF/R2) + `ssh-keys.tar.enc` (deploy_fleet-vault Tier-1) + **`rails.env.enc` (חדש 1e3eb8e: 6 משתני-מסילות HIVE/STEEM/BLURT)**.
+- `agent/keys/fleet_keys.enc`: 13 מפתחות-צי (15 חשבונות steem/hive, tron mnemonics, wallets-registry 12, GEN-2 army intact · headcorner dead).
+- Drills: `scripts/credential-drill.sh` (receipt→`receipts/credential-drill-latest.json`, PASS 1.9s) · `scripts/rails-deploy.sh` (מכונה-חדשה→.env).
 
-## שבעת-הסנטינלים (FleetHQ, אחרי-Task 40)
-watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monitor(120s אדפטיבי) · post-batcher(1800s) · **boot-watcher(60s, חוק-שתי-המכות)**. כולם-תחת-ensureSentinels (pgrep→spawn+unref, דה-באנס-30s).
+## Continuity (חי 7×24)
+- witness-push pid 15767 (20min, height 175,983) · restore-drill pid 16524 (daily, PASS rto=50ms) · dex watchdog · state-push · proof-cadence 4h.
+- חוק-אמת: tokened `ls-remote main` == `rev-parse main` — 22/22 repos מגיבים.
 
-## לקחים-קבועים
-1. **עדכון-MEMORY.md-חובה-אחרי-כל-משימה** (נלמד-Task 39/41 — ואז-הוא-נמחק-בכל-זאת; הפעם: sanbox-יארח-עותק).
-2. תהליך-שנולד-ממעטפת-ad-hoc-מת — יילוד-רק-מעץ-ה-boot-או-דרך-ensure-hq.
-3. קבלות-ב-receipts/ — אבל-receipts-בלי-גיט=לא-הוכחה; ההוכחה-האמיתית=דחיפה-מאומתת.
-4. פתוח: דפוס-גנרי-ארוך ({40,}) בסריקה חוסם-גם-SHA-1 — החלטת-בעלים-אם-להפוך-לאזהרה.
+## Chartered
+- `sovereignty/SOVEREIGN-CHARTER.md` = הזהות/החוקים (מחליף system-prompt חיצוני; כולל רשימת-אסורים: אין TLS-spoofing/anti-bot evasion/endpoints לא-מורשים).
 
-## פרטי-גישה-חשובים
-- GitHub-משתמש: **roshpinacare-sys** (PAT: כספת-בלבד — מצונזר-אפילו-מהסוכנים).
-- המדד-החי-ליעילות: ~26.7K tokens/משימה-מאושרת (יעד-המשך).
+## Rails — חיות (2026-10-08, PROVEN on-chain)
+- **7/7 rails enabled** · account=headcorner · identities: eth=0x2767e814 ✓(registry-verified) · sol=Dt3jHATb ✓(SLIP-0010) · tron=TM1dgr ✓.
+- **התאמות-שרשרת מוכחות**: STEEM_POSTING_WIF→headcorner:POSTING@steem ✓ · BLURT_ACTIVE_WIF→headcorner:ACTIVE@blurt ✓ · steem עוגנת-חיה (85/84/0 בריצה-קודמת).
+- rails.env.enc v2 (10 slots) commit c5b4758 · deploy key `sovereign-deploy-r2` רשום (write) · cadence תרגיל-כספת כל-2ש' (pid לוג credential-drill.log).
+- **חוסמים-נותרים = דלק/כלכלה בלבד** (לא מפתחות): hive RC-mana · blurt יתרה 0.083 · tron 0 sun · eth/sol unfunded-policy.
+- KEYS-SEED/KEYS-ZIP: **DEFUNCT כארכיון** (3 סבבים-עמוקים: דיסק+היסטוריה+5 ריפואים) — התוכן הפונקציונלי (wallets-seed.json) בקסטודיה ונוצל.
+- Hive authorities 0/4 — נשאר נכון ל-Hive בלבד (לא ל-steem/blurt).
 
-## תיקון 42.1 (09/10)
-- **התחברות-ב-iframe:** עוגיות-שלישוניות-נחסמות → חובה ערוץ-זהות-כפול: cookie (None+Secure+Partitioned ב-HTTPS) + כותרת x-hq-session (טוקן-ב-sessionStorage, מוחזר-בגוף-ה-login). הכל-מאומת-מול-HQ-בכל-קריאה.
-- **נעילת-ניסיונות:** חובה-העברת-x-forwarded-for-מהפרוקסי-ל-HQ — אחרת-ה-IP-הפנימי-נועל-את-כולם.
-- קומיטים: 54c205c → 375b614 → 7502a81. הריפו-מכיל-גם-portal/ (גשר-משוקף).
+## Fuel & Rotation (2026-10-08, Task 3 — PROVEN חי)
+- **מנוע-רוטציית-דלק בנתב**: כשל-דלק (rc-low/429/fee) על-הזהות-הראשית → fleetSealOn(chain,exclude) — הצבא-מהכספת מקבל-משמרת (hive/steem graphene · blurt SDK-רשמי) · metrics.rotations · dex cb8a8fb.
+- **סקר-צבא-חי**: hive 9/13 · steem 10/13 · blurt 0/13 — פסק-הלווייתן-שקרי-גם-ל-steem.
+- **Broadcast-Pending**: חבילות-חתומות EIP-1559+Solana-memo, sig-verified-מקומית, ממתינות-מימון (eth חסר 0.084-ETH · sol 0.0009-SOL) · receipts/broadcast-pending-latest.json.
+- **Fuel Deck בקוקפיט**: /api/fuel → מטריצת-15-חשבונות × RC/יתרות/סמכויות חיה · fuel-state-cadence 15דק' (pid 32122) · credential-drill-cadence הוקם-מחדש (pid 32133).
+- **לולאת-דלק-Steem**: claim-תשואות-קנוני + ledger · המרה-ל-blurt/tron = venue-pending (הכרעת-בעלים).
 
-## ריבונות-מלאה (Task 43, 09/10)
-- **המפקח-הריבוני:** sanbox/scripts/supervisor.ts — חי-תמיד, מחיה-HQ(3010)+אפליקציה(3000, חוק-שתי-המכות), מופע-יחיד. נולד-רק-מ-HQ (עץ-boot) — מעטפת-ad-hoc=מוות (הוכח-שוב).
-- **דחיפה-עצמית:** HQ-כל-30 דק — syncMemory→שינויים?→סריקה→push. זיכרון-נוסע-עם-כל-דחיפה. פעולה-ידנית: 'auto-push'.
-- **תחייה-אחרי-מחיקה:** sh sanbox/scripts/boot-all.sh (משחזר-כספת-מ-upload, מקים-הכל). כיבוי-מכונה=הפעלה-אחת-ידנית-או-כניסה-לפורטל (ensureHQ).
-- הסנטינלים-הישנים-נמחקו-סופית; תפקידיהם-חיים-בגיט-הפרטי-עכשיו.
-
-## ריבונות-אפס-תלות (Task 44, 09/10) — שרשרת-החיים-הסופית
-- **שומר-ריבונות-עצמאי:** ~/.sovereign/guardian.ts (מותקן-מחוץ-לפרויקט!) — שורד-מחיקת-הפרויקט-כולו: שכפול-הריפו-מהגיט (PAT-מ-remote.env, askpass-זמני) → שחזור-כספת (HQ_VAULT_PASS-מ-guardian.env 600) → מפקח → HQ → אפליקציה. מתקין: sh sanbox/scripts/install-guardian.sh (אידמפוטנטי). HQ-בעלייה-מבטיח-שהוא-חי.
-- **גיבוי-כספת-מוצפן-בריפו:** sanbox/vault/vault-backup.enc — AES-256-GCM, מפתח-scrypt-מסיסמת-האם. נכתב-רק-בשינוי-תוכן (hash). נסחב-עם-כל-דחיפה. שחזור: bun sanbox/scripts/vault-restore.ts (HQ_VAULT_PASS-או-stdin) או-בפורטל (שדה-סיסמה→vault-restore; לא-נשמרת-בשום-מקום). הסריקה-מרשה-את-ה-.enc-במפורש (allowlist).
-- **סנכרון-דו-כיווני:** pull --rebase --autostash-מאומת-לפני-כל-דחיפה (fail-closed-בכישלון, אין-force); .gitattributes: worklog=merge-union. תיקון-אינטגרציה: ה-pull-דרש-PAT+askpass-מוקדם (נתגלה-חי).
-- **ensureHQ-משחזר-מגיט:** אם-HQ-מת-וגם-sanbox-חסרה → שכפול-אוטומטי-מ-~/.sovereign/{config.json,remote.env} → הקמה. debounce-שחזור-120ש.
-- **הוכחה-חיה (מבחן-ההשמדה):** נהרגו-HQ+מפקח, sanbox-הועברה-מהדיסק → השומר-בעצמו: שכפל, שיחזר-כספת (4/4-קבצים-זהים-ביט-ביט), הקים-הכל, HQ-כבר-דחף-בעצמו (70db4e6). אימות-דפדפן: כרטיס-ריבונות-מלא (שומר-פעיל/גיבוי/סנכרון/כפתור-גיבוי/שחזור), אפס-שגיאות, מובייל-תקין.
-- **פעולות-חדשות:** vault-backup, vault-restore (payload.password). סטטוס-חדש: ops.guardian/vaultBackup/repoSync.
-- גבול-הכנות-היחיד-שנותר: מכונה-שנכבית-לגמרי — השומר-העצמאי-מוגדר-לרוץ-מיד-עם-סביבת-bun-זמינה (בעלים-במכונה-אישית: cron/systemd-על-install-guardian.sh); בתוך-סנדבוקס-זמני-של-הפלטפורמה — תחייה-בכניסה-הראשונה-לפורטל או-sh boot-all.sh.
-
-## משנת-העורק-הציבורי (T-48, 09/10) — האבחנה-הכבירה-והריפוי
-- **הממצא-החי (קבלות-API):** מאז-06/10 **כל-ריצות-ה-Actions בכל-הריפואים-הפרטיים (15-מתוך-24) נכשלות-בחתימה-אחת: 0-צעדים · ~2 שניות · לוגים-ריקים = חסימת-חיוב/מגבלת-הוצאה**. הציבוריים (Sandbox · Domain · Console · saos-runtime) עובדים-מצוין — חינם-ולא-מוגבל. האדומים-בפנקס-הפדרציה-אינם-באגי-קוד.
-- **הפעולה-האנושית-היחידה-שנדרשת-מהבעלים:** GitHub → Settings → Billing and licensing → Spending limits → שחרור. משם-והלאה-הכל-מרפה-את-עצמו.
-- **מרפא-הצי (חי-בענן, Sandbox/heal · b73b1f2):** fleet-heal.yml-דקות-5,35-כל-30דק' — סריקת-24-הריפואים · אבחנה-מופרדת MINUTES-BLOCKED-מול-GENUINE-RED · ריפוי-עצמי-ב-dispatch (הסריקה-הבאה-מאמתת-ירוק=קבלת-HEALED) · **קנרית-יחידה-על-sanbox-לגלאי-שחרור-החיוב — ברגע-השחרור-הריפוי-קורה-תוך-24h-לכולם** · מודעות-מכסה (SKIP-כנה-מתחת-100 · חצאית-מתחת-300) · fail-closed.
-- **הלב-השני-ב-sanbox:** דומם-בכנות (c5a91a6) — workflow_dispatch-בלבד; הטריגרים-האוטומטיים-היו-מייצרים-אדום-מת-על-כל-דחיפת-HQ. לאחר-שחרור-החיוב: להשיב schedule-13,43+push+repository_dispatch-מזה-קובץ (ההוראות-כתובות-בכותרתו).
-- **הלקח-הקשה-על-המכסה-המשותפת:** ה-PAT-אחד-משרת-את-כל-העורקים (HQ · פדרציה · census/weave-הכבדים-~1550-קריאות/ריצה · עתה-גם-המרפא). סופת-אחת-שרפה-5000/שעה-עד-אפס. המרפא-אורח-מנומס: קנרית-בלבד. **מסר-לאחים: סריקות-כבדות-חייבות-מודעות-מכסה.**
-- **השיקוף-הענני-רוענן:** SovereignConsole (09c45f1) = עותק-קנוני-מלא-של-העץ-החי-של-היום (33MB) — אפס-סודות-בסריקה-מול-הערכים-האמתיים-מהכספת · db/custom.db-וסודות-מנותקים · db/session.key-שנשכח-מהעידן-הקודם-הוסר · MEMORY.md-כעת-נודד-גם-שם · העידן-הקודם-שמור-בהיסטוריה.
-- **השקר-שנתפס-ותוקן (לקח-קבוע):** ריצת-403-שקטה-ייצרה-FLEET-GREEN-ריק-שקרי-במרפא — תוקן-fail-closed (דף-ראשון-כושל=קבלת-fatal). קבלות-כנות-על-כל-נתיב-כישלון.
-
-## הוכחת-הענן-הסופית (T-48, 18:49Z)
-- **המרפא-רץ-בענן-במלואו** (קבלת-גיט: Sandbox/heal/receipts/scan-2026-10-09T18-49-16Z): 24-ריפואים · **15-MINUTES-BLOCKED (האבחנה-המדויקת-של-החסימה!)** · 1-GENUINE-RED (Domain) · 1-HEALED · **25-קריאות-API-בלבד** (rate-נשאר-4975 — הנימוס-מוכח). קבלת-fatal-כנה-בסערה-קודמת-גם-נדחפה (18:46). הלולאה-מוכחת-אנד-טו-אנד: dispatch→ריצה-עננית→קבלה→דחיפה-לגיט.
-- **פצעי-HQ-שנרפאו-באימות:** (1) 403-מכסה-דווח-שקרית-“PAT-נדחה” → תוקן: 401≠403/429 · ניסיונות-חוזרים-4/8/12ש · נפילה-חכמה-לשם-מ-remote · (הוכחה: 18:39/18:40-false→18:42:59+18:43:15-true) (2) פרוקסי-הפורטל-חתך-פעולות-ב-8ש → 120ש+הפרדת-timeout-כנה. ה-HQ-הוחיה-דרך-המפקח-עם-הקוד-החדש.
-
-## חוסן-מלא-ומראה-חיה (Task 49, 09/10) — אפס-אמון-בטענות
-- **עיקרון-העל:** כל-טענה-נבדקה-בקבלות-חיות (ps/פורטים/API-מאומת/קבצים) — לא-בזיכרון. 6-פערים-אמיתיים-נמצאו-שם-שנטען-שהכל-מכוסה.
-- **המראה-העננית-חיה:** SovereignConsole-מתרעננת-אוטומטית-כל-6שע (mirror-project.ts-מופעל-מהמפקח; --force-ידני) — עותק-קנוני-של-העץ-החי (1146-קבצים) בלי-כספת-גלויה/node_modules/db/skills; סריקת-סודות-fail-closed: דפוסים-מדויקים+דינמיים-מהכספת-חוסמים, generic-long=אזהרה (ההכרעה-הפתוחה-מ-42-הוכרעה-למראה-בלבד; סריקת-sanbox-עצמה-נשארה-כשהייתה).
-- **הלב-השני-פועם-מקומית:** heart-tick-כל-15דק-מהמפקח (ה-CI-הפרטי-החסום-אינו-עוד-מונע-פעימה); state/heart/last.json-נוסע-בדחיפה-העצמית.
-- **השומר-משחזר-את-הכל:** אם-הפרויקט-נמחק (package.json-חסר) → שכפול-מהמראה → bun-install → prisma-db-push-אם-DB-חסר. config.json-מכיל-mirrorUrl (install-guardian.sh-משלים-בקונפיג-ישן). תיקייה-קיימת-ולא-ריקה-בלי-package.json = חסימה-כנה (אין-מחיקות-אצל-השומר).
-- **שיעור-הערוץ:** פלט-הערוץ-בולע-`[m`-ברינדור (נראה-`ain]`-במקום-`[main]`) ומצנזר-תכני-כספת — **אימות-אמת-רק-ב-od/bytes/regex, לעולם-לא-בעין**; כמעט-"תוקן"-ריפו-בריא-עקב-זה.
-- **היגיינה:** .env-מנותק-מהמעקב-בריפו-הראשי; Domain-clone-המטונף-נוקה (שינוייו-הוכחו-כשכפול-Domain-הנוכחי).
-- מצב-24/7: שומר(22117)+מפקח(22122)+HQ(3010)+אפליקציה(3000)+לב(15דק)+מראה(6שע)+דחיפה-עצמית(30דק)+עורק-ציבורי-חי. תרחיש-השמדה-מלא = שרשרת-תחייה-אוטומטית-בלי-התערבות.
-
-## אימות-אפס-אמון-שני (T-50, 20:20Z) — "אל תסמוך אל הטענות שלך"
-- **העיקרון-הוכח-שוב:** כל-טענה-נבדקה-בקבלות-חיות-מחדש (ps · ss · curl · git · e2e-hq.sh · קריאת-קוד-מקור) — ונמצאו-2-פערים-שהטענות-הקודמות-לא-כיסו: (1) **gitlink-sanbox-בריפו-הראשי-היה-בפיגור** (b2ded14→ee51fd4) — תוקן (2) **אירוע-19:12: pull-rebase-נכשל-בקונפליקט** — המערכת-התאוששה-לבד-תוך-30דק (fail-closed-אין-force) — מוכיח-חוסן-אמיתי, לא-תקלה-פתוחה.
-- **המצב-האמיתי-המאומת:** mini-services=ריק-מכוון (עתודה) · לריפו-הראשי-אין-remote-בכלל — הדחיפה-העננית-רק-דרך-המראה-SovereignConsole · sanbox=הריפו-היחיד-עם-remote-אמיתי (roshpinacare-sys/sanbox).
-- **חיים-מאומתים-בשעה-זו:** שומר-22117 · מפקח-22122 · HQ-3010(=200) · אפליקציה-3000(=200) · status-ללא-סשן=401 · e2e=gate-live (401×5→429) · lint-נקי · scan-נקי-36-קבצים · auto-push-ירוק (ee51fd4) · מראה-ירוקה (01aaf08/1146-קבצים) · heart-tick-רציף-כל-15דק.
-- **התזמון-הריבוני-המלא:** guardian-30ש · supervisor-tick-10ש · לב-15דק · דחיפה-עצמית-30דק · מראה-6שע · e2e-ידני/CI. שרשרת-שחזור-מלאה-מוכחת: guardian-שיחזר-בפועל-תיקיית-sanbox-וכספת (17:01, guardian.jsonl).
-- **הלקח-הנצחי:** אמונה-בטענות=טעות; אימות-בקבלות=אמת. כל-דחיפה-עתידית-תכלול: gitlink-טרי-בריפו-הראשי-לפני-מראה.
+## BLURT ARMY — חיבור-הכל-מהחומר-הקיים (2026-10-08, Task 4 — PROVEN חי)
+- **דוקטרינת-הבעלים-אומתה**: Blurt = fork-גרפני של Steem — אותן-סיסמאות-2018 = אותם-מפתחות. המטריצה-החיה: STEEM **10/10** full-4/4 · BLURT **owner=11/11** · headcorner full-4/4-על-Blurt · HIVE 9/10 (tov-rotated).
+- **src/lib/blurt-army.ts** = קנוניה: WIF-checksum=sha256d · תווית-פאב=prefix+base58(compressed33+ripemd160(body)[0:4]) · self-verify-חובה · fail-closed.
+- **אטום**: keys/blurt.json (11 חשבונות·14 חותמות-מאומתות) בכספת-הצי + ספוג-לrepo-vault (fleet-keys-enc-a) — האמת-בגיט, לא-הולך-לאיבוד.
+- **connect-all = הפקודה-האחת** ("הראשי-מחבר-את-כולם"): repo-vault+fleet-vault+מטריצה-חיה+rails+קבלות → PASS · מוטמע-בdrill-כcheck-#6 (כל-2ש') · מוצג-חיה-בFuel-Deck ("חיבור-הצבא").
+- **כנות**: active/posting-לחיילים-על-Blurt שונים-שם (owner=סמכות-החזרה; אין-רוטציה-אוטונומית — זמינה-כפקודה) · ynet-אין-חותמות-בכספת · hcsoldiers-לא-קיימים-על-blurt/hive.
