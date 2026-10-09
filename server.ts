@@ -398,4 +398,54 @@ export async function hqFetch(req: Request, server: HQServer = {} as HQServer): 
 if (import.meta.main) {
   Bun.serve({ port: PORT, hostname: '127.0.0.1', fetch: hqFetch });
   console.log(`[server] שרת-HQ מאזין על http://127.0.0.1:${PORT} — קונסולת-המפעיל (סיסמת-האם נדרשת).`);
+
+  /* ריבונות-עצמית: מרים-את-המפקח-הריבוני (שמפקח-חזרה-על-ה-HQ ועל-האפליקציה) */
+  try {
+    const { spawn } = await import('node:child_process');
+    const { readFileSync } = await import('node:fs');
+    const pidfile = path.join(ROOT, 'db', 'supervisor.pid');
+    let supervisorAlive = false;
+    try {
+      const pid = Number(readFileSync(pidfile, 'utf8').trim());
+      if (pid) {
+        process.kill(pid, 0);
+        supervisorAlive = true;
+      }
+    } catch {
+      supervisorAlive = false;
+    }
+    if (!supervisorAlive) {
+      const child = spawn('bun', ['scripts/supervisor.ts'], {
+        cwd: ROOT,
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+      console.log(`[server] המפקח-הריבוני הוקם (pid=${child.pid}) — הרשת-מפוקחת-תמידית.`);
+    }
+  } catch (err) {
+    console.error('[server] הקמת-המפקח-נכשלה:', err instanceof Error ? err.message : err);
+  }
+
+  /* דחיפה-עצמית-תקופתית: כל-30 דקות — סנכרון-זיכרון + commit + סריקה + push (רק-אם-יש-שינויים) */
+  const AUTO_PUSH_MS = 30 * 60 * 1000;
+  let autoPushBusy = false;
+  const runAutoPush = async (): Promise<void> => {
+    if (autoPushBusy) return;
+    autoPushBusy = true;
+    try {
+      const ops = await import('./core/ops.ts');
+      const r = (await ops.autoPush(false)) as Record<string, unknown>;
+      console.log(`[server] דחיפה-עצמית: ok=${String(r.ok)} pushed=${String(r.pushed)} ${r.reason ? `(${String(r.reason)})` : ''}`);
+    } catch (err) {
+      console.error('[server] דחיפה-עצמית-נכשלה:', err instanceof Error ? err.message : err);
+    } finally {
+      autoPushBusy = false;
+    }
+  };
+  const autoPushTimer = setInterval(() => { void runAutoPush(); }, AUTO_PUSH_MS);
+  autoPushTimer.unref?.();
+  // דחיפה-ראשונה-מושהית — מאחורי-העלייה, בלי-לחסום
+  setTimeout(() => { void runAutoPush(); }, 45_000).unref?.();
+  console.log('[server] דחיפה-עצמית-תקופתית פעילה (כל 30 דקות, סרוקה, רק-אם-יש-שינויים).');
 }

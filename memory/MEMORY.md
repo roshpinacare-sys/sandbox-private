@@ -27,3 +27,8 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 ## פרטי-גישה-חשובים
 - GitHub-משתמש: **roshpinacare-sys** (PAT: כספת-בלבד — מצונזר-אפילו-מהסוכנים).
 - המדד-החי-ליעילות: ~26.7K tokens/משימה-מאושרת (יעד-המשך).
+
+## תיקון 42.1 (09/10)
+- **התחברות-ב-iframe:** עוגיות-שלישוניות-נחסמות → חובה ערוץ-זהות-כפול: cookie (None+Secure+Partitioned ב-HTTPS) + כותרת x-hq-session (טוקן-ב-sessionStorage, מוחזר-בגוף-ה-login). הכל-מאומת-מול-HQ-בכל-קריאה.
+- **נעילת-ניסיונות:** חובה-העברת-x-forwarded-for-מהפרוקסי-ל-HQ — אחרת-ה-IP-הפנימי-נועל-את-כולם.
+- קומיטים: 54c205c → 375b614 → 7502a81. הריפו-מכיל-גם-portal/ (גשר-משוקף).

@@ -67,6 +67,8 @@ export interface StatusExtra {
   trackedFiles: number;
   lastCommit: string;
   scanLast: ScanResult | null;
+  supervisor: { alive: boolean; pid: number | null };
+  autoPushLast: string | null;
 }
 
 // === Bun file API (עם-גיבוי-node) ===
@@ -238,7 +240,100 @@ export async function collectStatus(): Promise<Partial<StatusExtra>> {
   } catch {
     /* אין-קבלת-סריקה */
   }
+  out.supervisor = supervisorStatus();
+  out.autoPushLast = lastAutoPush();
   return out;
+}
+
+// === ריבונות: מפקח + זיכרון + דחיפה-עצמית ===
+
+const SUPERVISOR_PIDFILE = path.join(SANDBOX_DIR, 'db', 'supervisor.pid');
+const AUTOPUSH_RECEIPT = path.join(RECEIPTS_DIR, 'auto-push.jsonl');
+const PROJECT_ROOT = '/home/z/my-project';
+
+/** מצב-המפקח-הריבוני (pidfile חי?) */
+export function supervisorStatus(): { alive: boolean; pid: number | null } {
+  try {
+    const raw = readFileSync(SUPERVISOR_PIDFILE, 'utf8').trim();
+    const pid = Number(raw);
+    if (!pid) return { alive: false, pid: null };
+    process.kill(pid, 0); // קיים?
+    return { alive: true, pid };
+  } catch {
+    return { alive: false, pid: null };
+  }
+}
+
+/** דחיפה-עצמית-אחרונה (מהקבלות) */
+export function lastAutoPush(): string | null {
+  try {
+    const lines = readFileSync(AUTOPUSH_RECEIPT, 'utf8').trim().split('\n').filter(Boolean);
+    const last = lines[lines.length - 1];
+    if (!last) return null;
+    const j = JSON.parse(last) as Record<string, unknown>;
+    return typeof j.ts === 'string' ? j.ts : null;
+  } catch {
+    return null;
+  }
+}
+
+/** סנכרון-הזיכרון: MEMORY.md + worklog.md מהפרויקט-הראשי → sanbox/memory/ (נדחף-לגיט) */
+export function syncMemory(): { synced: string[]; missing: string[] } {
+  const synced: string[] = [];
+  const missing: string[] = [];
+  try {
+    mkdirSync(path.join(SANDBOX_DIR, 'memory'), { recursive: true });
+  } catch {
+    /* קיים */
+  }
+  for (const name of ['MEMORY.md', 'worklog.md']) {
+    try {
+      const src = path.join(PROJECT_ROOT, name);
+      const content = readFileSync(src, 'utf8');
+      writeFileSync(path.join(SANDBOX_DIR, 'memory', name), content, 'utf8');
+      synced.push(name);
+    } catch {
+      missing.push(name);
+    }
+  }
+  return { synced, missing };
+}
+
+/**
+ * דחיפה-עצמית (תקופתית או ידנית): סנכרון-זיכרון → בדיקת-שינויים → דחיפה-מלאה-סרוקה.
+ * אין-שינויים → לא-דוחף (מונע-רעש). כל-תוצאה-בקבלה receipts/auto-push.jsonl (מוגבל-ל-500).
+ */
+export async function autoPush(force = false): Promise<Record<string, unknown>> {
+  const ts = new Date().toISOString();
+  const mem = syncMemory();
+  let dirty = true;
+  try {
+    dirty = (await git(['status', '--porcelain'])).trim().length > 0;
+  } catch {
+    /* אם-גיט-נכשל — מנסים-לדחוף */
+  }
+  if (!dirty && !force) {
+    const r = { ok: true, ts, pushed: false, reason: 'אין-שינויים', mem };
+    appendAutoReceipt(r);
+    return r;
+  }
+  const res = (await pushToGitHub()) as Record<string, unknown>;
+  const r = { ...res, ts, auto: true, mem };
+  appendAutoReceipt(r);
+  return r;
+}
+
+function appendAutoReceipt(r: Record<string, unknown>): void {
+  try {
+    mkdirSync(RECEIPTS_DIR, { recursive: true });
+    appendFileSync(AUTOPUSH_RECEIPT, JSON.stringify(r) + '\n');
+    const lines = readFileSync(AUTOPUSH_RECEIPT, 'utf8').trim().split('\n');
+    if (lines.length > 500) {
+      writeFileSync(AUTOPUSH_RECEIPT, lines.slice(-500).join('\n') + '\n');
+    }
+  } catch {
+    /* קבלה-היא-מיטבית */
+  }
 }
 
 // === runSecretScan ===
@@ -395,6 +490,13 @@ function appendPushReceipt(r: PushResult, clean: boolean): void {
 export async function pushToGitHub(): Promise<PushResult> {
   const ts = new Date().toISOString();
   const base = (over: Partial<PushResult>): PushResult => ({ ok: false, stage: 'init', repo: 'sanbox', ts, ...over });
+
+  // 0) סנכרון-זיכרון קודם-כל — הזיכרון-תמיד-נוסע-עם-הריפו
+  try {
+    syncMemory();
+  } catch {
+    /* לא-חוסם */
+  }
 
   // 1) סריקת-סודות — שער-חובה
   let scan: ScanResult;
@@ -572,6 +674,8 @@ export async function runAction(action: string): Promise<unknown> {
       return runSecretScan();
     case 'push-github':
       return pushToGitHub();
+    case 'auto-push':
+      return autoPush(true);
     case 'git-status':
       return { ok: true, ...(await collectStatus()) };
     default:
