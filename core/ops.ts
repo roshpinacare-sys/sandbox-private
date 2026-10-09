@@ -1,14 +1,16 @@
 /**
- * ops.ts — מודול-האופס של-שרת-HQ (Task 42-c): סטטוס-git, סריקת-סודות, דחיפה-מאובטחת.
+ * ops.ts — מודול-האופס של-שרת-HQ (Task 42-c + 44-a): סטטוס-git, סריקת-סודות, דחיפה-מאובטחת,
+ * גיבוי-כספת-מוצפן (vault-backup/vault-restore), סנכרון-דו-כיווני (pull --rebase) ומצב-שומר.
  *
  * כללי-ברזל:
  *  - node:child_process execFile בלבד — בלי exec, בלי shell-מחרוזות, timeout 30s, cwd= sanbox.
  *  - הטוקן מעולם לא ב-argv, לא ב-URL, לא ב-.git/config — רק דרך GIT_ASKPASS זמני + HQ_TOKEN בסביבת-התהליך.
  *  - כל-פלט, קבלה ושגיאה עוברים-מיסוך (sanitize/mask) — אפס-סודות-מלאים-מחוץ-לכספת.
- *  - סריקה-נכשלת = דחיפה-חסומה (fail-closed).
+ *  - סריקה-נכשלת = דחיפה-חסומה (fail-closed); גם-pull-דו-כיווני-נכשל = דחיפה-חסומה (אין-force).
  *  - אפס-תלויות: node builtins + Bun file API.
  */
 import { execFile } from 'node:child_process';
+import * as os from 'node:os';
 import { promisify } from 'node:util';
 import {
   appendFileSync,
@@ -17,10 +19,12 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import * as path from 'node:path';
 
+import { vaultBackup, vaultRestore, VAULT_BACKUP_RECEIPT, VAULT_ENC_PATH } from './backup.ts';
 import { BASE_RULES, buildDynamicPatterns, type VaultText } from './scan-patterns.ts';
 
 const execFileP = promisify(execFile);
@@ -69,6 +73,12 @@ export interface StatusExtra {
   scanLast: ScanResult | null;
   supervisor: { alive: boolean; pid: number | null };
   autoPushLast: string | null;
+  /** מצב-גיבוי-הכספת: קיום-הצופן + הקבלה-האחרונה (מוסק-בלבד) */
+  vaultBackup?: { exists: boolean; ts?: string; hashShort?: string; bytes?: number } | null;
+  /** סנכרון-מול-origin: כמה-קומיטים-קדימה/מאחורה (null = אין-upstream) */
+  repoSync?: { ahead: number; behind: number } | null;
+  /** השומר-החיצוני (~/.sovereign/guardian.pid) — חי? */
+  guardian?: { alive: boolean; pid: number | null };
 }
 
 // === Bun file API (עם-גיבוי-node) ===
@@ -242,6 +252,41 @@ export async function collectStatus(): Promise<Partial<StatusExtra>> {
   }
   out.supervisor = supervisorStatus();
   out.autoPushLast = lastAutoPush();
+  out.guardian = guardianStatus();
+
+  // מצב-גיבוי-הכספת: קיום-קובץ-הצופן (stat) + קבלת-הגיבוי (hash/גדלים בלבד)
+  try {
+    let exists = false;
+    let bytes: number | undefined;
+    try {
+      const st = statSync(VAULT_ENC_PATH);
+      exists = st.isFile();
+      bytes = st.size;
+    } catch {
+      exists = false; // אין-צופן-עדיין
+    }
+    let ts: string | undefined;
+    let hashShort: string | undefined;
+    const receipt = (await readJsonFile(VAULT_BACKUP_RECEIPT)) as { ts?: unknown; hash?: unknown } | null;
+    if (receipt && typeof receipt === 'object') {
+      if (typeof receipt.ts === 'string') ts = receipt.ts;
+      if (typeof receipt.hash === 'string' && receipt.hash.length >= 12) hashShort = receipt.hash.slice(0, 12);
+    }
+    out.vaultBackup = { exists, ts, hashShort, bytes };
+  } catch {
+    out.vaultBackup = null; // אין-מידע
+  }
+
+  // סנכרון-דו-כיווני מול-origin: ahead/behind (null = אין-upstream-עדיין)
+  try {
+    const ahead = Number((await git(['rev-list', '--count', '@{u}..HEAD'])).trim());
+    const behind = Number((await git(['rev-list', '--count', 'HEAD..@{u}'])).trim());
+    if (Number.isFinite(ahead) && Number.isFinite(behind)) out.repoSync = { ahead, behind };
+    else out.repoSync = null;
+  } catch {
+    out.repoSync = null;
+  }
+
   return out;
 }
 
@@ -250,6 +295,19 @@ export async function collectStatus(): Promise<Partial<StatusExtra>> {
 const SUPERVISOR_PIDFILE = path.join(SANDBOX_DIR, 'db', 'supervisor.pid');
 const AUTOPUSH_RECEIPT = path.join(RECEIPTS_DIR, 'auto-push.jsonl');
 const PROJECT_ROOT = '/home/z/my-project';
+
+/** מצב-השומר-החיצוני (~/.sovereign/guardian.pid — pidfile חי?) */
+function guardianStatus(): { alive: boolean; pid: number | null } {
+  try {
+    const raw = readFileSync(path.join(os.homedir(), '.sovereign', 'guardian.pid'), 'utf8').trim();
+    const pid = Number(raw);
+    if (!pid) return { alive: false, pid: null };
+    process.kill(pid, 0); // קיים?
+    return { alive: true, pid };
+  } catch {
+    return { alive: false, pid: null };
+  }
+}
 
 /** מצב-המפקח-הריבוני (pidfile חי?) */
 export function supervisorStatus(): { alive: boolean; pid: number | null } {
@@ -306,6 +364,16 @@ export function syncMemory(): { synced: string[]; missing: string[] } {
 export async function autoPush(force = false): Promise<Record<string, unknown>> {
   const ts = new Date().toISOString();
   const mem = syncMemory();
+
+  // גיבוי-כספת — לפני-בדיקת-השינויים: הצופן-מתעדכן-רק-כשהתוכן-השתנה (hash — אין-רעש). לא-חוסם.
+  let backup: { ok: boolean; written: boolean; hashShort?: string } | null = null;
+  try {
+    const b = await vaultBackup();
+    backup = { ok: b.ok, written: b.written, hashShort: b.hashShort };
+  } catch {
+    backup = null; // גיבוי-נכשל — לא-חוסם-דחיפה
+  }
+
   let dirty = true;
   try {
     dirty = (await git(['status', '--porcelain'])).trim().length > 0;
@@ -313,12 +381,12 @@ export async function autoPush(force = false): Promise<Record<string, unknown>> 
     /* אם-גיט-נכשל — מנסים-לדחוף */
   }
   if (!dirty && !force) {
-    const r = { ok: true, ts, pushed: false, reason: 'אין-שינויים', mem };
+    const r = { ok: true, ts, pushed: false, reason: 'אין-שינויים', mem, backup };
     appendAutoReceipt(r);
     return r;
   }
-  const res = (await pushToGitHub()) as Record<string, unknown>;
-  const r = { ...res, ts, auto: true, mem };
+  const res = (await pushToGitHub()) as unknown as Record<string, unknown>;
+  const r = { ...res, ts, auto: true, mem, backup };
   appendAutoReceipt(r);
   return r;
 }
@@ -371,6 +439,7 @@ export async function runSecretScan(): Promise<ScanResult> {
     ];
 
     scan: for (const rel of fileList) {
+      if (rel === 'vault/vault-backup.enc') continue; // צופן-גיבוי-מתוכנן-באדיבות-הריפו — אינו-סוד-גלוי (מאומת-בנפרד)
       const abs = path.join(SANDBOX_DIR, rel);
       let content: string;
       try {
@@ -536,6 +605,28 @@ export async function pushToGitHub(): Promise<PushResult> {
     return r;
   }
 
+  // 2.5) pull-rebase דו-כיווני — משיכת-שינויים-מהריפו-לפני-דחיפה (סנכרון-בין-מכונות; אסור-force)
+  let hasUpstream = true;
+  try {
+    await git(['rev-parse', '--abbrev-ref', '@{u}']);
+  } catch {
+    hasUpstream = false; // עדיין-לא-נדחף-אף-פעם — אין-מה-למשוך
+  }
+  if (hasUpstream) {
+    try {
+      await git(['pull', '--rebase', '--autostash', 'origin', 'main']);
+    } catch (e) {
+      try {
+        await git(['rebase', '--abort']); // ניקוי-מצב-ריבייז-תקוע (best-effort)
+      } catch {
+        /* אין-ריבייז-לבטל */
+      }
+      const r = base({ stage: 'pull', commit, error: `משיכה-דו-כיוונית נכשלה — דחיפה נחסמה: ${sanitizeOutput(safeErrMsg(e))}` });
+      appendPushReceipt(r, true);
+      return r; // fail-closed — אין-דריסה-של-הריפו-המרוחק
+    }
+  }
+
   // 3) PAT
   const pat = await readPat();
   if (!pat) {
@@ -667,8 +758,13 @@ export async function pushToGitHub(): Promise<PushResult> {
 
 // === מתג-פעולות ===
 
-/** מתג-הפעולות לשרת/לממשק: secret-scan | push-github | git-status. */
-export async function runAction(action: string): Promise<unknown> {
+/**
+ * מתג-הפעולות לשרת/לממשק:
+ *  secret-scan | push-github | git-status | auto-push
+ *  vault-backup — גיבוי-כספת-מוצפן אל vault/vault-backup.enc (אין-פרמטרים)
+ *  vault-restore — שחזור-הכספת מהצופן; דורש payload.password (מחרוזת-לא-ריקה)
+ */
+export async function runAction(action: string, payload?: Record<string, unknown>): Promise<unknown> {
   switch (action) {
     case 'secret-scan':
       return runSecretScan();
@@ -678,6 +774,15 @@ export async function runAction(action: string): Promise<unknown> {
       return autoPush(true);
     case 'git-status':
       return { ok: true, ...(await collectStatus()) };
+    case 'vault-backup':
+      return vaultBackup();
+    case 'vault-restore': {
+      const pw = payload?.password;
+      if (typeof pw !== 'string' || pw.length === 0) {
+        return { ok: false, written: false, ts: new Date().toISOString(), error: 'נדרשת סיסמה' };
+      }
+      return vaultRestore(pw);
+    }
     default:
       return { ok: false, error: 'פעולה לא ידועה' };
   }

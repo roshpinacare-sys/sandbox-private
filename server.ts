@@ -50,7 +50,7 @@ type HQServer = {
 /** חוזה-מתאר למודול core/ops של סוכן 42-c (אופציונלי — השרת חי גם בלעדיו). */
 type OpsModule = {
   collectStatus?: () => Promise<unknown>;
-  runAction?: (action: string) => Promise<unknown>;
+  runAction?: (action: string, payload?: Record<string, unknown>) => Promise<unknown>;
 };
 
 async function loadOps(): Promise<OpsModule | null> {
@@ -343,19 +343,23 @@ async function handleStatus(req: Request): Promise<Response> {
 async function handleAction(req: Request): Promise<Response> {
   if (!isAuthed(req)) return json({ ok: false, error: 'נדרש אימות' }, 401);
   let action = '';
+  let payload: Record<string, unknown> = {};
   try {
-    const body = (await req.json()) as { action?: unknown };
+    const body = (await req.json()) as { action?: unknown; password?: unknown };
     if (typeof body?.action === 'string') action = body.action.trim();
+    // סיסמה-לפעולות-הכספת (למשל vault-restore): מחרוזת-בלבד, מועברת-רק-אל-runAction —
+    // מעולם-לא-נרשמת, לא-נכתבת-לקבלה ולא-מוחזרת בתשובה.
+    if (typeof body?.password === 'string' && body.password.length > 0) payload = { password: body.password };
   } catch {
     return json({ ok: false, error: 'בקשה לא תקינה (JSON חסר)' }, 400);
   }
   if (!action) return json({ ok: false, error: 'חסר שדה action' }, 400);
   if (action === 'ping') return json({ ok: true });
-  // הוק לסוכן 42-c: כל-שאר-הפעולות מואצלות ל-core/ops אם-קיים.
+  // הוק לסוכן 42-c: כל-שאר-הפעולות מואצלות ל-core/ops אם-קיים (עם-payload-אופציונלי).
   const ops = await loadOps();
   if (ops && typeof ops.runAction === 'function') {
     try {
-      const out = await ops.runAction(action);
+      const out = await ops.runAction(action, payload);
       return json(out ?? { ok: true });
     } catch (err) {
       console.error(`[server] ops.runAction('${action}') נכשל:`, err instanceof Error ? err.message : err);
@@ -425,6 +429,39 @@ if (import.meta.main) {
     }
   } catch (err) {
     console.error('[server] הקמת-המפקח-נכשלה:', err instanceof Error ? err.message : err);
+  }
+
+  /* שומר-ריבונות-עצמאי (~/.sovereign): אם-אינו-חי — מריץ-את-המתקין-האידמפוטנטי ברקע.
+     השומר-שורד-מחיקת-התיקייה-כולה-ומשחזר-את-הריפו-מ-GitHub — לא-חוסם-את-העלייה. */
+  try {
+    const { spawn: spawnDetached } = await import('node:child_process');
+    const { existsSync: exSync, readFileSync: rfSync } = await import('node:fs');
+    const osMod = await import('node:os');
+    const sovDir = path.join(osMod.homedir(), '.sovereign');
+    const guardianPidFile = path.join(sovDir, 'guardian.pid');
+    let guardianAlive = false;
+    try {
+      if (exSync(guardianPidFile)) {
+        const gpid = Number(rfSync(guardianPidFile, 'utf8').trim());
+        if (gpid) {
+          process.kill(gpid, 0);
+          guardianAlive = true;
+        }
+      }
+    } catch {
+      guardianAlive = false;
+    }
+    if (!guardianAlive) {
+      const child = spawnDetached('sh', ['scripts/install-guardian.sh'], {
+        cwd: ROOT,
+        detached: true,
+        stdio: 'ignore',
+      });
+      child.unref();
+      console.log('[server] שומר-הריבונות-העצמאי לא חי — המתקין הורץ ברקע (~/.sovereign).');
+    }
+  } catch (err) {
+    console.error('[server] בדיקת-שומר-הריבונות נכשלה:', err instanceof Error ? err.message : err);
   }
 
   /* דחיפה-עצמית-תקופתית: כל-30 דקות — סנכרון-זיכרון + commit + סריקה + push (רק-אם-יש-שינויים) */

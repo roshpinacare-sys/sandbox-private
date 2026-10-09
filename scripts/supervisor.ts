@@ -15,8 +15,9 @@ import { spawn, execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const ROOT = '/home/z/my-project/sanbox';
-const PROJECT = '/home/z/my-project';
+// נגזרות-מיקום-דינמיות: המפקח-חי-בתוך-הריפו — ROOT=sanbox, PROJECT=ההורה-שלו
+const ROOT = path.resolve(import.meta.dir, '..');
+const PROJECT = path.resolve(import.meta.dir, '..', '..');
 const RECEIPTS = path.join(ROOT, 'receipts');
 const DB = path.join(ROOT, 'db');
 const EVENTS = path.join(RECEIPTS, 'supervisor.jsonl');

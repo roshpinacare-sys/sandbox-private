@@ -39,3 +39,32 @@ sanbox/
 ```bash
 bun server.ts   # פורט 3010
 ```
+
+## שרשרת-הריבונות
+
+```
+שומר-עצמאי (~/.sovereign)          ← טוקן-גישה-לריפו + קונפיג-הריבונות (מחוץ-ל-sanbox)
+      │ משחזר-קוד-מהריפו-אם-הכל-נמחק (git clone)
+      ▼
+מפקח (scripts/supervisor.ts)       ← תמיד-חי; מחיה-את-שניהם
+      ├──► HQ (sanbox, פורט 3010)   ← הדלת + הכספת + האופס
+      └──► אפליקציה (Next.js, פורט 3000)
+
+HQ (בכל-30 דק'):
+  ├── דחיפה-עצמית: sync-זיכרון → סריקת-סודות → auto-commit → pull --rebase --autostash → push
+  └── גיבוי-כספת-מוצפן: vault/vault-backup.enc (AES-256-GCM בסיסמת-האם — כתיבה-רק-בשינוי-תוכן)
+```
+
+הפורטל (`/`, פורט 3000) מציג-את-השרשרת-בכרטיס-'ריבונות' (שומר/גיבוי/סנכרון) ומאפשר
+'גבה עכשיו' + 'שחזר מגיבוי'. אם-תיקיית-ה-sanbox נמחקה-כולה, הפורטל-משחזר-את-הקוד-מהריפו-לבדו
+(ensure-hq → git clone) ואז-מקים-את-HQ.
+
+### מכונה-חדשה (תחייה-מלאה)
+
+```bash
+git clone https://github.com/<owner>/sanbox.git
+cd sanbox
+./scripts/boot-all.sh
+# שחזור-סודות (אם-הכספת-ריקה): HQ_VAULT_PASS='סיסמת-האם' bun scripts/vault-restore.ts
+# שומר-עצמאי: sh scripts/install-guardian.sh
+```

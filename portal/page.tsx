@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Activity,
+  ArchiveRestore,
+  DatabaseBackup,
   GitBranch,
   KeyRound,
   LogOut,
@@ -44,6 +46,14 @@ type StatusData = {
   ops?: {
     supervisor?: { alive?: boolean; pid?: number | null };
     autoPushLast?: string | null;
+    guardian?: { alive?: boolean; pid?: number | null };
+    vaultBackup?: {
+      exists?: boolean;
+      ts?: string;
+      hashShort?: string;
+      bytes?: number;
+    } | null;
+    repoSync?: { ahead?: number; behind?: number } | null;
   } | null;
   error?: string;
 };
@@ -137,6 +147,13 @@ function fmtUptime(u: unknown): string {
   return `${s} שנ׳`;
 }
 
+function fmtKb(bytes: unknown): string {
+  const n =
+    typeof bytes === "number" && Number.isFinite(bytes) ? bytes : NaN;
+  if (Number.isNaN(n) || n < 0) return DASH;
+  return `${(n / 1024).toFixed(1)} KB`;
+}
+
 function fmtTime(iso: unknown): string {
   if (typeof iso !== "string" || !iso) return DASH;
   const d = new Date(iso);
@@ -215,7 +232,10 @@ export default function OwnerPortalPage() {
   const [refreshing, setRefreshing] = useState(false);
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
-  const [busy, setBusy] = useState<"secret-scan" | "push-github" | null>(null);
+  const [busy, setBusy] = useState<
+    "secret-scan" | "push-github" | "vault-backup" | "vault-restore" | null
+  >(null);
+  const [vaultPass, setVaultPass] = useState("");
 
   const addLog = useCallback((level: LogLevel, text: string, hits?: string[]) => {
     setLogs((prev) =>
@@ -359,14 +379,20 @@ export default function OwnerPortalPage() {
     setLoginError("התנתקת — להתחברות חוזרת הזן סיסמה");
   }
 
-  async function runAction(action: "secret-scan" | "push-github") {
+  async function runAction(
+    action: "secret-scan" | "push-github" | "vault-backup" | "vault-restore",
+    payload?: { password?: string }
+  ) {
     if (busy) return;
     setBusy(action);
     try {
       const r = await fetch("/api/sandbox/action", {
         method: "POST",
         headers: authHeaders(true),
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({
+          action,
+          ...(payload?.password ? { password: payload.password } : {}),
+        }),
         signal: AbortSignal.timeout(12000),
       });
       if (r.status === 401) {
@@ -384,15 +410,27 @@ export default function OwnerPortalPage() {
         return;
       }
       if (d.ok === false) {
+        const detail = typeof d.error === "string" ? `: ${d.error}` : "";
         addLog(
           "error",
           action === "secret-scan"
-            ? `הסריקה נכשלה${typeof d.error === "string" ? `: ${d.error}` : ""}`
-            : `הדחיפה נכשלה${typeof d.error === "string" ? `: ${d.error}` : ""}`
+            ? `הסריקה נכשלה${detail}`
+            : action === "push-github"
+              ? `הדחיפה נכשלה${detail}`
+              : action === "vault-backup"
+                ? `הגיבוי נכשל${detail}`
+                : `השחזור נכשל${detail}`
         );
         return;
       }
-      if (action === "secret-scan") {
+      if (action === "vault-backup") {
+        addLog(
+          "ok",
+          "הכספת גובתה ומוצפנה — קובץ הגיבוי עודכן (vault-backup.enc)"
+        );
+      } else if (action === "vault-restore") {
+        addLog("ok", "הכספת שוחזרה מהגיבוי המוצפן");
+      } else if (action === "secret-scan") {
         const hits = extractHits(d);
         const count =
           typeof d.total === "number"
@@ -434,6 +472,22 @@ export default function OwnerPortalPage() {
 
   const vault = Array.isArray(status?.vault) ? (status?.vault as VaultItem[]) : [];
   const git = status?.git ?? {};
+  const guardian = status?.ops?.guardian ?? null;
+  const guardianAlive = guardian?.alive === true;
+  const vaultBackup = status?.ops?.vaultBackup ?? null;
+  const repoSync = status?.ops?.repoSync ?? null;
+  const repoSynced =
+    repoSync != null &&
+    (repoSync.ahead ?? 0) === 0 &&
+    (repoSync.behind ?? 0) === 0;
+
+  /* שחזור-כספת: הסיסמה-נשלחת-פעם-אחת-בגוף-הבקשה-ונמחקת-מיד-מהמצב */
+  async function handleVaultRestore() {
+    const pass = vaultPass;
+    setVaultPass("");
+    if (!pass || busy) return;
+    await runAction("vault-restore", { password: pass });
+  }
 
   return (
     <div
@@ -682,26 +736,61 @@ export default function OwnerPortalPage() {
                     ריבונות
                   </CardTitle>
                   <CardDescription>
-                    המפקח-הריבוני + דחיפה-עצמית — הרשת-חיה-מהריפו, לא-מהסנדבוקס
+                    שומר-עצמאי · גיבוי-כספת-מוצפן · סנכרון-הריפו — הרשת-חיה-מהריפו, לא-מהסנדבוקס
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm">המפקח-הריבוני</span>
-                    <Badge
-                      variant={status?.ops?.supervisor?.alive ? "default" : "destructive"}
-                      className="gap-1.5"
-                    >
+                    <span className="text-sm">שומר-ריבונות עצמאי</span>
+                    <Badge variant={guardianAlive ? "default" : "destructive"} className="gap-1.5">
                       <span
                         className={`size-2 rounded-full ${
-                          status?.ops?.supervisor?.alive ? "bg-emerald-500" : "bg-red-500 animate-pulse"
+                          guardianAlive ? "bg-emerald-500" : "bg-red-500 animate-pulse"
                         }`}
                         aria-hidden="true"
                       />
-                      {status?.ops?.supervisor?.alive
-                        ? `פעיל — pid ${status.ops.supervisor.pid ?? "?"}`
+                      {guardianAlive
+                        ? `פעיל — pid ${guardian?.pid ?? "?"}`
                         : "לא פעיל"}
                     </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm">גיבוי-כספת-מוצפן</span>
+                    {vaultBackup?.exists ? (
+                      <span className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+                        <Badge variant="secondary" className="font-mono text-xs" dir="ltr">
+                          {fmtTime(vaultBackup.ts)}
+                        </Badge>
+                        {vaultBackup.hashShort ? (
+                          <Badge variant="secondary" className="font-mono text-xs" dir="ltr">
+                            {vaultBackup.hashShort}
+                          </Badge>
+                        ) : null}
+                        <Badge variant="secondary" className="font-mono text-xs" dir="ltr">
+                          {fmtKb(vaultBackup.bytes)}
+                        </Badge>
+                      </span>
+                    ) : (
+                      <Badge variant="destructive">אין גיבוי</Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm">סנכרון-ריפו</span>
+                    {repoSync ? (
+                      <Badge
+                        variant={repoSynced ? "default" : "secondary"}
+                        className={repoSynced ? "gap-1.5" : "font-mono text-xs"}
+                      >
+                        {repoSynced && (
+                          <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                        )}
+                        {repoSynced
+                          ? "מסונכרן"
+                          : `קדימה ${repoSync.ahead ?? 0} · אחורה ${repoSync.behind ?? 0}`}
+                      </Badge>
+                    ) : (
+                      DASH
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm">דחיפה-עצמית-אחרונה (כל 30 דק׳)</span>
@@ -711,8 +800,43 @@ export default function OwnerPortalPage() {
                         : DASH}
                     </Badge>
                   </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => void runAction("vault-backup")}
+                      disabled={busy !== null || !hqOk || linkDown}
+                    >
+                      <DatabaseBackup aria-hidden="true" />
+                      {busy === "vault-backup" ? "מגבה..." : "גבה עכשיו"}
+                    </Button>
+                  </div>
+                  <div className="rounded-lg border bg-background/40 p-3">
+                    <p className="text-sm font-medium">שחזור-כספת</p>
+                    <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="סיסמת-האם לפענוח הגיבוי"
+                        value={vaultPass}
+                        onChange={(e) => setVaultPass(e.target.value)}
+                        disabled={busy !== null || !hqOk || linkDown}
+                        aria-label="סיסמת-האם לשחזור הכספת"
+                        className="min-w-0 flex-1"
+                      />
+                      <Button
+                        onClick={() => void handleVaultRestore()}
+                        disabled={busy !== null || !hqOk || linkDown || !vaultPass}
+                      >
+                        <ArchiveRestore aria-hidden="true" />
+                        {busy === "vault-restore" ? "משחזר..." : "שחזר מגיבוי"}
+                      </Button>
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      הסיסמה אינה נשמרת בשום מקום — משמשת רק לפענוח ברגע השחזור
+                    </p>
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    אחרי-מחיקת-סנדבוקס: sh sanbox/scripts/boot-all.sh — והכל-חוזר.
+                    אחרי-מחיקת-סנדבוקס: sh sanbox/scripts/boot-all.sh — והכל-חוזר; אם-התיקייה-נמחקה-כולה, הפורטל-משחזר-את-הקוד-מהריפו-לבדו.
                   </p>
                 </CardContent>
               </Card>

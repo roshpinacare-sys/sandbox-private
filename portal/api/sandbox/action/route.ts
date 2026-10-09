@@ -3,11 +3,20 @@ import { HQ_BASE, HQ_UNAVAILABLE, getHqToken, hqHeaders } from "@/lib/hq-session
 
 export const runtime = "nodejs";
 
-const ALLOWED_ACTIONS = new Set(["secret-scan", "push-github", "auto-push", "ping"]);
+const ALLOWED_ACTIONS = new Set([
+  "secret-scan",
+  "push-github",
+  "auto-push",
+  "ping",
+  "vault-backup",
+  "vault-restore",
+]);
 
 /**
- * פרוקסי-פעולות ({action: 'secret-scan' | 'push-github' | 'ping'}):
+ * פרוקסי-פעולות ({action: 'secret-scan' | 'push-github' | 'vault-backup' | 'vault-restore' | 'ping'}):
  * מעביר את ה-cookie הנכנס + הגוף אל sanbox ומחזיר את הסטטוס וה-JSON כמו-שהם.
+ * 'vault-restore' מקבל בנוסף שדה-password (מחרוזת-בלבד) — הסיסמה מועברת
+ * ל-HQ בגוף-הבקשה בלבד: לא נרשמת בלוגים, לא נשמרת, לא חוזרת בתשובות.
  */
 export async function POST(request: NextRequest) {
   const token = getHqToken(request);
@@ -16,15 +25,18 @@ export async function POST(request: NextRequest) {
   }
 
   let action = "";
+  let password: string | undefined;
   try {
     const body: unknown = await request.json();
-    if (
-      body &&
-      typeof body === "object" &&
-      typeof (body as Record<string, unknown>).action === "string"
-    ) {
-      const candidate = (body as Record<string, unknown>).action as string;
-      if (ALLOWED_ACTIONS.has(candidate)) action = candidate;
+    if (body && typeof body === "object") {
+      const rec = body as Record<string, unknown>;
+      if (typeof rec.action === "string" && ALLOWED_ACTIONS.has(rec.action)) {
+        action = rec.action;
+      }
+      // סיסמת-שחזור-הכספת: מחרוזת-בלבד; אינה-נכנסת-ללוגים/קבלות-ולא-חוזרת-בתשובה
+      if (typeof rec.password === "string" && rec.password.length > 0) {
+        password = rec.password;
+      }
     }
   } catch {
     // גוף לא-תקין — action ריק; sanbox ידחה
@@ -41,7 +53,14 @@ export async function POST(request: NextRequest) {
     const hqRes = await fetch(`${HQ_BASE}/api/action`, {
       method: "POST",
       headers: hqHeaders(token, { "Content-Type": "application/json" }),
-      body: JSON.stringify({ action }),
+      body: JSON.stringify({
+        action,
+        ...(action === "vault-restore" &&
+        typeof password === "string" &&
+        password.length > 0
+          ? { password }
+          : {}),
+      }),
       signal: AbortSignal.timeout(8000),
       cache: "no-store",
     });

@@ -18,6 +18,22 @@ if [ ! -f "$ROOT/secrets/pat.env" ]; then
   chmod 600 "$ROOT/secrets/"* 2>/dev/null
 fi
 
+# 1.1) אם-הכספת-עדיין-חסרה: שחזור-מהגיבוי-המוצפן (דורש HQ_VAULT_PASS)
+if [ ! -f "$ROOT/secrets/pat.env" ] && [ -f "$ROOT/vault/vault-backup.enc" ]; then
+  if [ -n "${HQ_VAULT_PASS:-}" ]; then
+    echo "… משחזר את הכספת מ-vault/vault-backup.enc (HQ_VAULT_PASS)"
+    if (cd "$ROOT" && HQ_VAULT_PASS="$HQ_VAULT_PASS" bun scripts/vault-restore.ts); then
+      echo "✓ הכספת-שוחזרה מהגיבוי-המוצפן"
+    else
+      echo "!! שחזור-הכספת-מהגיבוי נכשל"
+    fi
+  else
+    echo "!! יש גיבוי-מוצפן אך-אין-סיסמה בסביבה — הרץ: HQ_VAULT_PASS=... bun scripts/vault-restore.ts"
+  fi
+elif [ ! -f "$ROOT/secrets/pat.env" ]; then
+  echo "!! הכספת-חסרה ואין-גיבוי מוצפן — העלה קבצי-כספת אל upload/ והרץ שוב"
+fi
+
 # 2) סנכרון-זיכרון (MEMORY + worklog → הריפו)
 mkdir -p "$ROOT/memory"
 cp "$PROJECT/MEMORY.md" "$ROOT/memory/" 2>/dev/null
@@ -29,6 +45,13 @@ if pgrep -f 'scripts/supervisor.ts' > /dev/null 2>&1; then
 else
   nohup bun "$ROOT/scripts/supervisor.ts" >> "$ROOT/receipts/supervisor.out" 2>&1 &
   echo "✓ המפקח-הריבוני הוקם (pid=$!)"
+fi
+
+# 3.5) שומר-הריבונות-העצמאי (~/.sovereign — שורד-מחיקת-התיקייה-ומשחזר-הכל-מהריפו)
+if [ -f "$HOME/.sovereign/guardian.pid" ] && kill -0 "$(cat "$HOME/.sovereign/guardian.pid" 2>/dev/null)" 2>/dev/null; then
+  echo "✓ שומר-הריבונות-העצמאי כבר חי (pid=$(cat "$HOME/.sovereign/guardian.pid" 2>/dev/null))"
+else
+  sh "$ROOT/scripts/install-guardian.sh"
 fi
 
 # 4) HQ מיד (בלי-לחכות-לטיק-הראשון-של-המפקח)
