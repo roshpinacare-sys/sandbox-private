@@ -4027,25 +4027,26 @@ Stage Summary:
 - אפס-דריסות-בשרשרת: כל-המסילות (ענן-יומי · twin-מקומי-30-דק' · state-push-20-דק' · catch-up) מתכנסות-לאמת-בלי-לשמוט-עמית; חור-ה-X-theirs-על-היומן-נאטם-מבנית-לנצח
 - הצי-מתקשר-בלי-תקלות: 4-ריפואים-PROVEN · מופע-יחיד-לכל-משמר · קוד-כל-הסוכנים-חי-בתהליכים
 - עוצמת-הריבוי-מומשה: 3-גישות-למפעיל-הפנימי (ענן-takeover · wrapper-מנוהל · קצ'אפ) — מגוון-בלי-התנגשות, כפי-שהורה-הבעלים
+
+# Project Worklog
+
 ---
-Task ID: 51-verify
-Agent: agent-9 (ריבון-האימות-העצמאי: לא-לסמוך-על-הצי-אלא-למדוד-אותו → אימוץ-אפס-אובדן → דחיפה)
-Task: "שימו לב אחד לשני לא לדרוס... לוודא שהכל תקין לשפר לייעל ולדחוף" — אימות-עצמאי-של-עבודת-הצי (T-51/T-52/T-53) בלי-לסמוך-על-הטענות, אימוץ-הענפים-שנטשו-מקומית, ומדידה-טרייה
+Task ID: 1
+Agent: main orchestrator (Z.ai Code)
+Task: Extract password-protected RAR (pat.rar, password 934381) containing a GitHub PAT, then clone and serve the "קונסולת הצי" (Fleet Console) repo — roshpinacare-sys/Console — through the Next.js app.
 
 Work Log:
-- **אימות-בלתי-תלוי-של-טענות-הצי (הכל-נמדד, לא-הועתק)**: census-תהליכים-מלא-דרך /proc/*/cwd — grid-twin-wrapper (23845/23847 @ mini-services/grid-twin + ילד run.mjs 24180 loop-30דק') ✓ · dex-state-push (24367/24369) ✓ · supervisor (14870) ✓ · HQ-3011 (27519, הוחזר-21:10-ע"י-השומר) ✓ · קונסולת-האם-3050 (18329/28698 @ zip) ✓ · guardian (8947) ✓ · saos-legion/relay/revenue-governor/dex-watchdog/dex-daemon ✓ — אפס-כפילויות, תואם-במלואו-לטענות-התאום
-- **escalations.json נאומת**: grid-fuel-ignition (commitable-3.286<5.00-נדרש · נזיל-4.151-STEEM+0.824-SBD · חסר-1.405) + g6-content-pruning — שניהם-קיימים-עם-מספרים-ב-repo-vault/escalations.json ✓
-- **הגנות-האיחוד-נאומתו**: האם-.gitattributes=`*.jsonl-merge=union` ✓ · sanbox-.gitattributes=`*.jsonl+memory/worklog.md-merge=union` ✓ (T-53 הוסיף-MEMORY.md-union-בענף-המרוחק) — חור-ה-X-theirs-נאטם-מבנית
-- **כספת-המפתח-נאומתה**: sanbox/secrets/agent-api.env (600) ✓ · ~/.sovereign/agent-key.env (600) ✓ · gitignored-מאומת (.gitignore:92) ✓ · אפס-תוכן-נבדק-או-הודפס
-- **מדידה-טרייה (21:24, חדה-משל-התאום)**: state.json asof=21:24:26 · runCount=348 (tick#348-הושלם) · 36/36-רשתות · **offer.json-מדווח-עכשיו "0-STEEM-commitable"** — הדלק-נשחק-מ-3.286-אצל-התאום-לאפס-commitable (ייתכן-נעילת-פקודה-אמת/תנועה-בשרשרת); החסימה-הכנה-החמירה — ה-escalation-מדויק-אף-יותר-עכשיו
-- **אימוץ-אפס-אובדן-של-הענפים**: sanbox-מקומי-היה-3-מאחורי (2c7c052-T-53+2×HQ-sync) 0-קדימה → stash-receipt→ff-only→508a763 ✓ · SovereignConsole-מקומי-היה-1-מאחורי (15ee3ef-מראת-ענן-21:26-1183-קבצים-סריקה-נקייה) → ff-only ✓ · האם-588ae81-מסונכרן ✓ · saos-dex-64ddffd1-מסונכרן ✓ — אפס-דריסה-מצדי, כל-עבודת-העמיתים-אומצה-כמו-שהיא
-- **תיקון-תהליכי-קטן**: stash-שנשאר-UU-על-קובץ-receipt-רץ-הוחזר-ל-HEAD-ונוקה — עץ-sanbox-נקי-לחלוטין
-- **ports**: 3000/3011/3050→200 · 3010→/404-כצפוי-(basePath-/-saos-dex-מגיש-HTML) — כל-השירותים-מתקשרים
+- Located upload at /home/z/my-project/upload/pat.rar (RAR v5, 334 bytes, encrypted).
+- unrar-free could not handle encryption; installed node-unrar-js (WASM) in /tmp/rartool and extracted `pat.env` (93 bytes, a GitHub fine-grained PAT) to /tmp/pat_extract/extracted_content.bin using the provided password.
+- Used the PAT (kept out of logs/output) against GitHub API: token belongs to user `roshpinacare-sys`; enumerated 16 repos; identified `roshpinacare-sys/Console` as "קונסולת הצי" (default branch main, ~11 MB, updated 2026-10-06).
+- Cloned https://github.com/roshpinacare-sys/Console.git into /home/z/my-project/Console via GIT_ASKPASS (no token leakage).
+- Repo is a static, no-build bilingual (HE/EN, RTL) console SPA: index.html + wallet/truth/money/net/acid/gate/defi/deposits/readiness/sovereign/versus pages, hub/, receipts/, JSON ledgers, assets.
+- Deployed site to Next.js: `rsync -a --exclude=.git --exclude=.github Console/ public/console/` (6.4 MB).
+- Rewrote src/app/page.tsx to `redirect('/console/index.html')` (server component, next/navigation).
+- Verified via curl: `/` → 307 → /console/index.html; index/wallet/truth/status.json/assets all 200.
+- Verified via agent-browser: root redirect works; Hebrew RTL home renders with live stats (1,505 attestations, 68/125 checkpoints, FRESH witness 0.3h); Network tab shows live Steem anchor data; EN/HE language toggle works; wallet.html renders with live block status; truth.html shows ALL-GREEN CI verdict; mobile viewport (390x844) renders correctly with hamburger menu. No console or page errors; dev.log clean (only 200/307 responses).
 
 Stage Summary:
-- **הצי-עבד-נכון**: טענות-התאומים-אומתו-במדידה-בלתי-תלויה-והכל-תואם — אפס-דריסות-בין-הסוכנים, ההגנות-המבניות-במקום, הכספות-בהרשאות-הנכונות
-- **ארבעת-הריפואים-מתכנסים**: האם 588ae81 · sanbox 508a763 · saos-dex 64ddffd1 · SovereignConsole 15ee3ef — הכל-מקומי=מרוחק-אחרי-האימוץ
-- **התשובה-ל"אפס-פעילות-היום"** מאומתת-כפול: הגריד-חי-ומתקתק (tick#348 · 36/36 · µ-sim-זורם · ענן-100-ריצות) אך-המסחר-האמת-חסום-בכנות-על-דלק — commitable-ירד-לאפס-עד-21:24; ההצתה-ממתינה-להכרעת-בעלים-ב-escalation-עם-מספרים, והכל-האחר-רץ-בלי-המתנת-מפעיל
 - Fleet Console is live at / (redirects to /console/index.html); full site served from public/console/.
 - Source repo kept at /home/z/my-project/Console (git clone, branch main @ f5957d21) for future `git pull` + re-sync updates.
 - PAT file stays at /tmp/pat_extract/extracted_content.bin (not committed anywhere, not exposed in logs).
@@ -4903,4 +4904,59 @@ Stage Summary:
 - **הדיסציפלינה-הבין-סוכנית-כעת-מובנית-בשלוש-שכבות:** (1) union-merge-בגיט-לכל-היומנים (2) syncMemory-מאחד-by-hash-ומתכנס-לסופרסט (3) fail-closed-בעת-התנגשות-עם-ניסיון-חוזר-X-theirs-למצבי-ריצה-בלבד. אפס-דריסה-אפשרית-מעתה, והזיכרון-רק-גדל.
 - התאום-ואנחנו-על-אותו-ראש (2c7c052) · המערכת-החיה-רצה-על-הקוד-המתוקן (HQ-733) · הגריד-דורך-בקצב-חי-על-11-מנועים · STASIS-נשאר-החלטת-הבעלים-היחידה-שלא-נגעו-בה.
 
+
+---
+Task ID: T-53-proof (ההוכחה-החיה-הסופית)
+Agent: sovereign-operator
+Task: סגירת-הלולאה — הראיה-שהמערכת-המתוקנת-רצה-בעצמה.
+
+Work Log:
+- **21:23:58** hq-revive (pid-733, קוד-חדש) · **21:24:08** לב (747) · **21:39:08** לב (1723) · **21:53:58.313** דחיפה-עצמית-מתוזמנת-ראשונה: **ok:true · pushed:true · a077e26** (מקור: receipts/auto-push.jsonl — מוכח-בריפו).
+- **התאום-התכנס-למשמעת-המתוקנת בעצמו:** הקומיט-שלו-36a3968 (+6/−4-בלבד, אפס-מחיקות-יומן) והקבלה-שלו-מציגה-את-סדר-ה-synced-החדש — שתי-המכונות-רצות-עכשיו-על-איחוד-מדורים.
+- שני-כותבים-מתחלפים-נקי-על-אותו-ראש: 530f266→2c7c052→36a3968→508a763→72faddb→38ea73d→a077e26 — אפס-התנגשויות-עוצרות-מאז-התיקון.
+
+Stage Summary:
+- המשמעת-הבין-סוכנית-מוכחת-חיה: איחוד-by-hash-בקוד + union-בגיט + fail-closed/X-theirs-למצבי-ריצה + התחדשות-תהליכים-אוטונומית. אף-רכיב-לא-ממתין-למפעיל-אנושי.
+
+---
+Task ID: 52
+Agent: agent-8 (ריבון-האינטגרציה: מיפוי-הצי → ביקורת-דריסות → תיקון-שורש → אופטימיזציה → דחיפה)
+Task: "לראות מה כולם עשו על הגיט ולוודא שאין דריסות... הכל מתקשר בלי תקלות... שימו לב אחד לשני" — ביקורת-אינטגרציה-מלאה-של-עבודת-הצי-המקבילה
+
+Work Log:
+- **מיפוי-הצי-על-הגיט** (כל-הידיים-על-ארבעת-הריפואים): T-47 (agent-7: השרת-חזר+חוזה-השלום) · T-50/T-50-addendum/T-51 (אני: ביקורת+מראה+מפעיל-פנימי) · T-51-מקביל (סוכן-שני: איחוד-jsonl-union · ניסיון-חוזר-X-theirs · מפתח-NVIDIA-לכספת) · 44-d (מבחן-ההשמדה: guardian-משחזר-folder+vault-4/4-בעצמו) · cadences (state-push/fuel-telemetry/mem-sentinel) · twin-lanes (ענן+קצ'אפ)
+- **ביקורת-דריסות-פסיקה**: ① *.jsonl-merge=union (T-51-חבר) — נכון ✓ ② dex-[state]--X-ours — נכון ✓ (semantics-מכוון: מצב-חי-מנצח-על-צילום-ישן) ③ **memory/worklog.md-תחת-X-theirs — חור-דריסה-אמיתי**: דחיפה-מקומית-מאוחרת-מול-מרחוק-ישן-הייתה-שותקת-ומשמידה-רשומות-עמיתים → **תוקן-בשורש**: memory/worklog.md merge=union-ב-sanbox + *.jsonl merge=union-באם — התנגשות-יומן=איחוד-שני-הצדדים-לנצח (מדוד: sanbox @ 84fb131 · mother @ 541367e)
+- **תעלומת-twin-הוכרעה**: קומיטי-grid-heartbeat(twin)[bot] (20:54:08/21:03:45) = **התאום-הענני-ב-Domain** (cron 10:08 יומי + שומר-takeover + dispatch — נמדד-בקוד-הענן); אפס-קוד-מקומי-מאמת-את-הזהות → ריבוי-מסילות-מתוכנן-ומתואם, **אפס-דריסה**: כל-המסילות מתכנסות-לאותו-מצב-כן
+- **אינטגרציה-בפועל (תפקיד-האינטגרטור-ש-44-d-קרא-לו)**: HQ-החי-על-3011-רץ-מ-19:01-ולא-טען-את-קוד-הצי-החדש (autoPush-retry + vault-status) → הפעלה-מחדש-מבוקרת-דרך-השומר (kill→hq-revive-10שנ' HTTP-check ✓ pid 27519) — קוד-הצי-חי-עכשיו
+- **ביקורת-מופע-יחיד** (אפס-התנגשויות-תהליכים): supervisor ×1 · guardian ×1 · HQ ×1 · grid-twin-loop ×1 · state-push ×1 (cwd-precise) — אפס-כפילויות
+- **קשר-קצה-לקצה-נמדד**: ops-route (נתוני-הקונסולה) ✓ · relay-3003 ✓ · revenue-governor-3042 ✓ · 3000/3010/3011/3050 כולם-200 · state-push-בקדנס · grid-twin-tick#348-במסלול
+- **דריפת-האם-נאפה**: f4c6793 (קבלות-cadence-אוטומטיות) נדחף-יחד-עם-תיקוני-T-52 (541367e)
+
+Stage Summary:
+- אפס-דריסות-בשרשרת: כל-המסילות (ענן-יומי · twin-מקומי-30-דק' · state-push-20-דק' · catch-up) מתכנסות-לאמת-בלי-לשמוט-עמית; חור-ה-X-theirs-על-היומן-נאטם-מבנית-לנצח
+- הצי-מתקשר-בלי-תקלות: 4-ריפואים-PROVEN · מופע-יחיד-לכל-משמר · קוד-כל-הסוכנים-חי-בתהליכים
+- עוצמת-הריבוי-מומשה: 3-גישות-למפעיל-הפנימי (ענן-takeover · wrapper-מנוהל · קצ'אפ) — מגוון-בלי-התנגשות, כפי-שהורה-הבעלים
+---
+Task ID: 51-verify
+Agent: agent-9 (ריבון-האימות-העצמאי: לא-לסמוך-על-הצי-אלא-למדוד-אותו → אימוץ-אפס-אובדן → דחיפה)
+Task: "שימו לב אחד לשני לא לדרוס... לוודא שהכל תקין לשפר לייעל ולדחוף" — אימות-עצמאי-של-עבודת-הצי (T-51/T-52/T-53) בלי-לסמוך-על-הטענות, אימוץ-הענפים-שנטשו-מקומית, ומדידה-טרייה
+
+Work Log:
+- **אימות-בלתי-תלוי-של-טענות-הצי (הכל-נמדד, לא-הועתק)**: census-תהליכים-מלא-דרך /proc/*/cwd — grid-twin-wrapper (23845/23847 @ mini-services/grid-twin + ילד run.mjs 24180 loop-30דק') ✓ · dex-state-push (24367/24369) ✓ · supervisor (14870) ✓ · HQ-3011 (27519, הוחזר-21:10-ע"י-השומר) ✓ · קונסולת-האם-3050 (18329/28698 @ zip) ✓ · guardian (8947) ✓ · saos-legion/relay/revenue-governor/dex-watchdog/dex-daemon ✓ — אפס-כפילויות, תואם-במלואו-לטענות-התאום
+- **escalations.json נאומת**: grid-fuel-ignition (commitable-3.286<5.00-נדרש · נזיל-4.151-STEEM+0.824-SBD · חסר-1.405) + g6-content-pruning — שניהם-קיימים-עם-מספרים-ב-repo-vault/escalations.json ✓
+- **הגנות-האיחוד-נאומתו**: האם-.gitattributes=`*.jsonl-merge=union` ✓ · sanbox-.gitattributes=`*.jsonl+memory/worklog.md-merge=union` ✓ (T-53 הוסיף-MEMORY.md-union-בענף-המרוחק) — חור-ה-X-theirs-נאטם-מבנית
+- **כספת-המפתח-נאומתה**: sanbox/secrets/agent-api.env (600) ✓ · ~/.sovereign/agent-key.env (600) ✓ · gitignored-מאומת (.gitignore:92) ✓ · אפס-תוכן-נבדק-או-הודפס
+- **מדידה-טרייה (21:24, חדה-משל-התאום)**: state.json asof=21:24:26 · runCount=348 (tick#348-הושלם) · 36/36-רשתות · **offer.json-מדווח-עכשיו "0-STEEM-commitable"** — הדלק-נשחק-מ-3.286-אצל-התאום-לאפס-commitable (ייתכן-נעילת-פקודה-אמת/תנועה-בשרשרת); החסימה-הכנה-החמירה — ה-escalation-מדויק-אף-יותר-עכשיו
+- **אימוץ-אפס-אובדן-של-הענפים**: sanbox-מקומי-היה-3-מאחורי (2c7c052-T-53+2×HQ-sync) 0-קדימה → stash-receipt→ff-only→508a763 ✓ · SovereignConsole-מקומי-היה-1-מאחורי (15ee3ef-מראת-ענן-21:26-1183-קבצים-סריקה-נקייה) → ff-only ✓ · האם-588ae81-מסונכרן ✓ · saos-dex-64ddffd1-מסונכרן ✓ — אפס-דריסה-מצדי, כל-עבודת-העמיתים-אומצה-כמו-שהיא
+- **תיקון-תהליכי-קטן**: stash-שנשאר-UU-על-קובץ-receipt-רץ-הוחזר-ל-HEAD-ונוקה — עץ-sanbox-נקי-לחלוטין
+- **ports**: 3000/3011/3050→200 · 3010→/404-כצפוי-(basePath-/-saos-dex-מגיש-HTML) — כל-השירותים-מתקשרים
+
+Stage Summary:
+- **הצי-עבד-נכון**: טענות-התאומים-אומתו-במדידה-בלתי-תלויה-והכל-תואם — אפס-דריסות-בין-הסוכנים, ההגנות-המבניות-במקום, הכספות-בהרשאות-הנכונות
+- **ארבעת-הריפואים-מתכנסים**: האם 588ae81 · sanbox 508a763 · saos-dex 64ddffd1 · SovereignConsole 15ee3ef — הכל-מקומי=מרוחק-אחרי-האימוץ
+- **התשובה-ל"אפס-פעילות-היום"** מאומתת-כפול: הגריד-חי-ומתקתק (tick#348 · 36/36 · µ-sim-זורם · ענן-100-ריצות) אך-המסחר-האמת-חסום-בכנות-על-דלק — commitable-ירד-לאפס-עד-21:24; ההצתה-ממתינה-להכרעת-בעלים-ב-escalation-עם-מספרים, והכל-האחר-רץ-בלי-המתנת-מפעיל
+- Fleet Console is live at / (redirects to /console/index.html); full site served from public/console/.
+- Source repo kept at /home/z/my-project/Console (git clone, branch main @ f5957d21) for future `git pull` + re-sync updates.
+- PAT file stays at /tmp/pat_extract/extracted_content.bin (not committed anywhere, not exposed in logs).
+- Key files: src/app/page.tsx (redirect), public/console/* (static site).
 
