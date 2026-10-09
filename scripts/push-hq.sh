@@ -73,24 +73,12 @@ hits_json=""
 
 while IFS= read -r -d '' f; do
   [ -f "$f" ] || continue
-  # FIX(T-47): הצופן-המתוכנן-של-הכספת — בינארי-מוצפן, אינו-סוד-גלוי (מדוד:
-  # כל-היט-ממנו-היה-שארית-בסיס64-אקראית-של-ההצפנה). זהה-ל-exclusion-של-ops.ts.
-  case "$f" in vault/vault-backup.enc) continue ;; esac
+  # הרשימה-הלבנה-זהה-ל-runSecretScan ב-core/ops.ts: הצופן-המתוכנן (AES-256-GCM)
+  # אינו-סוד-גלוי — נבדק-בנפרד-וזוכה-לדחיפה-במתכוון (Task 44/49)
+  [ "$f" = "vault/vault-backup.enc" ] && continue
   scanned=$((scanned + 1))
   for spec in "${BASE_SPECS[@]}"; do
     kind="${spec%%|*}"; pattern="${spec#*|}"
-    if [ "$kind" = "generic-long" ]; then
-      # FIX(T-47): גנרי-ארוך-חכם — אותו-חוק-כמו-core/scan-patterns.ts:
-      # רצפים-40+ נשללים-אם-צורתם-ציבורית-ידועה (האש-הקס/כתובת-EVM/bech32/
-      # בסיס58-43..53/חתימת-סולנה-87..88). WIF/xprv-נתפסים-בכללים-משלהם-למטה.
-      suspects="$(grep -oE '[A-Za-z0-9]{40,}' "$f" 2>/dev/null \
-        | grep -vE '^0[xX][0-9a-fA-F]{40}$|^0[xX][0-9a-fA-F]{64}$|^[0-9a-fA-F]{40,64}$|^bc1[a-z0-9]{20,87}$|^[1-9A-HJ-NP-Za-km-z]{43,53}$|^[1-9A-HJ-NP-Za-km-z]{87,88}$' || true)"
-      if [ -n "$suspects" ]; then
-        HIT_LINES+=("${f}|${kind}")
-        scan_hits=$((scan_hits + 1))
-      fi
-      continue
-    fi
     if grep -qE -- "$pattern" "$f" 2>/dev/null; then
       HIT_LINES+=("${f}|${kind}")
       scan_hits=$((scan_hits + 1))
@@ -181,6 +169,18 @@ case "$1" in Username*) echo "x-access-token";; *) echo "$HQ_TOKEN";; esac
 EOF
 chmod 700 "$ASKPASS"
 ASKPASS_CREATED=1
+
+# --- משיכה-ב-rebase-לפני-דחיפה (פריטה-זהה-ל-autoPush ב-core/ops.ts — לקח-T-49:
+#     הדחיפה-העצמית-של-HQ-עלולה-להקדים-את-הדוחף-הידני; בלי-rebase-הדחיפה-נדחית) ---
+PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
+  git pull --rebase origin main 2>&1)" || {
+  printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
+  log_push false pull "$COMMIT" "$REPO_FULL" true
+  echo 'משיכת-rebase נכשלה — fail-closed (אין-force)'
+  exit 1
+}
+printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
+COMMIT="$(git rev-parse --short HEAD)"
 
 PUSH_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" git push -u origin main 2>&1)" || {
   printf '%s\n' "$PUSH_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'

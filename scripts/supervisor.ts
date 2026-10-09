@@ -6,12 +6,15 @@
  *  2. אפליקציה ראשית (פורט 3000) — מת-→ חוק-שתי-המכות: שתי-בדיקות-רצופות-מתות
  *     → מעטפת-תקועה-מטוהרת (pkill) → `bun run dev` מנותק.
  *  3. בודק-שלא-נולדו-שני-מפקחים (pidfile) — מופע-יחיד.
+ *  4. הלב-השני (T-49): heart-tick.mjs-מקומי-כל-15 דק' — עד-עכשיו-הלב-פעם-רק-ב-CI,
+ *     וריפו-פרטי-חסום-מכסה-מימוט-אותו → דומם. עכשיו-פועם-גם-מקומית-תמיד.
+ *  5. המראה-העננית (T-49): mirror-project.ts-כל-6 שעות (מצערת-פנימית-בתוך-הסקריפט)
+ *     — SovereignConsole-המראה-הייתה-נדחפת-ידנית-בלבד; עכשיו-רענון-אוטונומי.
  *
  * יולד-על-ידי server.ts בעלייה או boot-all.sh — תמיד-detached+unref.
  * קבלות: receipts/supervisor.jsonl (מוגבל), pid: db/supervisor.pid
  */
 import net from 'node:net';
-import http from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -27,18 +30,18 @@ const PIDFILE = path.join(DB, 'supervisor.pid');
 const TICK_MS = 10_000;
 const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
 const DEV_PORT = 3000;
-const CONSOLE_PORT = 3050; // T-47: קונסולת-האם (חוזה-הדלת-הקדמית)
-const ZIP = path.join(PROJECT, 'zip');
-const SAOS_DEX = path.join(PROJECT, 'saos-dex');
 const HQ_SPAWN_DEBOUNCE_MS = 15_000;
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;
-const CONSOLE_SPAWN_DEBOUNCE_MS = 30_000;
 const MAX_EVENTS = 500;
+// T-49: רכבת-התחזוקה-האוטונומית
+const HEART_INTERVAL_MS = 15 * 60_000;      // פעימה-מקומית-של-הלב-השני
+const MIRROR_INTERVAL_MS = 6 * 60 * 60_000; // רענון-המראה-העננית (מצערת-נוספת-בתוך-הסקריפט)
 
 let hqLastSpawn = 0;
 let devLastSpawn = 0;
-let consoleLastSpawn = 0;
 let devDeadStrikes = 0;
+let heartLastRun = 0;
+let mirrorLastRun = 0;
 
 function log(event: Record<string, unknown>): void {
   try {
@@ -63,19 +66,6 @@ function portAlive(port: number, timeoutMs = 1500): Promise<boolean> {
     socket.once('connect', () => done(true));
     socket.once('timeout', () => done(false));
     socket.once('error', () => done(false));
-  });
-}
-
-function httpAlive(port: number, pathReq = '/', timeoutMs = 2500): Promise<boolean> {
-  return new Promise((resolve) => {
-    // T-47: כל-תשובת-HTTP = השרת-עונה (200/401/429/502-מהשרת-עצמו = חי).
-    // portAlive-בלבד-הוטעה-פעם (T-39: fd=41 · T-47: הגשר-502-על-3000) — HTTP-מדוד.
-    const req = http.get({ host: '127.0.0.1', port, path: pathReq, timeout: timeoutMs }, (r) => {
-      r.resume();
-      resolve(true);
-    });
-    req.on('timeout', () => { req.destroy(); resolve(false); });
-    req.on('error', () => resolve(false));
   });
 }
 
@@ -106,50 +96,49 @@ function spawnDetached(cmd: string, args: string[], cwd: string): number | null 
 async function tick(): Promise<void> {
   const now = Date.now();
 
-  /* --- HQ (3010): מת → מיד-מוקם --- FIX(T-47): בדיקת-HTTP (לא-TCP-בלבד) --- */
-  if (!(await httpAlive(HQ_PORT, '/'))) {
+  /* --- T-49: הלב-השני (מקומי) — פעימה-כל-15 דק' (detached; הסקריפט-כותב-קבלות-בעצמו) --- */
+  if (existsSync(path.join(ROOT, 'scripts', 'heart-tick.mjs')) && now - heartLastRun > HEART_INTERVAL_MS) {
+    heartLastRun = now;
+    const pid = spawnDetached('bun', ['scripts/heart-tick.mjs'], ROOT);
+    log({ type: 'heart-tick-spawn', pid });
+  }
+
+  /* --- T-49: המראה-העננית — רענון-כל-6 שעות (הסקריפט-מוצער-בעצמו-וכותב-קבלות) --- */
+  if (existsSync(path.join(ROOT, 'scripts', 'mirror-project.ts')) && now - mirrorLastRun > MIRROR_INTERVAL_MS) {
+    mirrorLastRun = now;
+    const pid = spawnDetached('bun', ['scripts/mirror-project.ts'], ROOT);
+    log({ type: 'mirror-spawn', pid });
+  }
+
+  /* --- HQ (3010): מת → מיד-מוקם --- */
+  if (!(await portAlive(HQ_PORT))) {
     if (now - hqLastSpawn > HQ_SPAWN_DEBOUNCE_MS) {
       hqLastSpawn = now;
       const pid = spawnDetached('bun', ['server.ts'], ROOT);
-      log({ type: 'hq-revive', pid, port: HQ_PORT, check: 'http' });
+      log({ type: 'hq-revive', pid, port: HQ_PORT });
     }
   }
 
-  /* --- קונסולת-האם (3050 · חוזה-הדלת-הקדמית): מתה → מוקמת (T-47) ---
-   * המשגיח-של-zip (בון-טהור) מקים-ומחיה-את-next-dev-שלה-בלולאה; אנחנו
-   * מקימים-את-המשגיח-עצמו. בדיקת-HTTP על-3050-ישירות (הגשר-לא-מעורב). */
-  if (!(await httpAlive(CONSOLE_PORT, '/'))) {
-    if (now - consoleLastSpawn > CONSOLE_SPAWN_DEBOUNCE_MS) {
-      consoleLastSpawn = now;
-      const pid = spawnDetached('bun', ['mini-services/web/index.ts'], ZIP);
-      log({ type: 'console-revive', pid, port: CONSOLE_PORT });
-    }
-  }
-
-  /* --- דלת-הכניסה (3000 · חוזה-השלום · T-47 משופר): הגשר-הוא-הבעלים.
-   * אם-הפורט-מת: ① דגדוג-הדקס (3010) — ה-handler מקשר-מחדש-את-הגשר
-   * (ensurePreviewBridge); ② הדקס-עצמו-מת? מוקם (next dev -p 3010).
-   * FIX(T-47): אין-pkill-גלובלי ('next-server' היה-הורג-את-עץ-הדקס!)
-   * ואין-הקמת-cockpit-ישן-על-3000 (היה-מתחרה-בגשר — הפרת-חוזה). */
+  /* --- אפליקציה-ראשית (3000): חוק-שתי-המכות --- */
   if (await portAlive(DEV_PORT)) {
     devDeadStrikes = 0;
   } else {
     devDeadStrikes += 1;
     log({ type: 'dev-strike', strikes: devDeadStrikes });
     if (devDeadStrikes >= 2) {
-      await httpAlive(3010, '/saos-dex/'); // דגדוג → ensurePreviewBridge מקשר-מחדש
-      await new Promise(r => setTimeout(r, 2000));
-      if (await portAlive(DEV_PORT)) {
-        devDeadStrikes = 0;
-        log({ type: 'bridge-rebound' });
-      } else if (now - devLastSpawn > DEV_SPAWN_DEBOUNCE_MS) {
-        devLastSpawn = now;
-        if (!(await portAlive(3010))) {
-          const pid = spawnDetached('bun', ['run', 'dev'], SAOS_DEX);
-          log({ type: 'dex-revive', pid, port: 3010 });
-        }
-        devDeadStrikes = 0;
+      const procPids = pidsByPattern('next dev -p 3000|next-server');
+      if (procPids.length > 0) {
+        // מעטפת-תקועה: תהליך-קיים-אבל-הפורט-מת → טיהור-והקמה
+        pkillPattern('next dev -p 3000|next-server');
+        log({ type: 'dev-wedged-purged', pids: procPids });
+        await new Promise(r => setTimeout(r, 1000));
       }
+      if (now - devLastSpawn > DEV_SPAWN_DEBOUNCE_MS) {
+        devLastSpawn = now;
+        const pid = spawnDetached('bun', ['run', 'dev'], PROJECT);
+        log({ type: 'dev-revive', pid, port: DEV_PORT, strikes: devDeadStrikes });
+      }
+      devDeadStrikes = 0;
     }
   }
 }

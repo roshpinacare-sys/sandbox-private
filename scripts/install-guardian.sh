@@ -37,9 +37,14 @@ fi
 
 # 3) config.json — רק-אם-חסר (לא-דורס-התאמות-קיימות)
 if [ ! -f "$SOV/config.json" ]; then
-  printf '{"sanboxPath":"%s","projectPath":"%s","remoteUrl":"%s"}\n' "$SANBOX" "$PROJECT" "$REMOTE" > "$SOV/config.json" 2>/dev/null \
+  printf '{"sanboxPath":"%s","projectPath":"%s","remoteUrl":"%s","mirrorUrl":"https://github.com/roshpinacare-sys/SovereignConsole.git"}\n' "$SANBOX" "$PROJECT" "$REMOTE" > "$SOV/config.json" 2>/dev/null \
     && echo "✓ נכתב config.json" \
     || echo "!! כתיבת config.json נכשלה — השומר-יפעל-לפי ברירות-המחדל"
+fi
+
+# 3.5) config.json-ישן-בלי-mirrorUrl (T-49) — השלמה-כנה (המראה-העננית = מקור-שחזור-האפליקציה)
+if [ -f "$SOV/config.json" ] && ! grep -q 'mirrorUrl' "$SOV/config.json" 2>/dev/null; then
+  bun -e "const fs=require('fs');const f='$SOV/config.json';try{const j=JSON.parse(fs.readFileSync(f,'utf8'));j.mirrorUrl=j.mirrorUrl||'https://github.com/roshpinacare-sys/SovereignConsole.git';fs.writeFileSync(f,JSON.stringify(j,null,2)+'\n');console.log('✓ config.json הושלם-ב-mirrorUrl')}catch(e){console.log('!! השלמת-mirrorUrl-נכשלה (השומר-ישתמש-בברירת-המחדל)')}"
 fi
 
 # 4) remote.env — עותק-אימות-לשחזור (רק-אם-המקור-קיים; מצב 600)

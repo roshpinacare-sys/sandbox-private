@@ -46,12 +46,13 @@ const ASKPASS_PATH = path.join(SOV_DIR, '.askpass.sh');
 // נכתב-על-ידי install-guardian.sh מ-secrets/hq.password במצב 600 — אותה-רמת-חשיפה-כמו-המקור.
 const GUARDIAN_ENV = path.join(SOV_DIR, 'guardian.env');
 
-type Config = { sanboxPath: string; projectPath: string; remoteUrl: string };
+type Config = { sanboxPath: string; projectPath: string; remoteUrl: string; mirrorUrl: string };
 
 const DEFAULT_CONFIG: Config = {
   sanboxPath: '/home/z/my-project/sanbox',
   projectPath: '/home/z/my-project',
   remoteUrl: 'https://github.com/roshpinacare-sys/sanbox.git',
+  mirrorUrl: 'https://github.com/roshpinacare-sys/SovereignConsole.git',
 };
 
 function loadConfig(): Config {
@@ -61,6 +62,7 @@ function loadConfig(): Config {
       sanboxPath: typeof j.sanboxPath === 'string' && j.sanboxPath ? j.sanboxPath : DEFAULT_CONFIG.sanboxPath,
       projectPath: typeof j.projectPath === 'string' && j.projectPath ? j.projectPath : DEFAULT_CONFIG.projectPath,
       remoteUrl: typeof j.remoteUrl === 'string' && j.remoteUrl ? j.remoteUrl : DEFAULT_CONFIG.remoteUrl,
+      mirrorUrl: typeof j.mirrorUrl === 'string' && j.mirrorUrl ? j.mirrorUrl : DEFAULT_CONFIG.mirrorUrl,
     };
   } catch {
     return DEFAULT_CONFIG; // אין-קונפיג → ברירות-המחדל-המוסכמות
@@ -80,7 +82,7 @@ const VAULT_DEBOUNCE_MS = 5 * 60_000;   // ניסיון-שחזור-כספת: ל�
 const VAULT_NAG_MS = 30 * 60_000;       // 'vault-needs-password': קבלה-לכל-היותר-אחת-ל-30 דק'
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;   // חוק-שתי-המכות: השהיה-בין-הקמות
 const CLONE_TIMEOUT_MS = 120_000;
-const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
+const HQ_PORT = 3010;
 const DEV_PORT = 3000;
 
 /** זהה-במבנה-ל-ASKPASS_BODY-ב-core/ops.ts — הטוקן-עובר-רק-בסביבה (HQ_TOKEN). */
@@ -278,6 +280,78 @@ async function restoreFolder(now: number): Promise<boolean> {
   return false;
 }
 
+/* ---------- a2) שחזור-האפליקציה-המלאה-מהמראה-העננית (T-49) ---------- */
+
+/**
+ * restoreProject — אם-הפרויקט-עצמו (package.json) נמחק/אבד, השומר-משחזר-אותו
+ * מהמראה-העננית (SovereignConsole — מרועננת-אוטומטית-על-ידי-המפקח-כל-6 שעות,
+ * ובכל-רגע-היא-עדכנית-לפחות-לטיק-האחרון). אחרי-השכפול: bun install (והקמת-ה-DB
+ * מהסכמה אם-חסר). כמו-restoreFolder — השומר-אינו-מוחק-דבר; תיקייה-קיימת-ולא-ריקה
+ * בלי-package.json = חסימה-כנה-עם-קבלה.
+ */
+let lastProjectRestoreAttempt = 0;
+const PROJECT_RESTORE_DEBOUNCE_MS = 5 * 60_000;
+
+async function ensureProject(now: number): Promise<boolean> {
+  const marker = path.join(PROJECT, 'package.json');
+  if (existsSync(marker)) return true;
+  if (now - lastProjectRestoreAttempt <= PROJECT_RESTORE_DEBOUNCE_MS) return false;
+  lastProjectRestoreAttempt = now;
+
+  const pat = readRemotePat();
+  if (!pat) {
+    log({ type: 'project-restore-blocked', reason: 'אין PAT ב-~/.sovereign/remote.env' });
+    return false;
+  }
+
+  let targetNonEmpty = false;
+  try {
+    targetNonEmpty = existsSync(PROJECT) && readdirSync(PROJECT).length > 0;
+  } catch { targetNonEmpty = false; }
+  if (targetNonEmpty) {
+    log({ type: 'project-restore-blocked', reason: 'תיקיית-הפרויקט קיימת ואינה ריקה ללא package.json — נדרשת התערבות ידנית (השומר אינו מוחק דבר)' });
+    return false;
+  }
+
+  try {
+    mkdirSync(SOV_DIR, { recursive: true });
+    writeFileSync(ASKPASS_PATH, `${ASKPASS_BODY}\n`, { mode: 0o700 });
+    chmodSync(ASKPASS_PATH, 0o700);
+  } catch (e) {
+    log({ type: 'project-restore-blocked', reason: `כתיבת-askpass נכשלה: ${sanitize(e instanceof Error ? e.message : String(e), pat)}` });
+    return false;
+  }
+
+  const result = await runGit(['clone', CFG.mirrorUrl, PROJECT], path.dirname(PROJECT), {
+    GIT_TERMINAL_PROMPT: '0',
+    GIT_ASKPASS: ASKPASS_PATH,
+    HQ_TOKEN: pat,
+  }, pat);
+
+  try { rmSync(ASKPASS_PATH, { force: true }); } catch { /* מחיקה-מיטבית */ }
+
+  if (!result.ok || !existsSync(marker)) {
+    log({ type: 'project-restore-failed', reason: result.ok ? 'השכפול הושלם אך package.json עדיין חסר' : `שכפול נכשל: ${result.err}` });
+    return false;
+  }
+
+  // תלויות (node_modules) — דרושות ל-`bun run dev`; הסכמה-מיושמת-אם-ה-DB-חסר
+  log({ type: 'project-restored', projectPath: PROJECT, installing: true });
+  const install = spawnSync('bun', ['install'], {
+    cwd: PROJECT, timeout: 300_000, stdio: 'ignore',
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+  });
+  log({ type: 'project-install-done', code: install.status ?? null });
+  if (!existsSync(path.join(PROJECT, 'db', 'custom.db'))) {
+    const push = spawnSync('bunx', ['prisma', 'db', 'push', '--skip-generate'], {
+      cwd: PROJECT, timeout: 120_000, stdio: 'ignore',
+      env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+    });
+    log({ type: 'project-db-created', code: push.status ?? null });
+  }
+  return existsSync(marker);
+}
+
 /* ---------- b) שחזור-כספת ---------- */
 
 function restoreVault(now: number): void {
@@ -360,6 +434,7 @@ async function tick(): Promise<void> {
     sanboxReady = await restoreFolder(now);
     if (!sanboxReady) {
       // התיקייה-עדיין-לא-שוחזרה: המפקח-וה-HQ-בטח-אינם-ריצים — רק-האפליקציה-נבדקת (e)
+      await ensureProject(now); // T-49: הפרויקט-משוחזר-מהמראה-גם-כש-sanbox-עדיין-חסרה
       await guardApp(now, false);
       return;
     }
@@ -386,8 +461,11 @@ async function tick(): Promise<void> {
     }
   }
 
-  /* e. אפליקציה (3000) — רק-אם-המפקח-מת (אחרת-המפקח-מטפל) */
-  await guardApp(now, supervisorAlive);
+  /* a2. הפרויקט-המלא (T-49): אם-package.json-חסר → שחזור-מהמראה-העננית + bun install + DB */
+  const projectReady = await ensureProject(now);
+
+  /* e. אפליקציה (3000) — רק-אם-המפקח-מת (אחרת-המפקח-מטפל); והפרויקט-מוכן */
+  await guardApp(now, supervisorAlive || !projectReady);
 }
 
 /** חוק-שתי-המכות על האפליקציה — פעיל-רק-כשהמפקח-הפנימי-מת. */

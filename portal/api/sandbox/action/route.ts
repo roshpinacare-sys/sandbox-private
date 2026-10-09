@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
           ? { password }
           : {}),
       }),
-      signal: AbortSignal.timeout(8000),
+      // דחיפה-מלאה (סריקה+קומיט+משיכה+אימות-עם-ניסיונות-חוזרים-בסערת-מכסה+דחיפה)
+      // יכולה-לקחת-דקות-כשר-GitHub-מוגבל — 8ש-היו-חותכים-הצלחות-אמתיות (לקח-T-48)
+      signal: AbortSignal.timeout(120_000),
       cache: "no-store",
     });
 
@@ -73,8 +75,12 @@ export async function POST(request: NextRequest) {
       data = { ok: hqRes.ok };
     }
     return NextResponse.json(data, { status: hqRes.status });
-  } catch {
-    // ECONNREFUSED / timeout — בלי-500 גולמי, בלי-stack
-    return NextResponse.json({ ok: false, error: HQ_UNAVAILABLE });
+  } catch (e) {
+    // הפרדה-כנה: timeout ≠ שרת-מת (לקח-T-48 — אסור-לקרוא-להצלחה-שהושלמה-בצד-HQ "כישלון")
+    const msg =
+      e instanceof Error && /timeout|abort/i.test(e.message)
+        ? "הפעולה-ארוכה-מהרגיל (כנראה-סערת-מכסה-אצל-GitHub) — היא-ממשיכה-בצד-השרת; רענן-מצב-בעוד-רגע"
+        : HQ_UNAVAILABLE;
+    return NextResponse.json({ ok: false, error: msg });
   }
 }
