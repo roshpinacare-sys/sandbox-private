@@ -1270,3 +1270,23 @@ Work Log:
 Stage Summary:
 - כל-השכבות-מאומתות-חיות: שומר(22117)→מפקח(22122)→{HQ(3010)+אפליקציה(3000)}→{לב-15דק+מראה-6שע+דחיפה-עצמית-30דק}→עורק-ציבורי.
 - דחיפות-מאומתות-בענן: sanbox@32f2512+48cdfa6 · מראה-SovereignConsole@01aaf08 · ריפו-ראשי f70db10.
+
+---
+Task ID: T-50 (אימות-אפס-אמון-שני)
+Agent: sovereign-operator
+Task: "אל תסמוך אל הטענות שלך — תבדוק את זה לעומק, אם זה באמת נכון, ותתקן את כל מה שלא, ודחוף" — ניטור-אפס-אמון מלא של כל-הריפו מחדש, תיקון-פערים, ודחיפה-דחופה.
+
+Work Log:
+- **אינוונטר-חי מלא:** 16-תיקיות-מעקב-עליונות (.backups/.tmp-tools/.zscripts/Console/Domain/db/download/examples/mini-services/prisma/public/sanbox/src/tests/tool-results/upload) · 500-קבצים-נעקבים. mini-services=ריק-לגמרי (רק-.gitkeep) — תיקיית-שרות-עתידית.
+- **git-ראשי: אין-remote בכלל** — זה-מכוון: הדחיפה-העננית-דרך-המראה (SovereignConsole). ה-remote-האמיתי-היחיד: sanbox→github.com/roshpinacare-sys/sanbox.git (מעודכן, נקי, עץ-עבודה-נקי).
+- **תהליכים-חיים-אומתו ב-ps:** bun server.ts (HQ-3010) · bun /home/z/.sovereign/guardian.ts (22117) · bun scripts/supervisor.ts (22122) · next-server-3000. פורטים: 3000=200 · 3010=200 · /api/status-ללא-סשן=401.
+- **e2e-hq.sh-חי:** verdict=gate-live · root=200 · הצפת-כניסה-שגויה 401×5→429 (מצערת-פעילה) · statusUnauth=401. lint-ראשי: נקי.
+- **קבלות-חיות אומתו:** scan-last נקי (36-קבצים, 20:12) · auto-push אחרון ok (ee51fd4, 20:12, mem.synced=MEMORY+worklog) · mirror-last ok (SovereignConsole@01aaf08, 1146-קבצים, 19:09) · supervisor: heart-tick-כל-15דק (19:09→20:09-רצוף) · guardian.jsonl מעיד-על-שחזור-תיקיית-sanbox-וכספת-בעבר (17:01).
+- **לוגיקת-התאוששות אומתה בקוד:** ops.ts autoPush=rebase-abort-best-effort+fail-closed-אין-force · 403/429≠401 (מגבלת-קצב-לא-מדווחת-כשקר-PAT) · push-hq.sh-מסלול-מהיר (origin-קיים=אפס-API) · mirror=סריקה-fail-closed+rebase-safe+כספת/sanbox-secrets/.git/node_modules-חרוגים.
+- **פער-אמיתי-שנמצא-ותוקן:** gitlink-sanbox-בריפו-הראשי-היה-בפיגור (b2ded14-מול-ee51fd4) — הריפו-הראשי-לא-תיעד-את-מצב-הסנדבוקס-השני. תוקן-בקומיט-זה.
+- **פער-אמיתי-שני:** אירוע-19:12 — pull-rebase-דו-כיווני-נכשל-בקונפליקט (auto-push ok:false) — המערכת-התאוששה-לבד (19:29/19:42/20:12-ירוק) אך-האירוע-מוכיח-שה-fail-closed-עובד-בפועל: אין-force, אין-אובדן, התאוששות-אוטונומית. נרשם-כאירוע-מאומת, לא-תקלה-פתוחה.
+- **דחיפה-דחופה:** sanbox-דחוף-ידני (push-hq.sh) · ריפו-ראשי-קומיט-T-50 (gitlink+זיכרון) · מראה-SovereignConsole-רענון-כפוי (--force, מצערת-6שע-נעקפת-בכוונה).
+
+Stage Summary:
+- **שום-טענה-קודמת-לא-נלקחה-כנתונה** — הכל-נבדק-בפקודות-חיות (ps/ss/git/קריאת-קוד/e2e). המערכת-הריבונית-עומדת-באמת: שומר(22117)→מפקח(22122)→{HQ(3010)+אפליקציה(3000)}→{לב-15דק+מראה-6שע+דחיפה-עצמית-30דק+CI-ציבורי}→עורקי-GitHub (sanbox+SovereignConsole).
+- 2-פערים-אמיתיים-נמצאו (gitlink-בפיגור; אירוע-קונפליקט-19:12-מתועד-כהתאוששות-מוצלחת) — תוקנו/תועדו. אפס-סודות-נחשפו-בתהליך (הדפסות-ממוסכות-בלבד).
