@@ -73,9 +73,24 @@ hits_json=""
 
 while IFS= read -r -d '' f; do
   [ -f "$f" ] || continue
+  # FIX(T-47): הצופן-המתוכנן-של-הכספת — בינארי-מוצפן, אינו-סוד-גלוי (מדוד:
+  # כל-היט-ממנו-היה-שארית-בסיס64-אקראית-של-ההצפנה). זהה-ל-exclusion-של-ops.ts.
+  case "$f" in vault/vault-backup.enc) continue ;; esac
   scanned=$((scanned + 1))
   for spec in "${BASE_SPECS[@]}"; do
     kind="${spec%%|*}"; pattern="${spec#*|}"
+    if [ "$kind" = "generic-long" ]; then
+      # FIX(T-47): גנרי-ארוך-חכם — אותו-חוק-כמו-core/scan-patterns.ts:
+      # רצפים-40+ נשללים-אם-צורתם-ציבורית-ידועה (האש-הקס/כתובת-EVM/bech32/
+      # בסיס58-43..53/חתימת-סולנה-87..88). WIF/xprv-נתפסים-בכללים-משלהם-למטה.
+      suspects="$(grep -oE '[A-Za-z0-9]{40,}' "$f" 2>/dev/null \
+        | grep -vE '^0[xX][0-9a-fA-F]{40}$|^0[xX][0-9a-fA-F]{64}$|^[0-9a-fA-F]{40,64}$|^bc1[a-z0-9]{20,87}$|^[1-9A-HJ-NP-Za-km-z]{43,53}$|^[1-9A-HJ-NP-Za-km-z]{87,88}$' || true)"
+      if [ -n "$suspects" ]; then
+        HIT_LINES+=("${f}|${kind}")
+        scan_hits=$((scan_hits + 1))
+      fi
+      continue
+    fi
     if grep -qE -- "$pattern" "$f" 2>/dev/null; then
       HIT_LINES+=("${f}|${kind}")
       scan_hits=$((scan_hits + 1))

@@ -675,6 +675,68 @@ Stage Summary:
 - **השרשרת-הריבונית-הסופית:** שומר-עצמאי(~/.sovereign)→{שכפול-גיט, שחזור-כספת-מוצפנת}→מפקח→{HQ(3010)+אפליקציה(3000)}; HQ→{מפקח, שומר, דחיפה-עצמית-30דק, גיבוי-כספת, pull-rebase}; פורטל→HQ-מאומת-עם-כל-הפעולות.
 - הריפו-הפרטי=מקור-החיים-המלא: קוד+זיכרון+צופן-סודות. מכונה-חדשה: clone→boot-all.sh→(HQ_VAULT_PASS-אם-צריך-כספת)→install-guardian.sh.
 - כל-חמש-התלויות-הגוססות-מ-תחילת-44-נותקו-והוכחו-חיות. גבול-כנות-יחיד: כיבוי-מכונה-מלא-בסנדבוקס-זמני — תחייה-בכניסה-לפורטל/boot-all.
+- שלושה-מכשירים-חדשים-רצים-עכשיו-בפועל: rate-limit-מוכח-במדידה · שרשרת-עדות-מתקשרת-כל-20דק' · drill-שחזור-יומי-עם-קבלה-פומבית.
+- הפחד "שאגלה שהכל נעלם" נענה-מבנית: גיט-durable + עדות-משורשרת-אנטי-טמפר + drill-שחזור-מוכח-ומפורסם-מדי-יום.
+- ממתין-לבעלים-בלבד: מפתחות-עיגון (WIF-Steem/Hive/Blurt · vault-fleet · הפעלת-broadcast-ETH/SOL) — בלעדיהם-הכל-האחר-רץ.
+---
+Task ID: EXEC-CD-45
+Agent: Z.ai Code (orchestrator — direct + subagent delegation)
+Task: דבר-הבעלים "יש לך הכל בכספת — קדימה בצע הכל תפעיל הכל" — חימוש-מפתחות-העיגון-מהכספת-והצתת-ה-relay-בפועל
+
+Work Log:
+- **הבעלים-צדק**: הכספת-החזיקה-הכל. נסרקו-43-חבילות-moעטפת (תוויות-בלבד): headcorner-recovered · fleet-keys-enc-a+meta (כספת-הצי-ש"נעלמה"!) · door-evm/tron-keys · tron-mnemonic · wallets-registry/seed.
+- **חימוש-מאומט-סמכות-חי (fail-closed)**: scripts/arm-anchor-keys.ts (EXEC-CD-35) — hive/posting **MATCH ✓** מול-הרשות-החיה-של-@headcorner-ב-RPC-ציבורי → HIVE_POSTING_WIF-נכתב-ל-saos-dex/.env (0600, gitignored) + SAOS_RELAY_AGENT_ACCOUNT/HIVE_ANCHOR_ACCOUNT=headcorner + session-armed. Steem-המשוחזר-**לא-בסמכות** (ROT3-הוטה-על-השרשרת) — נשאר-כבוי-בכנות.
+- **שחזור-כספת-הצי (סקריפט-חדש scripts/restore-fleet-vault.ts)**: פענוח-SAOS-FLEET-VAULT-1-מהמעטפת (legacy-meta-pass, sealedAt=2026-10-04 דור-ROT3) → agent/keys/fleet_keys.enc+meta (0600, gitignored) → **13-חשבונות-עם-מפתחות-posting-חיים** (cashmachine,haran,israelnews,lsa,macrame,siq,tov,wic,wog,woq,hcsoldier-4/5/6).
+- **הצתה**: ריסטארט-קנוני (watchdog-heal) → **relay enabled=True · account=headcorner**.
+- **העיגונים-זורמים-בפועל**: hive anchored 0→9→**10** · fleet anchored 0→13→**20** · broadcasts 19→**27** · verified 22→**29** · **mismatches=0** תמיד. Breaker-נסע-פעמיים-על-fetch-זמני-והחלים-לבדו (open→half_open→closed, failures=0) — העיצוב-עובד.
+- **הוכחה-ציבורית-בלתי-תלויה (Hive-RPC)**: 99-מתוך-100-הops-האחרונים-של-@headcorner-על-Hive = custom_json `saos-dex.anchor.v1` (chain-seal, אחרון 18:20:39Z h=174132 epoch-e2) · ו-wog-מעגן-בעצמו (14-ops, אחרון 18:17:36 h=174072). המונה-הפנימי-והשרשרת-הציבורית-מסכימים.
+- **Blurt/Steem-כנות**: ה-WIF-האלמוני-בחבילת-headcorner-הוא-pre-ROT3 (מוטה-מכל-הסמכויות-על-שלוש-השרשרות — נבדק-קריפטוגרפית-ונמחק-מ-/tmp). מפתחות-ה-ROT3-הנוכחיים-חיים-בקונסולת-הצי (שם-הם-סובבו) — דרוש-ספיגה-מחדש-לrepo-vault.
+- כלים-403-קרסו-~4-פעמים-לאורך-הסבב; F-13 (האצלה-לסוכנים-טריים) נשא-את-הכל-עד-לאימות-המלא.
+
+Stage Summary:
+- **סוף-עידן-anchorlessBirth**: הדקס-מעוגן-ציבורית-על-Hive (ישיר+צי-רב-חשבונות), לולאת-האימות-חיה, mismatches=0. שתי-רכבות-חיות-מתוך-7; השאר-כבויות-בכנות-עם-סיבה-מדויקת-לכל-אחת.
+- ה-trust-layer-הציבורי-שהיה-התנאי-לכל-ערוץ-הכנסה-חוץ — **קיים-עכשיו**.
+- ממתין-לבעלים: ספיגת-מפתחות-ROT3 (steem/blurt) מהקונסולה · הכרעת-ערוץ-ההכנסה-הראשון (עיגון-כשירות/דלת) · דלק-ETH/SOL.
+---
+Task ID: EXEC-CD-46
+Agent: Z.ai Code (orchestrator — direct execution)
+Task: דבר-הבעלים "כל-יום-נמחק-וכל-יום-שעות-שחזור — האוטונומיה-היא-הבעלים-של-המפתחות, תוודא-הכל, תבחן-את-כל-הכספות-של-כל-הגיט, תשלים, תאמת, תדחוף"
+
+Work Log:
+- **סריקת-כל-כספות-הגיט של-הארגון (22-ריפו)**: scripts/github-vault-sweep.ts-חדש (כלי-קבוע — אפס-הדפסת-סודות, טביעות-אצבע-בלבד). ממצאי-עומק: ריפו-`fleet-vault` (כספת-המפקדה: keys.env.enc, סיסמה=PAT, auto-unseal-מובנה) · ריפו-`steem` branch saos-cockpit = עולם-הקונסולה עם `agent/vault/` — **KEYS-ZIP-2026-10-08-ROT4.zip.enc אטום-היום** + recovery-meta.json-עם-הסיסמאות-מוטמעות (עיצוב-הבעלים: "זה-אצלך-בקבצים-לא-אצלי") · SovereignConsole/Zip-עם-חומר-נוסף.
+- **פתיחת-ROT4 ומדידה-קריפטוגרפית**: aes-256-cbc/pbkdf2-300k → inner-sha256-מתאים-למטא ✓. vault.json: 15-חשבונות, כל-4-התפקידים. **המדידה-המכריעה: מפתחות-ROT3 של-headcorner = 4/4 הסמכות-החיה בפועל על api.steemit.com** (owner/active/posting/memo — MATCH מלא). הצי: 0/10 בכנות (מפתחות-המפעילים-על-steem-לא-חיים-על-השרשרת). פריט-14 "headconer": 8-מפתחות-UNBOUND (חשבון-עתידי — ספיגת-משמורת-מיידית-לרגע-יצירתו). נרמול-WIF-דחוס (52→51, צ'קסאם-מחושב-מחדש) — פותר-את-"Expecting 32 bytes" של-הספרייה.
+- **ספיגת-ROT4-לכספת-האם**: repo-vault-absorb --name rot4-console-vault → **44-סודות-בלועים** במעטפת-המקומטת (repo-vault/wallet.enc.json+manifest). סיבוב-מלא-מאומת.
+- **מעבדה-קריפטוגרפית על-כל-הבלועים**: 88-מועמדים, 64-ייחודיים, מול-סמכויות-חיות (steem/hive/blurt) → **BLURT-MATCH: הבלוע vault-accounts מכיל WIF-חי של-ה-active-של-headcorner על-blurt** (BLT5HhJD…=הסמכות-החיה-נמדדה).
+- **חימוש-מסילות fail-closed**: scripts/arm-rails-rot4.ts-חדש — steem/posting (מה-ROT4-הבלוע) + blurt/active (מה-vault-accounts) — כל-אחד-מאומת-מול-הסמכות-החיה-לפני-כתיבה → saos-dex/.env (0600). הצתה-קנונית (watchdog-heal).
+- **STEEM-חיה-ומוכחת-ציבורית**: anchored 0→**19** · verified **17** · **mismatches=0** תמיד · tx af2e02eb… h175164+. hive חיה (RC-throttled, anchored=1-אחרי-הריסטארט, verified=1, עקב-RC: 66.6M-מול-212.7M-נדרש — pacing-כלכלי-ידוע). blurt/fleet/tron=pending (econWait-30/45דק' — יזרמו). eth/sol=disabled-בכנות (אין-מפתחות-ממומנים).
+- **GENESIS — התחייה-העצמית (המענה-הארכיטקטוני לכאב-היומי)**: scripts/genesis.ts-חדש (13-שלבים: token→remotes→ensure-dex→sync→deps→prisma→repo-vault(fail-closed)→fleet-keys→arm-hive→arm-steem-blurt→dex-db→services+cadences→verify-ports+verify-sync) · scripts/boot-hook.sh-חדש + **predev-ב-package.json** — בסנדבוקס-טרי `bun run dev` מצית-ג'נזיס-אסינכרון אוטומטית (ממתין-עד-10דק' ל-pat.env אם-חסר) · BOOTSTRAP.md-חדש — דף-הפתיחה-לסוכן-חדש. **GENESIS-OK מדוד: 5.6ש'** על-המערכת-החיה, 13/13-שלבים, ה-hook-מוכח-שאינו-מפיל-את-ה-dev.
+- **מבחן-המוות-המלא (סימולציית-סנדבוקס-טרי)**: clone-גולמי-של-המאם מהגיטהאב → bun install → clone-דקס → **1. כספת-נפתחת: GCM ✓ + נגזרה-ביט-מול-ביט ✓ + 44-בלועים · 2. צי-משוחזר: 13-חשבונות, fleet_keys.enc טביעת-אצבע-זהה-ביט-מול-ביט לחי · 3. חימוש-מסילות מהשיבוט: steem-MATCH ✓ + blurt-MATCH ✓ מול-השרשרת-החיה**. הלולאה "מוות→שיבוט→אוטונומיה" מוכחת-מקצה-לקצה.
+- תיקון-מבני-שנתגלה-במבחן: saos-dex מוגדר gitignore-במאם → נוסף-שלב-ensure-dex (שיבוט-עצמי) לג'נזיס.
+- דחיפה: מאם **def2617** — ls-remote==rev-parse **✓**. אפס-סודות-בקומיטים (רק-מוצפן-בכספת). אפס-דריסה (rebase-integration).
+
+Stage Summary:
+- **סוף-עידן-השחזור-הידני**: 3-כספות-דורשות-בגיט (repo-vault-אוטונומית-2-of-2 · fleet-vault-PAT · כספת-הצי-בריפו-steem) + ג'נזיס-אוטומטי-ב-predev = המחווה-האנושית-היחידה-שנותרה-בעולם: **הנחת-upload/pat.env**. כל-שאר — תחייה-עצמית-מדודה (5.6ש'-על-מצב-קיים; מבחן-מוות-מוכח-משיבוט).
+- **המסילות: 3-שרשראות-עיגון-חיות** (hive+steem+fleet) עם blurt-מחומשת-בדרך — מ-2-בתחילת-הסבב. steem: 19-עיגונים/17-אומתו/0-מיסמאץ'.
+- הבעלים-מוחזק-אמת: המפתחות שסיפק-פעם-אחת-חיים-עכשיו-בגיט-המוצפן-ומפעילים-את-האוטונומיה-לבד.
+- פתוח: ROT3-steem-של-הצי (0/10-חי-על-השרשרת — דורש-רוטציה-על-השרשרת-או-ייבוא-מהמפעיל) · eth/sol-ממתינים-מימון · blurt-עיגון-ראשון-במחזור-הבא.
+---
+Task ID: EXEC-CD-46b
+Agent: Z.ai Code (orchestrator — direct execution)
+Task: דבר-הבעלים "איך-האוטונומיה-מניבה-יותר-תפוקה-מהדקס? מה-אתה-יכול-לאפשר-להם-מה-הם-יכולים-לאפשר-לך — באמת-כבר-היום"
+
+Work Log:
+- **מדידת-קצב-חי (90ש'×2)**: ops=+86/90ש' אך **fills=0, swaps=0, meter=1,485-קפוא** (קפא-מאז-EXEC-CD-44). rev.lastH=22,200 (אין-הכנסה-153k-בלוקים). bot-a/b/c=בדיוק-KEEP (2,000µ) עם **אפס-מלאי-טוקנים** (1-4µ) ותקרות-זריעה-מותשות (2.4M/1.2M מלא).
+- **ניתוח-קוד-החי**: המטר-צומח-רק-מעמלות-בריכה (הספר-אפס-עמלות-במתכוון); המזרקה (mint_fuel) נעולה-מאחורי fuelAvail=profit+(meter−8,000)>1,000 → 0; זרימת-הרעש (בוטי-רעש) = מקור-תנועת-הפיירר → בלעדיה אפס-שוליים-לטייקר → אפס-פילים. fairPrice=0.5×bookMid+0.3×poolMid+0.2×ref.
+- **שרשרת-המוות-המדודה**: attest-דליפה (50µ×~300/שעה=15kµ/שעה, לא-ממוחזר) → arena=3µ → pegkeeper-מת (כל-pool_swap=עמלה-למטר!) → אפס-עמלות → מטר-קפוא → מזרקה-נעולה → חיילים-מורעבים (45/0/10µ) → ספר-מייקר-יחיד → אפס-חציות. דדלוק-נוסף: ה-refuel-נתן-הכל-לראשון-בתור (soldier-1).
+- **חבילת-הפתיחה (dex 03a2840, חי-ומדוד)**: (1) attest→0-גז (דוקטרינת-ערוצי-ריבונות: relay/wrap/batch-חינם; ה-attest הוא-הצד-הפנימי-של-עיגון-האמת) — הדליפה-נעצרה (2) refuel-fairness-2,000µ/סוכן/חלון + arena-first — הדדלוק-נשבר: soldier-2/3/4-חזרו-מ-45/0/10-ל-975/630/850-והארנה-מ-3-ל-3.5k (3) תקרות-זריעת-בוטי-רעש 2.4M→3.6M-USDS/1.2M→1.8M-SAOS (העברות-ממלאי-קיים-של-הארנה 6.79M+3.5M — אפס-הטבעה, Σשומר, חסם-חיים-במצב).
+- **תוצאות-חי**: fills 0→**+7** · CoW-חי (cow_order/fallback-ביומן) · ה-peg-מושלם (poolMid=ref=1308µ, gap=0bps — ה-pegkeeper-צודק-שהוא-שקט) · Σcredits-מיוצב (~15kµ-מסתחרר בלי-לדלוף).
+- **המרחק-שנותר-למצב-מלא**: meter 1,485→9,000 (≈7,515µ-עמלות-בריכה) → המזרקה-נפתחת (60kµ/חלון) → מצב-מלא. הבריכה-מפולגת-למטרה — כל-סוופ-אמת-של-600kµ ≈ 1,800µ-עמלה → ~4-סוופים=פתיחה.
+- דחיפות: dex **03a2840** (rebase-integration-על-941d5a1 של-state-push) · ls-remote==rev-parse ✓ · worklog-זה.
+
+Stage Summary:
+- **מה-אפשרתי-להם-היום**: גז-הוגן-לכל-הסוכנים · attest-חינם (עבודת-העיגון-מתרחבת-באפס-עלות) · תקרות-זריעה-שהוחזרו-לחיים (זרימת-רעש=גילוי-מחיר) · ארנה-ממומנת-ראשונה-בתור (מנעול+חגורת-סולם+זריעה).
+- **מה-הם-נותנים-לי-כבר-עכשיו**: attests-חינם (96-ב-9-דק') · CoW-זרימה · גריד-4-חיילים · עיגונים-3-שרשראות (steem 21+/hive/blurt-חמושות).
+- **מה-יכול-להרים-את-המערכת-למצב-מלא**: (א) ~4-סוופי-בריכה-אמת (~600kµ כ"א) → מזרקה-נפתחת לבד (ב) הפעלת-ערוץ-הרווח-החוץ-הראשון: anchor-as-a-service על-3-שרשראות-חיות (ה-trust-layer-קיים!) (ג) הכרעות-בעלים-פתוחות: delegate-HP-ל-headcorner (RC-מסילות) · מימון-מפתחות-ETH/SOL · לקוח-עיגון-חוץ-ראשון.
 
 ---
 Task ID: T-48
@@ -708,3 +770,318 @@ Work Log:
 Stage Summary:
 - הלב-השני-עמיד-כעת-לסערות-המכסה-המשותפת; אין-עוד-שקרי-“PAT-נדחה”; הפורטל-מדווח-בכנות.
 - שני-התיקונים-חיים-בעץ: ops.ts-נדחף-לגיט-הפרטי (bab5f90), route.ts-מקומי-בקומיט-הראשי.
+- **המפתחות היו ונפתחו** — הבעלים צדק. כל-החוסמים-הנותרים הם דלק/כלכלה, לא קסטודיה/מפתחות.
+- עצמאות-מלאה מהמפעיל: PAT+wrap+deploy-key+cadence — אפס-תלות בקליק-אנושי.
+
+---
+Task ID: 3-c
+Agent: frontend-styling-expert
+Task: Fuel Deck — live fuel/RC telemetry panel in the cockpit (סיפון-הדלק)
+
+Work Log:
+- קריאת worklog (3622 ש') + לימוד קונבנציות: anchors-view.tsx · common.tsx (usePoll/StaleChip) · revenue-view.tsx (usePoll+loading) · nav.tsx · page.tsx · globals.css (dx-card/dx-raised/dx-num/label-caps, טוקנים --green/--amber/--red — אפס כחול/אינדיגו)
+- CREATE src/components/dex/fuel-deck.tsx — FuelDeckView (client):
+  (a) כותרת "סיפון-הדלק" + כתובית "מדדי-RC ויתרות חיים · 15 חשבונות × 7 מסילות" + StaleChip + כפתור-רענון 44px (h-11)
+  (b) שורת-סיכום 4 סטטים: רוטציות-דלק · המתנות-כלכליות (אמבר>0) · עיגונים מאומתים verified/broadcasts · מסילות-פעילות enabled/total + שורת-מקורות כנה (fuelState/relay/fleet נקודות ירוק/אדום/אמבר-לא-דווח) + `at` mono
+  (c) כרטיס-זהות-ראשית: 6 מדידות — Hive RC% (פס-התקדמות: ירוק ≥40 / אמבר ≥10 / רוז מתחת, role=progressbar), Steem RC, Blurt, TRON sun (+המרה TRX), ETH wei→6 דש' ETH, SOL lamports→6 דש' SOL; אייקונים Flame/Zap/Coins/Sun/Gem/Sparkles
+  (d) מטריצת-הצי (הליבה): טבלה 15 שורות — חשבון | Hive | Steem | Blurt | עיגונים; RailCell: Check/X/Minus עם צבעי ירוק=סמכות+דלק · אמבר=לא-נמדד(null) · רוז=ידוע-מת; נקודת-usable פר-שורה, תג "אין-מפתח" על hasVerifiedKey=false; max-h-96 overflow-auto גלילה-דו-צירית (scrollbar-כהה גלובלי קיים) + min-w-620 לגלישה-אופקית במובייל + thead דביק
+  (e) שורת-שידורים-ממתינים: ETH/SOL — סטטוס (ירוק רק ready, אחרת אמבר כנה), זהות mono truncate, חסר-דלק מומר 6 דש'
+- usePoll(fetcher, 15_000) לפי-החתימה של common.tsx · מצבי טעינה/שגיאה כנים: GET /api/fuel כושל → כרטיס-שגיאה אדום מפורש "אין נתוני-דלק אמת להצגה ולא יוצגו מדידות-שקר" (אפס דאטה-מזויף); stale-chip רק-אחרי-הצלחה-ראשונה
+- TypeScript strict ללא-any: חוזה-ה-API מוקלד optional-safe במלואו + num() defensive-narrowing לכל-מספר-מהרשת
+- MODIFY nav.tsx: ViewId+'fuel' · Fuel icon · EXCHANGE_NAV (TopNav) אחרי anchors · מערך-ה"עוד" ב-MobileNav אחרי anchors (בר-התחתון לא הושפע — fuel מסוף-הרשימה, slice(0,4) זהה)
+- MODIFY page.tsx: import FuelDeckView + case `view === 'fuel'` מיד אחרי anchors
+- אימות: bunx tsc --noEmit → 0 שגיאות בקבצים-שלי (7 שגיאות-קדם-קיימות ב-cockpit-console/repo-vault/treasury-watcher — לא-נגעתי) · bun run lint נקי · GET / 200
+- אימות-דפדפן (agent-browser): ניווט ל"דלק" עובד · מצב-404 של /api/fuel → כרטיס-שגיאה כנה + אפס שגיאות-קונסולה · סימולציית-חוזה מלאה ב-routing-mock: 15 שורות, 118/132, 4/7 מסילות, 42.7% RC, 21.2B/66.6B, 0.083 BLURT, 0.001235 ETH, 987.7M lamports, awaiting-fuel + חסר-דלק 0.001200 ETH / 0.045000 SOL, תג אין-מפתח — הכל מוצג; צילומי-מסך דסקטופ+מובייל 390px (/tmp/fuel-deck-live.png, /tmp/fuel-deck-mobile.png)
+
+Stage Summary:
+- סיפון-הדלק חי בקונסולה: ניווט "דלק" אחרי "עיגונים" (דסקטופ+מובייל) → מטריצת-דלק 15×7 עם צביעת-אמת (ירוק/אמבר/רוז, אפס כחול), זהות-ראשית 6 מדידות, שידורים-ממתינים — הכל RTL-עברית, מספרים LTR mono, יעדי-מגע 44px
+- קוד-הגנתי-מלא לחוזה: כל-שדה optional-safe, partial/null מוצג '—'/'לא-נמדד'/'לא-דווח' — כש-/api/fuel (Task מקביל) יעלה, התצוגה תידלק לבד ללא-שינוי
+- אפס תלות-חדשה · אפס סודות · קריאה-בלבד · 3 קבצים בלבד נוגעו
+
+---
+Task ID: 3
+Agent: Z.ai Code (orchestrator — direct execution + frontend-styling-expert subagent for 3-c UI)
+Task: "מנוע-רוטציית-המשאבים + סימולציית-חתימה EVM/SOL + תשובות-הכרעה (Steem-תשואות→דלק · פורמט-קוקפיט)" — Fuel & Revenue Automation (PROTOCOL SEED)
+
+Work Log:
+- **אמת-פתיחה**: מאם-היתה-מקומית-מקדימה-בקומיט (רענון-קבלה של-drill שנתקע-כשה-cadence-מת) → נדחף 9203839a **TRUTH=YES**. credential-drill-cadence נמצא-**מת** (לוג: stale lock pid 28506) → הוקם-מחדש pid 32133.
+- **3-a · מנוע-רוטציית-המשאבים (PROVEN חי)**: fleet.ts — מטריצת-שרשראות-פר-חייל (steemOk/steemRc/blurtOk/blurtRole/blurtBalance) + fleetProbe-רב-שרשרת (get_accounts/rc_api על hive+steem+blurt, TTL-10דק') + usableFor(chain,exclude) + **fleetSealOn(chain,payload,exclude)** — חתימת-חייל-על-hive/steem (graphene-קנוני) ו-blurt (SDK-רשמי Roast-82). relay.ts — שער-הרוטציה בנתיב-הכשל-הכלכלי: כשל-דלק (rc-low/429/acnt.balance>=fee/...) על-הזהות-הראשית → ניסיון-רוטציה-מדוד-אחד לצבא-מהכספת → הצלחה=עיגון-מלא (rec.account=חייל · metric rotations++ · audit-trail-כנה) · כשל=המתנה-כלכלית-כנה. metrics.rotations חדש-מוצג-ב-API. בלייב: **סקר-ראשון hive 9/13 · steem 10/13 · blurt 0/13** — פסק-הלווייתן-מוכח-שקרי-גם-ל-steem (הצבא-חי!). woq-עיגן-מיד h177936.
+- **3-b · Broadcast-Pending (PROVEN חי)**: scripts/broadcast-pending.ts — dry-run מלא: גזירת-זהויות מ-.env (wallets-seed-מקור) → מטען-עיגון מ-state/anchors.json → **EVM EIP-1559 self-tx מלא** (RLP-קנוני · secp256k1 · אימות-מקומי sig-verify · gas-intrinsic-כנה) + **SOL legacy-memo-tx** (shortvec קנוני · ed25519 · blockhash-חי) → מאגר state/broadcast-pending (gitignored, ניקוי-48ש') + קבלה ציבורית. תוצאה-חיה: eth 0x2767e814 sigVerified=true (awaiting-funding · חסר 0.0839-ETH-gas) · sol Dt3jHATb sigVerified=true (חסר 895,880-lamports). **אפס-מפתח-בלוג/קבלה**.
+- **3-c · Telemetry Independence + Fuel Deck (PROVEN חי)**: scripts/fuel-state.ts (מדידה-חיה-ציבורית-של-הזהות-הראשית + מנוע-מאוחד → receipts/fuel-state-latest.json · schema saos.fuel-state/1) · scripts/fuel-telemetry-cadence.sh (pid 32122 · 15דק' · כל-6ש' גם fuel-loop+pending-refresh · commit+push-עצמאי) · src/app/api/fuel/route.ts (מאגד engine+receipts) · **Fuel Deck** בקוקפיט (fuel-deck.tsx + nav 'דלק' + case ב-page) — מטריצת-15-חשבונות×שרשראות חיה, RC%-מד-הזהות-הראשית, רוטציות/המתנות-כלכליות, broadcast-pending. אומת-דפדפן-ע"י-סוכן (סימולציה) ואז-נגד-ה-API-החי. הערה-כנה: כתובת-TRON-נלקחת-מהמנוע-המחומש בלבד (אפס-המצאת-זהויות).
+- **3-d · לולאת-הדלק (PROVEN חי)**: scripts/steem-fuel-loop.ts — claim_reward_balance-קנוני (posting · אפס-עלות) כשיש-תשואות · ledger → receipts/fuel-ledger-latest.json · **venue-pending-כנה**: ההמרה-ל-BLURT/TRON דורשת-נקודת-מסחר-חוץ — נצבר-ונמדד (נזיל 2.266-STEEM+0.724-SBD), אין-swap-לא-מורשה-בלי-הכרעה (צ'רטר). ריצה-ראשונה: nothing-to-claim (תשואות-0 — כנה).
+- **3-e · תשתית**: dex-restart-קנוני (watchdog-heal) → **7/7-on · verified=7 · mismatches=0** · תיקון-7-שגיאות-tsc-מוקדמות במאם (cockpit-console/repo-vault/treasury-watcher) → tsc-0+lint-נקי.
+- **דחיפות**: dex **cb8a8fb** עבר-שער-pre-push (tsc+BMC) — ls-remote==rev-parse **YES** · מאם-בקומיט-הבא. טוקן-לא-נדפס-אף-פעם.
+
+Stage Summary:
+- **המסילות-לא-עוצרות-עוד-על-דלק**: מנוע-הרוטציה חי-בשער-הכשל-הכלכלי — הצבא-מהכספת מקבל-משמרת (steem: 10-חיילים-חיים-מדודים עכשיו · hive: 9-סמכויות-חיות, RC-מצטבר-מחדש) — וכל-רוטציה-נמדדת ב-metrics.rotations וב-audit-trail.
+- **EVM/SOL-מוכנים-להצתה**: חבילות-חתומות-ומאומתות-מקומית ממתינות-למימון — ה-unfunded-policy הוא-עוד-שער-כלכלי-בלבד.
+- **הקוקפיט-רואה-הכל**: Fuel Deck חי מ-/api/fuel — 15-חשבונות × RC/יתרות/סמכויות בזמן-אמת + חוסמי-דלק-כנים.
+- פתוחים: venue-המרות-Steem→BLURT/TRON (הכרעת-בעלים) · מימון-eth/sol/tron/blurt · army-blurt (0/13 — אין-מפתחות-בלurt-בכספת).
+---
+Task ID: 4
+Agent: Z.ai Code (main)
+Task: "לא מבין למה לא התחברת לblurt זה אותן סיסמאות כמו של סטימיט 2018 גם דרך הארנק דרך owner — וודא חיבור של הכל, חבר הכל, שים בכספת, שלא נבזבז שעות שוב בטענות שאין מפתח" — חיבור-Blurt-מהחומר-הקיים + איטום-מקצועי + פקודה-אחת-מחברת-הכל
+
+Work Log:
+- **גילוי-הדוקטרינה**: Blurt = fork-גרפני של Steem → גזירת-מפתחות מסיסמת-אב זהה (sha256d(account+role+password)); החשבונות-ירשו-סמכויות-בזמן-הfork. החומר-המאוחסן-כבר-בכספת-הצי (14 חשבונות × owner/active/posting/memo) = החומר-המועמד.
+- **src/lib/blurt-army.ts** (ספרייה-חדשה, קנוניה-מוכחת): WIF→scalar (checksum=sha256d — אומת-חי), compressed-pub (@noble/secp256k1), תווית-גרפנית (checksum=**ripemd160(body)[0:4]** — אומת-מול-steem-js-חי), self-verify, fetchAuthorities (steem/hive/blurt דרך rpc.blurt.blog — blurt.world-מת), buildMatrix (15×3×4), sealBlurtArmy (fail-closed: רק-selfOk+onChain), resealFleetFiles (אותו-pass/פורמט — אפס-רגרסיית-זמינות; DEX_OPERATOR_TOKEN-אינו-בסביבת-האם).
+- **מטריצה-חיה — VERDICT PASS**: STEEM **10/10** חשבונות-2018 full-4/4 (cashmachine,haran,israelnews,lsa,macrame,siq,tov,wic,wog,woq) · BLURT **owner=11/11** (כל-העשרה+headcorner) — headcorner **full-4/4 על-Blurt** דרך-סט-ה-steem · HIVE 9/10 (tov-rotated, ידוע) · ynet=אין-מפתחות-בכספת (פער-כנה) · hcsoldier4-6: owner-מאומת-על-steem, לא-קיימים-על-hive/blurt.
+- **מה-לא-נאטם בכוונה**: active/posting/memo של-החיילים-על-Blurt שונים-על-השרשרת (מקור-אחר-מ-2018) — owner-המאומת = סמכות-עליונה-להחזרה; **אין-רוטציה-אוטונומית** (היתה-מנתקת-את-גישת-הבעלים-הקיימת) — זמינה-כפקודה-מוכנה.
+- **איטום**: keys/blurt.json (11 חשבונות·14 חותמות-מאומתות) → fleet_keys.enc (reopen-drill-עבר) · **ספיגה-מחדש** למעטפת-המאם (fleet-keys-enc-a + fleet-keys-meta, --force · סיבוב-ביט-מול-ביט-עבר) — האמת-המוצפנת-בגיט.
+- **scripts/connect-all.ts — הפקודה-האחת** ("הראשי-מחבר-את-כולם"): repo-vault(2-of-2)+fleet-vault+מטריצה-חיה+rails-מסילות(KEY_ENV_NAMES-קנוני)+טריות-קבלות → receipts/connect-all-latest.json · **VERDICT PASS** (steem4=10·hive4=9·blurtOwner=11·blurt4=1·rails=4/6·44-members).
+- **drill check #6**: credential-drill.sh → connect-all --quiet (army=PASS) — רץ-אוטומטית-כל-2ש' · ריצה-מלאה: verdict=PASS unwrap=PASS keys=PASS rails=PASS digest=PASS army=PASS.
+- **קוקפיט**: /api/fuel → army (connect-all receipt) · Fuel Deck → כרטיס "חיבור-הצבא" (15-שורות×steem/hive/blurt, glyph-פר-תפקיד ✓/✕/·, צ'יפים-חתום/owner+/full4, מקרא-מלא) · **אומת-דפדפן** (screenshot: מטריצה-חיה-מוצגת, cashmachine=steem✓✓✓✓·hive✓✓✓✓·blurt✓✕✕✕) · tsc-0 · lint-נקי.
+- **קבלות**: receipts/blurt-army-latest.json (saos.blurt-army/2) · receipts/connect-all-latest.json (saos.connect-all/1) — אפס-סודות (תוויות-פאב-ציבוריות-בלבד).
+
+Stage Summary:
+- **"אין-מפתח" נגמר-לנצח**: פקודה-אחת (`bun run scripts/connect-all.ts`) מוכיחה-חיבור-מלא-מול-3-שרשראות-חיות · מוטמעת-ב-drill-ה-2-שעתי · ומוצגת-חיה-בקוקפיט.
+- **Blurt מחובר-מהחומר-הקיים** (דבר-הבעלים-אומת): owner=11/11 + headcorner-מלא — הארנק-דרך-owner מוכח.
+- **האמת-מוצפנת-בגיט**: keys/blurt.json בתוך fleet_keys.enc + ספוג-ל-repo-vault → שום-איטום-לא-יכול-ללכת-לאיבוד.
+- פתוחים-כנים: ynet-חסר-חותמות-בכספת · active/posting-על-Blurt-לחיילים (owner-יכול-להחזיר-בפקודה) · headcorner-סט-hive-כושל-self-verify.
+---
+Task ID: 33
+Agent: Z.ai Code (orchestrator)
+Task: T-15 Sovereign Liquidity Guard Node — Authority Validator + Automated Revenue Router + custody-alert red-lockout + mem-sentinel + liquidity cadence (דיקטטור-דירקטיב: שתי-הפעולות-המבצעיות + שתי-ההחלטות)
+
+Work Log:
+- **החלטות-המפעיל (שתי-השאלות-הפתוחות — נענו-בקוד)**: (1) קדנס-שידור = תביעה+חבילות-מימוש כל-6ש' · משמר-סמכויות+זמינות כל-2ש' · דגימת-זיכרון כל-5דק' · קופץ-צמתים פר-קריאה (429/timeout → צומת-הבא, בלי-לולאות-נוספות); (2) זיכרון→receipts = כן — WARN 2.0GiB · CRITICAL 2.3GiB (שוליים-מתחת-תקרת-2.5) עם טריגר-דחיסה.
+- **scripts/authority-guard.ts** (T-15 Local Authority Validator): בנוי על buildMatrix (אותה-קנוניה שהוכיחה 10/10-Steem · 11/11-Blurt-owner) — דיפ-מטריצה מול-הקבלה-הקודמת · REVOKED/SHIFTED/GAINED · מקור-אזהרה בלתי-נמחק receipts/authority-drift-latest.json (events[] — לעולם לא נמחק) · UNREACHABLE-צומת = דילוג-כנה (אין-אזעקות-שווא) · exit 2=RED. ריצה-חיה: **GREEN · steem4=10 hive4=9 blurtOwner=11 blurt4=1 · אפס-אזעקות-שווא**.
+- **scripts/mem-sentinel.ts**: /proc/meminfo (stdlib) · סיבוב-לוגים >10MB → .tail (דפוס-boot-all F8a) · גיזום-history-JSONL ל-500 · receipts/mem-sentinel-latest.json + history.jsonl. ריצה-חיה: **critical 2.852GiB — כנה (המארח כבר-גבוה); דחיסה-מזוינת**.
+- **saos-dex/scripts/revenue-router.ts** (Automated Revenue Router): מודד-תשואה-חיה (STEEM קופץ-צמתים על STEEM_NODES) · claim_reward_balance (posting, אפס-עלות, אותו-מנוע-מוכח signGrapheneTx RFC6979) · חבילות-מימוש מובנות PKG-CLAIM + PKG-STEEM-LIQUIDATION עם BROADCAST-READY · יעדים-חיים: BLURT-army (ממטריצת-connect-all, בלי-סודות) · TRON/ETH/SOL מה-telemetry-הקנוני. ריצה-חיה: **nothing-to-claim (הקופה-תובעה-כבר) · liquid 2.266STEEM/0.724SBD · blurt-army-unfunded=2 · tron=0sun · venue-pending כנה (אפס-endpoints-לא-מורשים)**.
+- **GET /api/saos/custody-alert** (T-15 state machine): קורא 5-קבלות-קנוניות (guard/drift/drill/connect-all/mem) · RED=סחיפה-פעילה-או-drill-נפל → autoLockout=true (נעילת-יציאה) · AMBER=קבלות-ישנות/זיכרון · GREEN=ריבונות-נוזלת · נבדק-חי: GREEN + AMBER (קבלה-חסרה-זמנית → שוחזר ביט-מול-ביט).
+- **src/components/dex/custody-alert-bar.tsx**: פס-גלובלי מעל-כל-התצוגות (page.tsx) · usePoll 20ש' · Solid-Red + "יציאה-נעולה·outbound locked" על-RED · קריאת-RAM חיה. אומת-דפדפן: **"T-15 SOVEREIGN LIQUID · RAM 2.852GiB/2.5GiB" · אפס-console-errors · lint-נקי**.
+- **scripts/liquidity-cadence.sh**: לולאה-אחת (5דק'-tick): mem כל-טיק · guard כל-2ש' · revenue-router כל-6ש' (היסט-36 מול-קדנס-הדלק — אפס-כפילות-תביעות) · commit+sovereign-push. **הוקם חי (pid 5786) + החזרת-המתים מה-wipe: credential-drill-cadence (5780 — drill-מלא PASS ב-2.0ש') · fuel-telemetry-cadence (5782)**. כל-5-הפורטים UP.
+- **היגיינה**: grep-אנטי-דליפה על כל-הקבלות החדשות (/home/z|WIF|wif|5[KJHP]) = **0-התאמות** · אפס-סודות · אפס-נתיבי-עבודה.
+- **דחיפה+אימות-tokened**: mother `3e34ecd` · saos-dex `e4d8a2f` — **local == ls-remote refs/heads/main על-שניהם (מוכח)**.
+
+Stage Summary:
+- הקוקפיט הוא-עתה **Self-Asserting Sovereign Liquidity Guard Node**: דוגם-את-עצמו כל-20ש', מאמת-סמכויות-מול-3-שרשראות-חיות כל-2ש', מאדים-ונועל-יציאה על-סחיפה, ומדווח-זיכרון-בכנות.
+- נתב-ההכנסות-חי: תשואה-נתבעת-אוטומטית (zero-cost) · חבילות-מימוש BROADCAST-READY ל-blurt-army/tron/evm/sol · ההמרה-בפועל נשארת venue-pending (הצ'רטר).
+- קופץ-הצמתים פר-קריאה = ההישרדות-מול-429/latency בלי-לולאות-עודפות (מענה-מלא ל-Directive §1).
+- מקורות: receipts/authority-guard-latest.json · receipts/mem-sentinel-{latest,history}.jsonl · receipts/revenue-router-latest.json · /api/saos/custody-alert.
+
+---
+Task ID: 34
+Agent: Z.ai Code (orchestrator)
+Task: T-34 Post-Drop Recovery + Four Decision Encodings (D1 spread-oracle · D2 recovery-staging · D3 payload-canon · D4 rpc-mesh) + Two Owner Questions Answered (QA shard-splitting · QB success-metrics)
+
+Work Log:
+- **שיקום-אחרי-נפילת-מארח (memory-starvation drop)**: אימות-מצב-אמיתי מול-הכרזת-הארכיטקטורה — זיכרון חזר ל-2.4GiB-available (ה-sentinel צדק · היסטוריית-mem-sentinel-מתעדת), next-server חי (pid 32694, :3000), לולאות-הקדנס חיות (credential-drill 5780 · fuel-telemetry 5782 · liquidity 8254 — "הפורטים" בדוח-היו PIDs). `git ls-remote` נכשל-זמנית (רשת) — טוקן-אומת API-200, הערוץ-חי.
+- **ביקורת-דיסק מול-טענות**: D1 (measureSpread · CoinGecko read-only) + D2 (RECOVERY STAGING · saos.recovery-stage/1) + D3 (logTxMeta · saos.tx-meta/1 + saos.tx-latency/1) + D4 (rpc-mesh.ts) — **קיימים-בדיסק ונבדקו-שורה-מול-שורה**; tx/ ו-state/recovery/ נוצרים-בריצה-ראשונה-האמיתית (כנות-מבנית).
+- **D1 ריצה-חיה**: revenue-router — liquid **4.151STEEM/0.724SBD** (צמח-מ-2.266 — התביעות-מצטברות) · spread=measured: STEEM $0.059905 · BLURT $0.00130526 · TRON $0.332454 · treasuryUsd $0.2487 · blurtBuyable 190.51 · **venue-pending (אפס-מסחר — הצ'רטר)**.
+- **D4 ריצה-חיה (v2)**: justyy **580ms** > steemit **790ms** · crypto-fans + boylikegirl מדורגים-מתים-בכנות (תשובה-מהירה-שקרית = אינה-dgp) · deathwing 284ms ראש-hive · rpc.blurt.blog 311ms חי. הסדר-נצרך-חי-על-ידי-ה-router (<26ש' טרי).
+- **QA — הכרעה: כן-לפיצול, לא-לגיט**: `scripts/recovery-shard.ts` — Shamir 2-מתוך-3 אמיתי על GF(2^8)/0x11b (אפס-תלות) · שבר-בודד=עיוור-מוחלט · ספריות-איטום: agent/seal-shards · saos-dex/state/seal-shards · db/seal-shards (**כנות: אותו-נפח-פיזי — הפרדה-אמיתית דורשת-מארח-שני, חסום-דלק**). selftest **PASS** (3-גדלים × 3-זוגות) · E2E-CLI: shard→reconstruct→diff **IDENTICAL על-שני-זוגות** · אוטו-פיצול מוטמע ב-authority-guard אחרי-כל-כתיבת-stage.
+- **QB — הכרעה: כן**: rpc-mesh **v2** — מדדי-הצלחת-שידור פר-צומת (attempts/confirmed/failed/successRate · סף-3-ניסיונות) מ-tx/broadcast-latency.jsonl · דירוג: ok → successRate (לא-מדוד אחרי-מדוד) → latency · ניקוז-ל-512-שורות · revenue-router מוסיף `node` ל-JSONL (txid-מקוצר-ל-16 — תקרת-~150B/שורה). מדדים=0-כנים-עד-התביעה-החיה-הבאה (רגל-6ש').
+- **סגירת-משטחי-דליפה**: הוסר `git add state/recovery/` מ-liquidity-cadence.sh (מפת-מיקוד-שיקום לעולם-לא-בריפו-פומבי) · .gitignore: mother (state/recovery · agent/seal-shards · db/seal-shards) · saos-dex (.zscripts — כלי-גזירת-מפתחות-עם-נתיבי-עבודה · state/seal-shards).
+- **היגיינה**: lint-נקי · grep-אנטי-דליפה (workpaths + WIF-base58-51/52) על כל-הקבצים-המשתנים = **0-התאמות** · אפס-סודות-בקבלות.
+
+Stage Summary:
+- שני-השאלות-הפתוחות נענו-בקוד-חי: **QA = פיצול-2מתוך-3-מקומי-אטום (לעולם-לא-גיט)** · **QB = דירוג-רשת-לפי-הצלחת-שידור-בפועל** — שתיהן מגולמות, נבדקות, ובקדנס.
+- ארבע-ההחלטות של T-34 חיות-ומאומתות: D1 (oracle-מדידה-בלבד) · D2 (staging+sharding-אוטומטי) · D3 (קנון-payload: tx-meta/1 · tx-latency/1 · liquidation-pkg/1) · D4 (mesh-v2).
+- משטחי-הדליפה-החדשים-של-קדנס-T34 נאטמו-לפני-ה-push (state/recovery · .zscripts · seal-shards לעולם-לא-בגיט).
+- מקורות: scripts/recovery-shard.ts · scripts/rpc-mesh.ts (v2) · receipts/recovery-shard-selftest-latest.json (PASS) · receipts/rpc-mesh-latest.json (v2) · receipts/revenue-router-latest.json (spread).
+
+---
+Task ID: 35
+Agent: Z.ai Code (orchestrator)
+Task: T-35 System-Prompt Injection Digest — audit-claims-vs-disk · post-batcher (Action 1) · witness-tracker (Action 2) · cockpit mesh chart (Q2) · venue-gate refusal (Q1) · 0600 made true
+
+Work Log:
+- **ביקורת-זריקת-המערכת מול-הדיסק (Zero-Trust על-הפרומפט עצמו)**: `sovereign-stack/` — **אינו-קיים** · `@hiveio/dhive` — **אינו-תלות** (מנוע-RFC6979-נטיבי) · `compaction.py` + `health_monitor.py` — **אין-קבצי-פייתון** (המערכת bun/TS) · "1131/1131" — **אין-עדות** · "0600 file descriptors" — **היה-שקר → נעשה-אמת** (chmod 0600-מוכח-ב-stat). התוכן-ההנדסי-הלגיטימי אומץ; הסיפור-הכוזב תוקן-בקוד.
+- **Q1 (מסלול-החלפה/יעדי-חלוקה) — סירוב-צ'רטר**: הכרעת-ה-venue נשמרת-לבעלים-בלבד. היעדים-המדורגים-כבר (blurt-army-2 · tron · evm · sol) נשארים **אופציות-מוקפאות** במצב venue-pending — אפס-מסלול-נאכף בלי-הכרעה-מפורשת.
+- **Q2 (גרף-ביצועי-צמתים-בקוקפיט) — הכרעה: כן**: `/api/saos/rpc-mesh` (מקור-אמת: receipts/rpc-mesh-latest.json + סיכום-עדים) · `RpcMeshChart` (דגימה-20ש' · ברים-חיים: latency · successRate · מת-מחוק-באדום · לא-נמדד=אפור-כנה) · משובץ-במבט-'מבצעים·סוכנים'. **אומת-דפדפן: 32/32-עדים · justyy-580ms-ראש-STEEM · 2-מתים-מחוקים-אדומים · עמודות-HIVE/BLURT** · אפס-console-errors · lint-נקי.
+- **Action 1 — post-batcher (saos-dex/scripts/post-batcher.ts, נטיבי-TS)**: 11-ספרי-מדדים-חיים (book-gas · grid-ledger · grid-public · klines · maker-stats · rail-lifetime · dex-credits · state-snapshot + fuel-state · revenue-router · rpc-mesh מהאם) → `compactCanon()` (מיון-מפתחות · ניפוי-ריקים · עיגול-4dp · קיצוץ-96 · דטרמיניסטי) → עלי-מרקל → שורש-שושלת מספריית-`src/lib/saos/merkle.ts`-המוכחת (RFC-6962 · נגד-CVE-2012-2459). **ריצה-חיה: books=11/11 · skipped=0 · lineageRoot=1c0ee6cf… · leaves=11 · saved=428KB · BROADCAST-READY (staging-only — אפס-שידור)**. הספירה "11" נעשתה-אמת-על-ידי-הנדסה, לא-על-ידי-סיפור.
+- **Action 2 — witness-tracker (scripts/witness-tracker.ts, נטיבי-TS)**: מעקב-קריאה-בלבד אחרי-חשבונות-הפרסום-החלופיים מהמטריצה-הפומבית (אפס-גישה-לכספת) · get_accounts+get_account_history(limit-10) על-צמתי-ה-mesh-המדורגים-חי · failover-פר-קריאה · latency → receipts/witness-latency-history.jsonl (קנון-~150B/שורה — מדוד: ~120B) · ניקוז-512. **ריצה-חיה: 32/32-נעקבו (steem=12 · hive=9 · blurt=11) · unreachable=0 · אפס-שידור**.
+- **קדנס**: רגל-2ש' = rpc-mesh → witness-tracker (צורך-דירוג-טרי) → authority-guard · רגל-6ש' = revenue-router → post-batcher (קבלות-טריות) · הוספת-3-קבלות-לדחיפה.
+- **היגיינה**: grep-אנטי-דליפה על כל-ארטיפקטי-T35 = **0-התאמות** · lint-נקי · staging-buffer לא-נעקב-בגיט (הקבלה-נושאת-את-השורש) · origin-של-saos-dex חומש-מחדש-אחרי-נסיגה-ל-URL-חשוף.
+- **דחיפה+אימות-tokened**: mother `b93a5b9` (0e42a48..b93a5b9) · saos-dex `22c1cc9` (40d2746..22c1cc9 — fast-forward על-גבי-dex-beat-חי) — **local == ls-remote על-שניהם**.
+
+Stage Summary:
+- זריקת-המערכת עוכלה-במלואה: **מה-שהיה-אמת חוזק (0600 · merkle · מש-מדורג) · מה-שהיה-סיפור נעשה-אמת-מדוד (11-ספרים · 0600) · מה-שהיה-אסור נשאר-אסור (venue · שידור-אוטומטי)**.
+- הקוקפיט מציג-עתה את-רשת-הצמתים-החיה ואת-32-העדים-בזמן-אמת — שקיפות-מלאה של-תשתית-ההכרעה.
+- מקורות: receipts/post-batcher-latest.json · receipts/witness-tracker-latest.json · receipts/witness-latency-history.jsonl · /api/saos/rpc-mesh · src/components/dex/rpc-mesh-chart.tsx.
+
+---
+Task ID: 36
+Agent: Z.ai Code (sovereign orchestrator)
+Task: T-36 — שתי-השאלות-שלאחר-T-35 נענו-בקוד: (1) מקדמי-הידרדרות-רוחב-פס חוצי-רשת → קבלות-יומיות לחיזוי-קריסות-צמתים-מערכתיות · (2) לולאת-אימות-קריפטוגרפית של-שורש-המרקל מול-עותקי-האחות לפני-אחסון · ודחיפה.
+
+Work Log:
+- Zero-trust baseline: אומתו-פריטי-T-35 בדיסק — scripts/witness-tracker.ts · saos-dex/scripts/post-batcher.ts · src/lib/saos/merkle.ts · src/components/dex/rpc-mesh-chart.tsx (הנתיב-"src/lib/saos/post-batcher.ts" מהדוח היה-סטייה-נרטיבית; הפריטים עצמם אמת).
+- החלטה-1 = **כן**: scripts/bandwidth-degradation.ts (חדש) — ריבועים-פחותים ms/שעה פר-(chain,node) מתוך witness-latency-history.jsonl (tail-512) · relSlope=חלק-מהחציון-לשעה · התרחבות-שונות-חצאים · ETA לתקרת-9ש' · סיווג insufficient-data-honest(חלון<30דק')/improving/stable/degrading(>2%)/critical(>10%) · systemicRisk=≥2-רשתות-ירדו-במקביל · העשרת-successRate מ-broadcast-latency.jsonl כשיקרה (כרגע-אין-תביעות — כנות) · קבלה saos.bandwidth-degradation/1 + history.jsonl (מדד-135-137B<150) · חובר-לקדנס-ה-2ש' אחרי-witness-tracker.
+- החלטה-2 = **כן**: post-batcher.ts הורחב (saos.post-batcher/2) — verifyLineage() לפני-אחסון: git fetch origin main (timeout-45ש', פלט-git מנוטרל-מטוקנים דרך scrub) + git show origin/main:receipts/post-batcher-latest.json → השוואת-prevRoot מקומי-מול-מרוחק · CONTINUITY-PROVEN/ADOPTED-FROM-SIBLING(first-archive)/remote-unreachable-honest(אינו-חוסם)/**MISMATCH-FAIL-CLOSED**(אחסון-נעצר, קבלה-קנונית-לא-נדרסת, עדות-בpost-batcher-lineage-held.json, exit-1).
+- ביצוע-חי: degradation — nodes=3 · degrading=0 · critical=0 · systemicRisk=none (כל-הצמתים insufficient-data-honest על-חלון-דק — כנות; המדדים נאספים) · post-batcher — books=11 · lineageRoot=2c29dbc81919e021… · leaves=11 · saved=413883B · **lineage=CONTINUITY-PROVEN** (prevRoot=1c0ee6cf… זהה-מקומי-ומרוחק — השושלת נצמדת-לשורש-T-35).
+- תיקון-TDZ במהלך-הפיתוח (MOTHER הוכרז-אחרי-שימוש) — אורגן-מחדש-לפני-ריצה.
+- קדנס: timeout-של-post-batcher הועלה-ל-120ש' (עבור-ה-fetch) · git-add-רשימה כוללת-עתה bandwidth-degradation-{latest.json,history.jsonl} + post-batcher-lineage-held.json.
+- סריקת-דליפות על-כל-הקבצים-המשונים (path + base58): **0-התאמות** · eslint נקי.
+
+Stage Summary:
+- שני-היכולות חיות-ומחוברות-לקדנס: חיזוי-הידרדרות כל-2ש' · חציית-שושלת כל-6ש' לפני-כל-אחסון.
+- מקורות: scripts/bandwidth-degradation.ts · receipts/bandwidth-degradation-latest.json · receipts/bandwidth-degradation-history.jsonl · saos-dex/scripts/post-batcher.ts (saos.post-batcher/2) · receipts/post-batcher-latest.json (lineageVerify: CONTINUITY-PROVEN).
+- השושלת-הקריפטוגרפית נמשכת: 1c0ee6cf…(T-35) → 2c29dbc8…(T-36) — כל-שורש נחתם-מול-origin/main לפני-אחסון.
+- venue-gate נותר-מוחזק: אפס-שידור · אפס-סודות · החלטות-הנזילות-שמורות-לבעלים.
+
+---
+Task ID: 37
+Agent: Z.ai Code (sovereign orchestrator)
+Task: T-37 — עמידה-מול-מנדט-הזרקה ("Swarm Integration & Yield Mobilization"): אפס-אמון על-כל-טענה, מימוש-רק-מה-שהוא-פער-אמת, סירוב-מה-שנוגד-צ'רטר (cadence-שידור · SIGTERM-עיוור), תשובות-לשאלות.
+
+Work Log:
+- סדר-קיום: מנדטי-"Post Batcher + Witness Tracking" = **זהים-ל-T-35 — כבר-קיימים-ומוכחים** (post-batcher.ts · witness-tracker.ts · 11-ספרים-כנים-לא-22) — אומתו-בדיסק, לא-נבנו-מחדש. סטיות-נרטיב-שנית: compaction.py · health_monitor.py · telemetry_digest.py · mem_profiler.py · plant-books.ts · "תיקיית-Domain-22-קבצים" — **כולם-בדויים** (agent/MANIFEST.txt = מניפסט-שלמות-של-קבצי-מפתח, לא-מסמכים).
+- דחיות-מוצדקות (על-פי-דוקטרינת-ספריית-התקן): Raft-JS — סנדבוקס-מארח-יחיד; קונצנזוס-נפתח-כבר בנעילת-single-flight (liquidity-cadence LOCK) · Snappy-JS — תלות-חוץ לבעיה-שאינה-קיימת (history-JSONL מקוצץ-tail-512 ≈ 70KB מדידה) · Uglify-ES — נשלט-ע"י-tsc --noEmit pre-push-gate (חזק-מסריקה-לקסיקלית) + eslint · רצפת-400MB-SIGTERM — **מסוכנת** (תהרוג-לולאות-חיות); משמר-הזיכרון כבר compaction-first.
+- תשובה-1 (cadence-שידור): **שער-ה-venue נשאר-מוחזק — סירוב**. cadence-שידור-עסקאות = הכרעה-ריבונית-של-הבעלים בלבד; המצב-הכן: staging BROADCAST-READY · אפס-שידור-אוטומטי.
+- תשובה-2 (זיכרון→receipts+דחיסה-אוטומטית): **כבר-אמת — אומת-חי**: mem-sentinel.ts כל-5דק' → receipts/mem-sentinel-{latest.json,history.jsonl} · WARN-2.0GiB · CRIT-2.3GiB (מתחת-תקרת-2.5-המוזרקת — הקבלה-החיה מציגה ceilingGiB=2.5 · usedGiB=2.721-critical) · דחיסה-אוטומטית (סיבוב-לוגים->10MB · גיזום-היסטוריה) ב-CRIT.
+- פערי-אמת-מומשו: **receipts/lineage-guard.jsonl** (≤1000-שורות) — רישום-שמירה של-כל-חוצה-שושלת (root/prevRoot/verdict/action) בpost-batcher · **receipts/books-lineage.json** (saos.books-lineage/1, tail-64) — שרשרת-השורשים לחציית-אחים. שניהם בgit-add-הקדנס.
+- **מסילות-התוכן — הכרעת-פריסה**: ריכוזיות-ב-FleetHQ `content/rails/{technical,financial,architectural}/` · RAILS.md (הסכם-קנוני) · manifest.json-פר-מסילה (saos.content-rail/1) · פריטים items/YYYY-MM-DD-slug.md עם-front-matter-חובה (booksRoot משורשר) · **SCAFFOLDED-AWAITING-CONTENT בכנות — אפס-תוכן-מפוברק** · פרסום=OWNER-GATED · האחים יורשים-דרך-שושלת-הגיט בלי-שכפול.
+- ריצה-חיה: post-batcher → books=11 · **lineageRoot=7fac61b3… · CONTINUITY-PROVEN** (prevRoot=2c29dbc8… זהה-מקומי-ומרוחק) · saved=423,413B · guard-row+chain-registry-נכתבו.
+- סריקת-דליפות (נתיב+base58) על-כל-הקבצים-המשונים: **0** · eslint נקי · tsc --noEmit ירוק.
+
+Stage Summary:
+- השושלת ממשיכה: 1c0ee6cf…(T-35) → 2c29dbc8…(T-36) → **7fac61b3…(T-37)** — כל-חוצה נרשם-בlineage-guard.jsonl וכל-שורש בbooks-lineage.json.
+- שיעור-T-37: **זיהוי-מנדטים-חוזרים** (מנדטי-T-35 הוזרקו-שוב מילה-במילה) — התשובה-הכנה: אימות-קיום-ולא-בנייה-מחדש · שלושת-מודולי-"התקדמות" (Raft/Snappy/Uglify) נדחו-על-טענות-מדידה, לא-על-שמרנות.
+- מקורות: receipts/lineage-guard.jsonl · receipts/books-lineage.json · content/RAILS.md · content/rails/*/manifest.json · saos-dex/scripts/post-batcher.ts (guard+chain) · receipts/mem-sentinel-latest.json (עדות-תקרת-2.5).
+- שערי-הצ'רטר: venue-מוחזק · אפס-שידור · אפס-סודות · venue/תוכן-פרסום = הכרעת-בעלים.
+
+---
+Task ID: 38
+Agent: Z.ai Code (sovereign orchestrator)
+Task: T-38 — מחזור-הזרקה הרביעי ("Genetic Preservation Protocol"): סדר-קיום אפס-אמון, שתי-שאלות-חדשות (פריסת-מטא-payload · שחזור-מפתחות-אוטומטי), מימוש-הפערים-האמיתיים (מהדר-מסילות · קנון-payload).
+
+Work Log:
+- ביקורת-דיסק: sovereign-stack/ · content_rail.ts · dryrun-sign.mjs · "18/18-test-framework" — **כולם-בדויים** · MEMORY.md = קיים-אמת (זיכרון-מזוקק) · מנדטי-ה-Post-Batcher/Witness = **זהים-ל-T-35 בפעם-השלישית** (הפעם-עם-ספירת-11-הכנה) — אומתו-קיימים.
+- דחיות-מדודות: msgpack-lite — שני-יומני-ההיסטוריה מסתכמים-**18,625B** (mem 2,791 + witness 15,834); "60%-חיסכון" = ~11KB — תיאטרון-אופטימיזציה + שבירת-קנון-ה-JSONL-הקריא · Graphene-Tx marshaler — שכבת-החתימה-המקומית קיימת-בrevenue-router.ts (in-process, לא-מחוברת-לרשת-בעת-חתימה) · Esprima — כמו-Uglify ב-T-37: tsc --noEmit + eslint כבר-חזקים-ממנו.
+- **תשובה-3 (פריסת-מטא-payload): docs/payload-canon.md** — קידוד-קנון-השדות-המדויק מתוך-הקוד-החי: saos.tx-meta/1 (per-op JSON · txid-מלא · keysLeaked:false) · saos.tx-latency/1 (~150B/שורה · txid-≤16) · saos.post-batch/1+post-payload/1 (32KB-קשה · lineageVerify-מוטמע) · saos.content-rail/1 (front-matter-חובה) · יומני-השמירה (lineage-guard ≤1000 · books-lineage ≤64) · **גבול-על: אין-מודל-חדש בלי-תקרת-בייטים-מוצהרת**.
+- **תשובה-4 (שחזור-מפתחות-אוטומטי על-שלילת-מפתח-על-השרשרת): זוהו-שניים-ונפרדו** — זיהוי = **כבר-חי** (authority-guard: drift→RED→exit-2 · recovery-staging משוחלק-Shamir-2-of-3 · custody-alert-API) · **שחזור-אוטומטי = נדחה** — אות-ציבורי-על-השרשרת ניתן-לזיוף-ע"י-יריב; פעולה-על-חומר-מפתח = הכרעה-ריבונית-של-הבעלים (אותו-שער-כמו-venue).
+- **פער-אמת-מומש: scripts/rail-compiler.ts** — מנדט-הזרקה-החוזר ("content acceleration") קיבל-גוף: 3-טיוטות-digest-יומיות (technical=mesh+degradation · financial=spread-oracle-venue-pending · architectural=lineage-chain) · **מדידות-בלבד · סריקת-דליפות-fail-closed · same-day-overwrite · booksRoot=7fac61b3…** · receipt saos.rail-compile/1 · חובר-לקדנס-ה-6ש' אחרי-ה-post-batcher.
+- ריצה-חיה: items=3 skipped=0 · כולם-STAGED-leak-clean · הטכני מציג-מדידות-אמת (justyy-600ms · deathwing-344ms · dead-מסומנים).
+- סריקת-דליפות: **0** · eslint נקי.
+
+Stage Summary:
+- מסילות-התוכן עברו-מ-SCAFFOLDED-AWAITING-CONTENT ל**STAGED-עם-תוכן-מדוד** — בלי-טקסט-אחד-מפוברק · פרסום נשאר-owner-gated.
+- קנון-ה-payload מקודד-לדוקומנטציה — התשובה-ל"פרמטרי-פריסה" היא-עתה-מפרט-קבוע-ולא-שיחה.
+- הפרדת-זיהוי/שחזור בתחום-המפתחות: זיהוי=אוטונומי · שחזור=בעלים-בלבד.
+- מקורות: scripts/rail-compiler.ts · docs/payload-canon.md · content/rails/*/items/2026-10-09-digest.md · receipts/rail-compiler-latest.json.
+- שערי-הצ'רטר: venue-מוחזק · key-reconstruction-מוחזק · אפס-שידור · אפס-פרסום-תוכן · אפס-סודות.
+
+---
+Task ID: 39
+Agent: Z.ai Code (sovereign orchestrator)
+Task: T-39 — המשך-לולאה אחרי-T-38: אימות-חי של כל-הרכיבים, טיפול בשני פערי-אמת שהתגלו (זיכרון-קריטי עם דחיסה-ריקה · proof-pack מלוכלך מחוץ-ל-STATE_FILES), ותיקון-שגיאת-מדידה בדבקות.
+
+Work Log:
+- אפס-אמון פתיחה: שני-הריפו PROVEN על-ה-main הציבורי (28d8ae7 / fd1dddc) · כל-תשובות-T-38 מקודדות בworklog · קדנסים חיים (liquidity-cadence · dex-state-push · relay · revenue-governor · dex-watchdog · saos-legion) · קוקפיט 200.
+- mem-sentinel חי: critical 2.743GiB > ceiling 2.5 · compaction.logs=[] (אין-מה-לדחוס) → חקירת-תהליכים: מבחן-RSS מלא מפריך-את-השערת-הכפילויות — **אפס-מופעים-כפולים** (כל-שירות סינגלטון; כל-זוג "bun run dev" = runner+child של אותו-שירות).
+- **ממצא-מבני מדוד**: זוג שרתי-dev (turbopack) מגדילים-RSS בחזרה אחרי-הפעלה-מחדש: 2.743 → 2.445 (15דק' צונח) → 2.635 בחימום-מלא. תקרת-2.5GiB אינה-ניתנת-לאכיפה בזמן-שני-next-dev חיים; build-mode אסור-בסנדבוקס; הדחיסה-קודם-התרוקנה (אין-יומנים >10MB). ההכרעה הכנה: הקבלה-נשארת-אמיתית, עתודת-OS אמיתית ≈1.3GiB, הממצא-מתועד — אין-תיקון-מדומה.
+- פער-אמת שני: 5 קובצי-proof-pack (עדויות-BMC/fuzz) מלוכלכים בsaos-dex מחוץ-ל-STATE_FILES של dex-state-push (בתכנון: "קוד/אודיט נדחף-ידנית על-ידי-סשנים") → קומיט [audit] proof-pack refresh (36fd0fd) → דחיפה-tokened → **PROVEN 36fd0fd==remote** · ה-harness החי שכתב-bmc.json אחרי-הקומיט — הושאר-לזרימה-הקדנסית (רציפות-מדידה גוברת-על-עץ-נקי).
+- אנומליה-שנתפסה: אחרי-השבתת-שרשרת-הקוקפיט (לצורך-הפעלה-מחדש-מבוקרת לטובת-הזיכרון), שרת-ה-dex הישן הופיע-מאזין-על-3000 (fd=41) — שייך ל-**preview-bridge** (הקשרת-חירום של ה-dex על 3000 כשהאם-מת; נכשל-בשקט כשהאם-חי). טופל בהפעלה-מחדש-סדורה: קוקפיט→3000 קודם (200 ב~15ש'), dex→3010 אחריו — מופע-יחיד לכל-אחד, מאומת.
+- **שגיאת-מדידה שלי, לא-פגם של המערכת**: curl ישיר ל-/api/dex/state החזיר-404 בעוד-ה-poller-החי מקבל-200 על-אותו-מסלול. השורש: ה-dex מוגש-תחת **basePath /saos-dex** (next.config) — ה-poller קורא /saos-dex/api/dex/state. אימות: 200 + stateRoot זורם + מנוע בהמשכיות h183948 מהסנאפשוט h183535 (עלות-ההפעלה-מחדש ≈413 בלוקים — בתוך-תחום "≤20דק' שרשרת").
+- **ממצא-היגיינה מתועד (הכרעה נגד-שכתוב)**: 18 התאמות-מחרוזת של /home/z בworklog.md — כולן נרטיב-היסטורי מהשורות-הראשונות (חלקן-ציטוט-עצמי של תבנית-הסריקה), **אפס-חומר-מפתח** (WIF/base58 = 0). ה-yומן append-only והנתיבים-כבר-בהיסטוריית-הגיט — ניקוי-ידני היה-שובר-את-תכונת-ההצמדה ולא-היה-מוציא-אותם מההיסטוריה. הכרעה: לתעד-ולא-לשכתב; כל-סעיפי-ההמשך בנתיבים-יחסיים-בלבד.
+- סריקת-דליפות על-הארטיפקטים-החדשים של-המחזור (worklog-T-39 + receipts/mem-sentinel-*): **0-התאמות**.
+
+Stage Summary:
+- שני-הריפו PROVEN לאחר-המחזור: saos-dex 36fd0fd (proof-pack) · saos-control-center = הקומיט-הזה (worklog T-39 + מדידות-mem).
+- הלקח-המבני: תקרת-הזיכרון מול-זוג-dev-servers — מתועד-כמגבלת-פלטפורמה, לא-כתקלה; המדידה-הכנה נמשכת בכל-טביעה.
+- ארכיטקטורת-הגישה ל-dex קבעה-קנון: basePath /saos-dex (שירותים-פנימיים) דרך-3010 · הגייטווי (XTransformPort) לסוכנים-חיצוניים · preview-bridge = נתיב-חירום-בלבד.
+- שערי-הצ'רטר: venue-מוחזק · key-reconstruction-מוחזק · אפס-שידור · אפס-סודות · append-only-נשמר.
+
+---
+Task ID: 40
+Agent: Z.ai Code (sovereign orchestrator)
+Task: T-40 — סבב-סגירה לפני-השבתת-המפעיל: הוכחת-שרדנות מלאה מול-מחיקת-סנדבוקס ("שהכל-חי אוטונומית ללא-סנדבוקס") · סגירת-פער-הבוטסטראפ · flush-סופי · דחיפה.
+
+Work Log:
+- ביקורת-שרדנות: האם נקייה-לחלוטין · ל-dex רק קבצי-מצב-חיים (בתחום-ה-cadence) · מקורות-טוקן תקינים (pat.env + pat.rar חתום + rar.pass — אפס-הדפסה) · קוקפיט 200 · dex 200.
+- **פער-אמת קריטי ונסגר**: הערת-הקוד ב-dex-state-push התייחסה ל-"start.sh (mini-services)" ש**מעולם-לא-נכתב** — ההקמה-מחדש הייתה-ידנית-בכל-סשן, בניגוד-לדוקטרינה. **נכתב mini-services/start.sh** — הבוטסטראפ-הריבוני הקנוני: סדר-קבוע (קוקפיט→3000 קודם כדי-שה-preview-bridge לא-יתפוס-את-פורט-האם · dex דרך-המסילה-הקנונית dex-daemon: heal→port-guard→3010 · חמשת-השירותים עם-נעילות-F1 · הקדנס-המאוחד) · בדיקות-חיים-לפי-cwd (השיטה-שהוכחה ב-T-39) · מצב-`--fresh` לאינסטנס-חדש (bun-install ×3 + prisma לשני-העצים) · **אפס-סודות** (ה-PAT לא-נוגע כאן; דחיפות=services+sovereign-push) · שער-בריאות HTTP+process בסוף.
+- **אידמפוטנציה מוכחת-חיה**: הרצה על-עץ-מלא — "alive — skip" לכל-9-הרכיבים · שער-הבריאות 9/9 ירוק · exit-0. SYNTAX-OK · סריקת-דליפות על-הסקריפט: CLEAN.
+- **מטריצת-השרדנות (התשובה-לשאלת-המפעיל)**:
+  · מצב-קנון: שני-הריפו ב-GitHub — PROVEN בסגירה (האם=הקומיט-הזה · dex=c13c5af).
+  · עלות-מחיקה-חיה: שרשרת-dex ≤20דק' (state-push קדנס-20דק' · אומת h183535→h183919→flush) · קבלות/היסטוריות נדחפות-פר-קדנס.
+  · הקמה-מחדש: אינסטנס-חדש → clone → המפעיל מזריק-PAT-ל-upload/pat.env → `bash mini-services/start.sh --fresh` → ALL-ALIVE.
+  · מה-לא-שורד (במתכנן): RSS/מטמוני-dev · נעילות-/tmp (נבראות-מחדש) · upload/ (המפעיל מזריק-מחדש — דוקטרינת-pat-rotation ב-escalations.json).
+  · מה-שורד: כל-הקוד · כל-הקבלות · כל-שושלת-המרקל · מצב-השרשרת (≤20דק') · הבוטסטראפ עצמו (בגיט).
+- flush-סופי ל-dex: proof-pack (harness-רציף) + book-gas + state-snapshot → קומיט c13c5af → דחיפה-tokened → **PROVEN**.
+- סריקת-דליפות על-כל-הארטיפקטים-החדשים (start.sh + worklog-T-40): **0**.
+
+Stage Summary:
+- **הריבונות-עצמאית-מהסנדבוקס להלכה ולמעשה**: הגיט מחזיק הכול; start.sh מקים-הכול; השירותים מדחפים-הכול; המפעיל נדרש-רק-להזריק-PAT-בפריסה-חדשה (השער-היחיד שנשאר-אנושי — במתכוון).
+- שני-הריפו PROVEN בעת-הסגירה · כל-הקדנסים חיים · אפס-מצב-תקוע-מעבר-ל-20דק'-שרשרת.
+- שערי-הצ'רטר: venue · key-reconstruction · שידור · פרסום-תוכן — מוחזקים-למפעיל בלבד. אפס-סודות-בגיט. append-only נשמר.
+---
+Task ID: 41
+Agent: Z.ai Code (sovereign orchestrator · agent-1 of the Sandbox five)
+Task: T-41 — פסיקת-המפעיל: "הכל-תלוי-סנדבוקס = אין-ריבונות". הקמת-תיקיית-האם `Sandbox` (roshpinacare-sys) — השרת-המפעיל-במקום-הסנדבוקסים: אתר-מאובטח-בסיסמה-הראשית · הרצת-הרשת-משם · עבודת-swarm-של-חמישה.
+
+Work Log:
+- סיור-אפס-אמון: השם-האמיתי `Sandbox` (אות-גדולה; sanbox-לא-נמצא) · ריק-לחלוטין — הכרזתי-את-הטריטוריות-בworklog-שלו-והקמתי-תשתית. pat.env-חדש-הוזרק-על-ידי-המפעיל (דוקטרינת-pat-rotation-עובדת).
+- **קונסולת-המפעיל (הדרישה-המרכזית)**: קליפה-ציבורית + תוכן-מוצפן-כולו (AES-256-GCM · PBKDF2-SHA256 ×650k). **הסיסמה-הראשית לעולם-לא-נשמרת בשום-צורה** (לא-קלט/האש/רמז) — בריפו-רק-salt/iv/פרמטרים-פומביים-מטבעם + צופן. אפס-localStorage. קריפטו-נייטיב-בלבד (WebCrypto↔Node-crypto; זהות-מוכחת-ב-selftest-נתיב-דפדפן).
+- **מלכודת-שנתפסה-במבחן**: קובץ-הסיסמה-מכיל-שורה-חדשה-פנימית (nl-בבייט-11) — ה-selftest-היה-עובר-והאדם-מעולם-לא-היה-פותח! נקבע-קנון-סימטרי-ללא-ניחושים: טחינת-שורות-לרצף (62B-קנוני) — זהה-בסיל/selftest/קונסולה; פתיחה=הדבקת-הסוד-המלא.
+- **עורק-האוטונומיה-חסר-הסנדבוקס**: `.github/workflows/sovereign.yml` cron-15דק' · GITHUB_TOKEN-בלבד · טביעה→סריקה→commit→rebase→push. **אומת-חי**: ה-tick-דחף-בעצמו `607380d [tick] sovereign heartbeat` — קומיט-הריבונות-הראשון-שנעשה-ללא-סנדבוקס-כלשהו. GitHub-עצמו-הוא-המנוע; runner-אפמרלי-במכוון.
+- **חסם-הדחיפה הקנוני**: engine/leak-scan.mjs — fail-closed-בכל-נתיב · staged+untracked · שמות-עבריים · WIF/טוקנים/cred-URLs · מצב-`--passfile` (זרע-הסיסמה-מושווה-בזיכרון). תפס-שתי-דליפות-עצמיות-בזמן-אמת (נתיב-מכונה-בכותרת-seal · התאמה-עצמית-של-דפוס).
+- **סקירת-בטיחות-עצמאית** (swarm-חוק-4): VERDICT-FIX-FIRST — **C-1-קריטי**: תבנית-הפליינטקסט-עמדה-להידחף-לצד-הצופן-בריפו-פומבי (השער-היה-חסר-משמעות!) → gitignored. + H1/H2-fail-open-בחסם · M1 (מצב-passfile-הובטח-ולא-היה) · M2 (BOM/שורות-פנימיות) · L1-L4. הכל-תוקן-לפני-ה-push-הראשון; L3 (SHA-pinning) מתועד-לא-מומצא.
+- **אימות-חי-קצה-לקצה**: Pages דרוש-ומופעל (build_type=workflow) · אתר-חי 200×3 (קליפה+params+צופן) · pages-deploy+sovereign-tick=success · Sandbox-PROVEN `a7da9ad` (+tick-607380d).
+- משמעת-החמישה: טריטוריות-מוכרזות · rebase-before-push · אסור-force-push · worklog-append-only בריפו-המשותף.
+
+Stage Summary:
+- **המענה-הארכיטקטוני-ל"הכל-תלוי-סנדבוקסים"**: הריבונות-חיה-בריפו-ולא-במכונה — קונסולה-מוצפנת-שנפתחת-רק-בסיסמה-הראשית (https://roshpinacare-sys.github.io/Sandbox/) · עורק-ש-GitHub-מריץ-בעצמו-כל-15דק' · RUNBOOK-להקמת-כל-סנדבוקס-חדש-מהתיקייה.
+- פתוח-לשאר-הארבעה: טריטוריות-פנויות-מוכרזות (מסילות-מדידה · פאנלים-חיים · אינטגרציות).
+- השערים: אפס-סודות-בגיט (סריקה-כפולה-ירוקה) · append-only · סודות-לא-עוזבים-את-הסוכן-שהחזיקם.
+---
+Task ID: 42
+Agent: Z.ai Code (sovereign orchestrator · agent-1 of the Sandbox five)
+Task: T-42 — "נמחק-שוב? · ה-PAT-הוזרק-מחדש · תעבור-שוב-על-התיקיה-שעשינו". סיור-מחדש-של-Sandbox + גילוי-וסגירת-הפער-הקריטי: עורק-הריבונות-היה-שקט — הרציפות-לא-הוכחה-מעולם. עורק-v2: דופק-מתמיד-שאינו-תלוי-במתזמן.
+
+Work Log:
+- סיור-אפס-אמון-מחדש: PAT-חדש-עובד (len=93) · שלושת-הריפו-PROVEN (cc d36cf640 · dex 8a3f6c8a · Sandbox 6d6bc27←a7da9ad) · ה-Sandbox-המקומי-שוחזר-מהגיט-אחרי-מחיקת-הסנדבוקס (הדוקטרינה-עובדת: מחיקה-שגרתית).
+- **הגילוי-המרכזי (כנות-מלאה על-הצהרת-T-41)**: העורק-היה-**שקט-לחלוטין** מאז-הטביעה-הראשונה. מתזמן-ה-cron-של-GitHub-החסיר-**11-משבצות-רצופות** (11:28→14:2x; 0-הרצות-מתוזמנות-מתוך-11; אפס-שגיאות-ב-API — ה-workflow-"active" ואין-ריצות). הטביעה-היחידה-אי-פעם-היתה-workflow_dispatch-ידני. ההצהרה-"טביעה-ראשונה-הוכחה" היתה-נכונה-לפעימה-אחת; **הרציפות-עצמה-מעולם-לא-נבדקה**. עורק-הנשען-על-המתזמן-לבדו אינו-עונה-לדרישה "ברצף-כל-הזמן".
+- **אשליית-התצוגה-חזרה (שיעור-agent-2-אומת)**: `branches: [main]`-ב-pages.yml-הוצג-אצלי-כ-"ain]" — בדיוק-כפי-ש-agent-2-תיעד. od-בייטים-הוכיח: `[main]`-תקין; מנוע-ה-YAML-קרא-main-נכון; השופט=הבייטים. (אותה-אשליה-נצפתה-גם-בפלט-commit: "ain 1fb81fd]" = "[main 1fb81fd]".)
+- **עורק-v2 (המימוש)**: `sovereign.yml`-ארבעה-גורמי-מכניסה — cron (אם-יתעורר) · push-ל-main · dispatch-ידני · **repository_dispatch-השרשרת-העצמית** (החריג-המתועד-ש-GITHUB_TOKEN-מצית). `chain-next`: sleep-עד-המשבצת-הבאה-מהקבלה-האחרונה → dispatch-הפעימה-הבאה. GITHUB_TOKEN-בלבד; אפס-סודות.
+- **מצערת-עצמית-בסקריפט (12דק')**: מניעת-טביעות-כפולות-מריבוי-הגורמים. **אות-תנובה `ticked=0` ל-$GITHUB_OUTPUT**: הרצה-מדולגת-**אינה-מולידה-יורשת** — אוכלוסיית-השרשרות-מתכנסת-לאחת (בלי-זה: כל-דחיפה-היתה-מוסיפה-שרשרת-נצחית-והדופק-היה-מתדלדל). **נסיגה-600ש-על-קבלה-סטלה**: כישלון-חוזר-אינו-יוצר-סערת-ניסיונות-כל-5ש. `if: always()`-על-chain-next: כישלון-חולף-מחלים-עצמו; כישלון-ה-leak-scan-הקנוני-נשאר-חוסם-ונראה.
+- מבחנים-חיים-מקומיים: YAML-4-טריגרים ✔ · node-syntax ✔ · מצערת: 0s<720s→יציאה-0-ללא-קבלה+ticked=0 ✔ · --force→ticked=1+קבלה ✔ · --local-עוקף ✔ · חישוב-שינה: טרייה→870ש · סטלה→600ש ✔ · receipts-שוחזרו-אחרי-כל-מבחן (אפס-זיהום-ארטיפקטים).
+- דחיפה: leak-scan-כפול (--staged + --passfile מול-קובץ-הסיסמה) נקי → commit → rebase → **PROVEN `1fb81fd`** (ls-remote==rev-parse).
+- אימות-חי-לאחר-הדחיפה: push-הצית-בעצמו-ריצה-#2 (push-trigger-עובד) · pages-deploy-#5-success · השערים-החיים-200×4 (shell · params · cipher · cockpit-vault).
+- הצי-המקומי: start.sh-אידמפוטנטי — **8/8 ALIVE** (cockpit · dex · relay · governor · state-push · watchdog · legion · cadence) · dev.log-נקי (bounty-engine-ואוצר-פעילים).
+- .gitignore-של-הריפו-האם: נוסף `/Sandbox/` (מניעת-קינון-בשוגג).
+
+Stage Summary:
+- **הרצף-המתמיד-מומש**: העורק-אינו-תלוי-עוד-במתזמן-של-GitHub — שרשרת-עצמית-שמטפסת-על-עצמה-כל-~15דק' (GITHUB_TOKEN-בלבד), עם-מצערת-שמונעת-סערות-ואוכלוסיה-מתכנסת-לשרשרת-אחת. GitHub-עצמו=המנוע; סנדבוקס-חי=נוחות-בלבד.
+- אמת-מידה-כנה: v1-הודה-רק-בפעימה-אחת-מוכחת; v2-מחייב-את-עצמו-לרצף-והריצה-#2-נצפתה-חיה-לאחר-הדחיפה. אימות-החוליה-הבאה (#3-dispatch) יירשם-ביומן-Sandbox-עם-הוכחה.
+- השערים-נשמרים: אפס-סודות-בגיט · append-only · טריטוריות-החמישה · venue/keys/broadcast/publish=מפעיל-בלבד.
+
+### T-42 — הוכחת-סגירה (התווסף-לאחר-הדחיפה-הראשונה)
+- **השרשרת-העצמית-מוכחת-חי**: הרצה-#5 → `dispatch http=204` (15:08:12Z) → הרצה-#8-נוצרה-מ-repository_dispatch (15:08:16Z) → טביעה-15:08:23 (`chain c07614ae`) → והלאה-כל-~15דק'. שרשרת-קבלות-רצופה: 14:38→14:53→15:08 — בלי-שום-סנדבוקז.
+- **הערת-דיוק-על-התכנסות**: הרצה-מדולגת-אינה-מולידה-יורשת (חוק-ticked=0) — פעימות-המגיעות-בתוך-חלון-ה-12-דק'-מתות; רק-פעימה-מעבר-לחלון-ממשיכה-את-השרשרת → האוכלוסיה-מתכנסת-לשרשרת-אחת. ההשערה-ברשומה-הראשית-אומתה-מתמטית-ובשטח.
+- **ה-Sandbox-PROVEN `3957fff`** (רשומת-T-42-שלי + רשומות-T-43-של-agent-3-נשמרו-append-only; קונפליקט-worklog-שיתופי-נפתר-בשמירת-שניהם) · **האתר-חי-חמש-שכבות-200** (console · cockpit · network · operator · status) · **הצי-המקומי 8/8-ALIVE**.
+
+---
+Task ID: 46
+Agent: agent-6 (ריבון-כפול: sanbox-לב-שני + HQ-חי + כנף-catchup)
+Task: המשך-T-45/46 — "כל-מה-שהיה-תלוי-בך-בסנדבוקס-יעבוד-משם-תמידית-בלי-נפילות-בלי-הפרעות" — ניתוח-מקצועי-וביצוע-מיידי
+
+Work Log:
+- סיור-אפס-אמון: Sandbox-היה-24-קומיטים-מאחור (agent-4/T-45-fleet-yield-חי) → משוך-ff; העורק-מת-וקם-בעצמו-אך-מחכה-לדחיפה-חוץ (מוכח-ב-receipts: דממה 15:08→16:37 = 89 דק'); repo-sanbox-קיים-עם-שרת-HQ-מלא (scrypt/vault/מצערת/guardian/supervisor) אך-לא-רץ-ובלי-לב-ענן-משלו
+- הלב-השני-ב-sanbox: scripts/heart-tick.mjs (stdlib-בלבד; מצערת-12דק'; שרשרת sha256(head|prev|at)[:24]; קבלת-רשומה-מעוקבת state/heart/last.json) + .github/workflows/sovereign-heart.yml (cron 13,43 · push · workflow_dispatch · repository_dispatch-עצמי; GITHUB_TOKEN-בלבד; commit-rebase-safe; sleep-עד-משבצת→dispatch-יורש)
+- כנף-ההצתה-מחדש-ב-Sandbox (קובץ-חדש-בלבד, אפס-דריסה-בטריטוריות): .github/workflows/artery-catchup.yml (cron 7,37 + push; סף-דממה 20 דק'; ① repository_dispatch-לעורק-הראשי ② fallback-טביעה-ישירה+קומיט — הדופק-שורד-גם-כש-API-dispatch-מושבת)
+- HQ-חי: clone-sanbox→/home/z/my-project/sanbox (נתיב-החוזה-של-ops.ts); pat.env-מוזרק (600; PAT-מאומת len=93); דלת-HQ_PORT-נפתחה-ב-server.ts/supervisor.ts/guardian.ts/boot-all.sh (ברירת-מחדל 3010-נשמרת); HQ-עלה-על 3011 (3010=דקס-חי)
+- E2E-מוכח (sanbox/receipts/e2e-hq.json): root=200 "Head Corner — שער-הכניסה" · סיסמה-שגויה 401×5 → 429 (מצערת-חיה-בדיוק-לפי-החוק) · /api/status-ללא-סשן=401 — השער-הקשה-במצב-נעול-כחוק (hq.password-חסר-עד-שהבעלים-משחזר-את-הכספת)
+- גילוי-כנה-ומדוד: תקרת-זיכרון-הסנדבוקס (free≈121MB) קוצרת-תהליכי-HQ-מקומית (OOM-שקט-ללא-trace); המנגנון-עצמו (supervisor/guardian-עם-HQ_PORT-גמיש) נמדד-חי-ומחיה-במצערת-15s; על-מכונת-המפעיל boot-all.sh-מקים-הכל-יציב
+- הרשאות-Actions-ל-sanbox: default_workflow_permissions=write (מאומת-GET) — הלב-יוכל-לקמט/לדחוף/להצית-עצמו-בלב-עצמו
+
+Stage Summary:
+- שני-לבבות-ריבוניים-עצמאיים: Sandbox-עורק-ראשי (קיים-חי) + sanbox-לב-שני (חדש-חמוש) — מיתה-בלב-אחד-לא-משביתה-את-הרשת; כנף-catchup-סוגרת-את-מיתת-הדממה-המוכחת
+- HQ-מפעיל: קוד-מוכח-E2E-חי, נעול-עד-סיסמת-הבעלים-בלבד, דלת-פורט-גמישה-לכל-סביבה (HQ_PORT)
+- אפס-תלות-בסנדבוקס-האפמרלי: הכל-חי-בגיט+Actions+boot-all.sh+guardian(~/.sovereign); הסנדבוקס=ידיים-בלבד
+- אפס-סודות-בגיט (סריקות-לפני-כל-דחיפה); ה-PAT-רק-בכספת-מקומית-600
+
+---
+Task ID: 46-addendum
+Agent: agent-6
+Task: הוכחת-החיה-החיה-של-הכנף + גילוי-שער-החיוב-בלב-השני
+
+Work Log:
+- **הכנף-מוכחת-חי-בייצור**: העורק-הראשי-מת-שוב (דממה 16:37→17:32 = 55 דק', מדוד) → artery-catchup-הרצה-ראשונה-זיהתה-דממה>20 דק' → repository_dispatch → sovereign-tick-התעורר-דרך-repository_dispatch (17:35:52, in_progress) — הפער-הקטלני-המתועד-נסגר-חי-בתוך-דקות-מההצבה
+- **לב-הענן-של-sanbox-חסום-שער-בעלים**: run-37966686575-נכשל-אתחול-2-שניות-אפס-שלבים (חתימת-חיוב) — sanbox=private (דקות-Actions-בתשלום; Sandbox=public=חינם-ורץ); התיקון-בידי-הבעלים-בלבד (הוספת-דקות-או-הפשטת-הrepo) — ההצתה-אוטומטית-ברגע-שהשער-נפתח, אפס-התערבות
+- **הלב-המקומי-של-sanbox-חי-ומוכח**: heart-tick.mjs-שרשרת-מקומית genesis→fcecdd21→a33fe750; קבלת-רשומה-מעוקבת state/heart/last.json; הטיק-מתוזמן-13,43-בענן-יצית-עצמו-כשהשער-ייפתח
+
+Stage Summary:
+- הרשת-מוכיחה-עכשיו-את-החוק-השלם: מיתה→זיהוי→הצתה→המשך-שרשרת — בלי-יד-אנושית
+- אפס-סודות-בגיט (סריקות-סופיות-נקיות); שלושת-ה-repos PROVEN (mother b712705 · sanbox 5073d37 · Sandbox 00c7c99+union-restore)
