@@ -141,6 +141,8 @@ function copyTree(src: string, dst: string, depth: number): { files: number } {
     } else if (entry.isFile()) {
       if (depth === 0 && EXCLUDED_ROOT_ENTRIES.has(name)) continue;
       if (name.endsWith('.log') || name.endsWith('.pid') || name.endsWith('.key')) continue;
+      // T-50: קבצי-.env — נושאי-סודות-מטבעם (נמדד: saos-dex/.env = WIF-posting חי; הסריקה-עצרה-כנון)
+      if (name === '.env' || name.startsWith('.env.') || name.endsWith('.env')) continue;
       try {
         if (statSync(s).size > 8 * 1024 * 1024) continue; // קבצים-כבדים-חריגים — לא-במראה
         copyFileSync(s, d);
@@ -163,6 +165,7 @@ function copySanbox(src: string, dst: string): number {
       files += copySanbox(s, d);
     } else if (entry.isFile()) {
       if (entry.name.endsWith('.log') || entry.name.endsWith('.pid')) continue;
+      if (entry.name === '.env' || entry.name.startsWith('.env.') || entry.name.endsWith('.env')) continue; // T-50
       try {
         if (statSync(s).size > 8 * 1024 * 1024) continue;
         copyFileSync(s, d);
