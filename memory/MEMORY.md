@@ -127,3 +127,4 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 - **connect-all = הפקודה-האחת** ("הראשי-מחבר-את-כולם"): repo-vault+fleet-vault+מטריצה-חיה+rails+קבלות → PASS · מוטמע-בdrill-כcheck-#6 (כל-2ש') · מוצג-חיה-בFuel-Deck ("חיבור-הצבא").
 - **כנות**: active/posting-לחיילים-על-Blurt שונים-שם (owner=סמכות-החזרה; אין-רוטציה-אוטונומית — זמינה-כפקודה) · ynet-אין-חותמות-בכספת · hcsoldiers-לא-קיימים-על-blurt/hive.
 
+
