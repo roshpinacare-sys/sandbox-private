@@ -24,7 +24,7 @@ const EVENTS = path.join(RECEIPTS, 'supervisor.jsonl');
 const PIDFILE = path.join(DB, 'supervisor.pid');
 
 const TICK_MS = 10_000;
-const HQ_PORT = 3010;
+const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
 const DEV_PORT = 3000;
 const HQ_SPAWN_DEBOUNCE_MS = 15_000;
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;

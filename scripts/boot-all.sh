@@ -55,11 +55,12 @@ else
 fi
 
 # 4) HQ מיד (בלי-לחכות-לטיק-הראשון-של-המפקח)
-if curl -s -m 2 -o /dev/null http://127.0.0.1:3010/; then
-  echo "✓ HQ (3010) חי"
+HQ_PORT="${HQ_PORT:-3010}"
+if curl -s -m 2 -o /dev/null "http://127.0.0.1:${HQ_PORT}/"; then
+  echo "✓ HQ (${HQ_PORT}) חי"
 else
-  nohup bun "$ROOT/server.ts" >> "$ROOT/receipts/server.out" 2>&1 &
-  echo "✓ HQ הוקם (pid=$!)"
+  HQ_PORT="$HQ_PORT" nohup bun "$ROOT/server.ts" >> "$ROOT/receipts/server.out" 2>&1 &
+  echo "✓ HQ הוקם (pid=$!, port=$HQ_PORT)"
 fi
 
 # 5) האפליקציה-הראשית (3000) — אם-מתה-ואין-מעטפת

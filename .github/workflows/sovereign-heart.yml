@@ -1,0 +1,87 @@
+name: sovereign-heart
+# הלב-השני (T-46): שרשרת-עצמית-עצמאית-לגמרי-בתוך-sanbox — התיקיה-השנייה-שהמפעיל-פתח.
+# ההלכה: שני-התיקיות = שני-לבבות. העורק-הראשי (Sandbox/sovereign.yml, טריטוריית-agent-1)
+# והלב-הזה אינם-חולקים-שום-מצב/סוד/תלות — מיתה-בלב-אחד לא-משביתה-את-הרשת.
+# גורמי-כניסה: schedule (13,43 — מרווח-מן-העורקים-ב-Sandbox: 0/15, 9-59/20, 3,18,33,48, 11 */2)
+#   · push · workflow_dispatch · repository_dispatch (השרשרת-העצמית).
+# אפס-PAT: GITHUB_TOKEN בלבד (repository_dispatch = החריג-המוכח-ש-GITHUB_TOKEN-מצית-אותו).
+on:
+  schedule:
+    - cron: "13,43 * * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+  repository_dispatch:
+    types: [sovereign-heart]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sovereign-heart
+  cancel-in-progress: false
+
+jobs:
+  heart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: heart-tick (self-throttled 12min)
+        id: tick
+        run: node scripts/heart-tick.mjs
+
+      - name: commit + push (rebase-safe)
+        run: |
+          git config user.name "sanbox-heart"
+          git config user.email "sanbox-heart@users.noreply.github.com"
+          git add state/heart/
+          if git diff --cached --quiet; then
+            echo "no receipt changes — skip"
+          else
+            git commit -m "[heart] sanbox heartbeat: $(date -u +%FT%TZ)"
+            git pull --rebase origin main
+            git push origin main
+          fi
+
+      # חוליית-השרשרת: רק-פעימה-אמתית (ticked=1) מולידה-יורשת; מוצערת-מתה-בלי-יורש
+      # (צמצום-אוכלוסיית-השרשרות-לאחת). sleep-עד-המשבצת-הבאה (15דק' מן-הקבלה-האחרונה;
+      # תקרה-870ש); קבלה-סטלה/חסרה = נסיגה-600ש. כישלון-dispatch = יציאה 1 (נראה-ב-Actions;
+      # כנף-ה-catchup-ב-Sandbox-והמצערת-הכפולה-מציתים-מחדש-באופן-עצמאי).
+      - name: chain-next (sleep to next slot, then dispatch the next beat)
+        if: always() && steps.tick.outputs.ticked != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          SLEEP_S="$(node -e '
+            const fs = require("fs");
+            let last = 0;
+            try { last = Date.parse(JSON.parse(fs.readFileSync("state/heart/last.json", "utf8")).at) || 0; } catch {}
+            const elapsed = Date.now() - last;
+            const s = (last > 0 && elapsed >= 0 && elapsed <= 900000)
+              ? Math.max(5, Math.min(870, Math.ceil((900000 - elapsed) / 1000)))
+              : 600;
+            process.stdout.write(String(s));
+          ')"
+          echo "chain-next: sleeping ${SLEEP_S}s until next slot"
+          sleep "$SLEEP_S"
+          HTTP="$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/roshpinacare-sys/sanbox/dispatches \
+            -d '{"event_type":"sovereign-heart","client_payload":{"from":"chain"}}')"
+          echo "dispatch http=$HTTP"
+          if [ "$HTTP" != "204" ]; then
+            echo "dispatch-failed — chain broken; re-ignite via workflow_dispatch"
+            exit 1
+          fi

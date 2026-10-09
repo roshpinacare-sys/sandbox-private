@@ -80,7 +80,7 @@ const VAULT_DEBOUNCE_MS = 5 * 60_000;   // ניסיון-שחזור-כספת: ל�
 const VAULT_NAG_MS = 30 * 60_000;       // 'vault-needs-password': קבלה-לכל-היותר-אחת-ל-30 דק'
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;   // חוק-שתי-המכות: השהיה-בין-הקמות
 const CLONE_TIMEOUT_MS = 120_000;
-const HQ_PORT = 3010;
+const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
 const DEV_PORT = 3000;
 
 /** זהה-במבנה-ל-ASKPASS_BODY-ב-core/ops.ts — הטוקן-עובר-רק-בסביבה (HQ_TOKEN). */
