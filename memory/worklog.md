@@ -595,3 +595,60 @@ Stage Summary:
 - שרשרת-החיים-החדשה: מפקח(תמידי)→HQ→(מפקח+דחיפה-עצמית+זיכרון); אפליקציה-3000-מפוקחת-בחוק-שתי-המכות.
 - הריפו-הפרטי=מקור-החיים: קוד+זיכרון+תיקוני-עבר; boot-all.sh=תחייה-אחרי-כל-מחיקה.
 - גבול-כנות: כיבוי-מכונה-מלא-עדיין-דורש-הרצת-boot-all.sh-אחרי-עלייה (או-פעולת-פורטל) — מתועד-בפנל.
+
+---
+Task ID: 44-b
+Agent: Claude סוכן-משנה 44-b (שומר-ריבונות)
+Task: שומר-ריבונות-עצמאי (~/.sovereign) — שורד-מחיקת-תיקיית-sanbox-כולה, משחזר-את-הריפו-מ-GitHub-בעצמו, ומעיר-מפקח/HQ/אפליקציה.
+Work Log:
+- נכתב sanbox/scripts/guardian.ts (אפס-תלויות, node:* בלבד): לולאת-נצח טיק-30s, מופע-יחיד דרך ~/.sovereign/guardian.pid (kill(pid,0), כפילות→exit+קבלה); סדר-טיק: (a) sanbox/או-server.ts-חסר → PAT-מ-remote.env (פרסור-זהה-ל-readPat: PAT=/כל-kv/גולמי) + askpass-זמני-ב-~/.sovereign (מצב 700, גוף-זהה-ל-ASKPASS_BODY) + git clone עם GIT_TERMINAL_PROMPT=0+HQ_TOKEN-בסביבה, מחיקת-askpass-ב-finally, דה-באנס-5-דק, קבלות folder-restored/restore-blocked; (b) vault/vault-backup.enc-קיים-ופat.env-חסר → HQ_VAULT_PASS-מוגדר → bun scripts/vault-restore.ts-ב-sanbox (קבלות vault-restored/vault-restore-failed/vault-needs-password-דה-באנס-30-דק); (c) מפקח-מת-לפי db/supervisor.pid → spawn-detached bun scripts/supervisor.ts (supervisor-revive); (d) HQ-מת-וגם-המפקח-מת → bun server.ts (hq-revive — בלי-התחרות-במפקח); (e) אפליקציה-3000 רק-אם-המפקח-מת: חוק-שתי-המכות (pkill 'next dev -p 3000|next-server' + bun run dev, דה-באנס-60s); קבלות-ל-guardian.jsonl-מוגבל-500-שורות, sanitize-מסתיר-טוקן-מכל-הודעה; import.meta.main-בלבד-מריץ.
+- נכתב sanbox/scripts/install-guardian.sh (sh, אידמפוטנטי): sanboxPath-ממיקום-הסקריפט, remoteUrl-מ-git remote get-url origin (ברירת-מחדל-המוכרת); mkdir ~/.sovereign; עותק-טרי-של-guardian.ts; config.json-רק-אם-חסר; remote.env-מ-secrets/pat.env-מצב-600-רק-אם-המקור-קיים; הקמה-nohup-אם-guardian.pid-לא-חי; פלט-עברית; exit-0-תמיד-אלא-קריטי.
+- supervisor.ts: ROOT/PROJECT-הוחלפו-בנגזרות path.resolve(import.meta.dir,'..'/../..) — בלי-שינוי-התנהגות.
+- server.ts: בבלוק import.meta.main-בלבד, אחרי-הקמת-המפקח: בדיקת-guardian.pid → לא-חי → spawn-detached sh scripts/install-guardian.sh + console.log-עברית; try/catch-לא-חוסם; אף-route-לא-נגע.
+- boot-all.sh: שלב-1.1-חדש — pat.env-עדיין-חסר + vault-backup.enc + HQ_VAULT_PASS → vault-restore.ts; אין-סיסמה → הדרכה-עברית ('הרץ: HQ_VAULT_PASS=... bun scripts/vault-restore.ts'); אין-גיבוי → הדרכת-upload; שלב-3.5-חדש — שומר-לא-חי → install-guardian.sh.
+- בדיקות-חי: התקנה-ראשונה → pid=12014-חי, קבלת-guardian-start, remote.env-600, config-מדויק-לחוזה; הרצה-שנייה → אותו-pid ('כבר חי'); kill → התקנה-מחדש → pid=12122-חזר; טיק-מלא-ללא-קבלות-שגיאה (הכל-חי → שקט); שכפול-מבחן-ל-/tmp/sov-test-עם-askpass+HQ_TOKEN → CLONE-OK (server.ts-בפנים), נוקה-מיד; בדיקת-שחזור-אמיתית-מבודדת: guardian-עם-SOVEREIGN_DIR-זמני-וסנboxPath=/tmp → קבלות folder-restored+supervisor-revive תוך-1.3s, askpass-נמחק, שוחזר-מהריפו-הפרטי, נוקה; restore-blocked-אומת (בלי-remote.env); ops.runSecretScan → clean:true (29 קבצים, 0 היטים), אפס-ריצות-40+ בקבצי; המפקח-9475-לא-השתנה, HQ-3010=200, אפליקציה-3000=200-לאורך-כל-העבודה.
+Stage Summary:
+- שרשרת-החיים-מעוגנת-מחוץ-לפרויקט: גם-מחיקת-sanbox-כולה-לא-הורגת-את-הריבונות — ~/.sovereign/guardian.ts-משחזר-מהריפו-הפרטי-ומעיר-מפקח→HQ→אפליקציה-בעצמו; הטוקן-מעולם-לא-בפלט/קבלות/URL (askpass+HQ_TOKEN-בסביבה, נמחק-תמיד).
+- מופע-שומר-יחיד-חי-עכשיו (guardian.pid) + מתקין-אידמפוטנטי-שנקרא-מ-boot-all.sh-ומעליית-HQ.
+- פתוח: בדיקת-vault-needs-password-החיה-ממתינה-ל-vault-backup.enc-הראשון (סוכן 44-c) — הלוגיקה-ממומשת-ונבדקה-סטטית-בלבד.
+
+---
+Task ID: 44-c
+Agent: Claude סוכן-משנה 44-c (פורטל-ושחזור)
+Task: שחזור-מגיט-בצד-האפליקציה (ensure-hq) + כרטיס-ריבונות-כוללני בפורטל + פעולות-כספת בפרוקסי + שיקוף-ותיעוד.
+
+Work Log:
+- נקרא worklog (עד הסוף) והקבצים: ensure-hq.ts, action/route.ts, page.tsx (כרטיס-ריבונות + מנגנון-הלוג/טוסט), core/ops.ts, sanbox/README.md, docs/INTEGRATION.md — המשכתי-מ-44-a/44-b (ops כבר-מדווח vaultBackup/repoSync/guardian; runAction מקבל payload.password).
+- src/lib/ensure-hq.ts — שדרוג-ריבונות: אם-פורט-3010-מת וגם sanbox/server.ts לא-קיים → לפני-ההקמה שחזור-מגיט: remoteUrl מ-~/.sovereign/config.json (ברירת-מחדל הריפו-הפרטי; רק-https נקי), PAT מ-~/.sovereign/remote.env (PAT=.../raw) ואם-אין מ-sanbox/secrets/pat.env (אם-התיקייה-קיימת); אין-PAT → false בשקט. היגיינה-מלאה: askpass-זמני תחת-os.tmpdir() (מצב 700, מבנה-כמו-ops.ts), execFile (בלי-shell) timeout-60s, env GIT_TERMINAL_PROMPT=0+GIT_ASKPASS+HQ_TOKEN — הטוקן-לעולם-לא-ב-argv/URL/.git/config; מחיקת-askpass-ב-finally. תיקייה-חסרה/ריקה → git clone; תיקייה-קיימת-שאינה-ריקה → init+fetch+checkout -f (משחזר-רק-נעקבים, לא-נוגע-ב-secrets/). debounce-שחזור-נפרד 120ש מלבד-debounce-הקמה 30ש. כל-ההתנהגות-הקיימת-נשמרה.
+- src/app/api/sandbox/action/route.ts — ALLOWED_ACTIONS += vault-backup, vault-restore; קריאת-password מהגוף (מחרוזת-לא-ריקה-בלבד) והעברה-ל-HQ-רק-בגוף-עבור-vault-restore; אין-סיסמה-בלוגים/קבלות/תשובות.
+- src/app/page.tsx — כרטיס-'ריבונות' כוללני: טיפוסי-סטטוס מורחבים (ops.guardian/vaultBackup/repoSync); שורת-'שומר-ריבונות עצמאי' (Badge ירוק 'פעיל — pid X' / אדום-מהבהב 'לא פעיל'); שורת-'גיבוי-כספת-מוצפן' (ts מעוצב + hashShort מונוספייס + KB, או Badge-אדום 'אין גיבוי'); שורת-'סנכרון-ריפו' (0/0 → 'מסונכרן', אחרת קדימה/אחורה); כפתור-'גבה עכשיו' → runAction('vault-backup') באותו-מנגנון-טעינה/לוג; מקטע-'שחזור-כספת' (שדה-סיסמה type=password + 'שחזר מגיבוי') — runAction-מורחב-ל-payload {password?}; טוסט-הצלחה 'הכספת שוחזרה מהגיבוי המוצפן'/שגיאה-מ-error; שדה-הסיסמה-מנוקה-מיד-אחרי-הניסיון; שורת-עזרה 'הסיסמה אינה נשמרת בשום מקום — משמשת רק לפענוח ברגע השחזור'. רספונסיבי (flex-col→sm:flex-row), אפס-כחול/אינדיגו.
+- שיקוף-מדויק-לריפו (cp + diff אימות): page.tsx→sanbox/portal/page.tsx, ensure-hq.ts→sanbox/portal/ensure-hq.ts, action/route.ts→sanbox/portal/api/sandbox/action/route.ts; sanbox/portal/README.md — סעיף-44-c (שחזור-מגיט + הכרטיס-הכוללני).
+- תיעוד: sanbox/README.md — סעיף-'שרשרת-הריבונות' (דיאגרמת-טקסט שומר→מפקח→HQ+אפליקציה; HQ→דחיפה-עצמית-30דק+גיבוי-vault-backup.enc+pull-rebase) + הוראות-מכונה-חדשה (clone/boot-all/vault-restore/install-guardian); sanbox/docs/INTEGRATION.md — סעיף-8 'גיבוי-ושחזור-כספת + סנכרון-דו-כיווני' (AES-256-GCM, כתיבה-רק-בשינוי, vault-restore, pull --rebase --autostash, merge=union, פעולות-פורטל-חדשות).
+- אימות: bun run lint — 0 בעיות-בקבצים-שלי (eslint ישיר על-3 הקבצים EXIT=0; בפלט-המלא 992 מופעים-טרום-קיימים-רק-מ-Domain/+public/console/ — אפס-התאמות-ל-src/); tsc --noEmit — אפס-שגיאות-ב-src/ (רק-Console/+public/console/-טרום-קיים ethers); diff-שיקוף-זהה; לא-build, לא-push, לא-נגעתי-בשרת-3000.
+- אימות-דפדפן (agent-browser, מול-3000): כניסת-בעלים-תקינה; הכרטיס-מציג את כל-השורות-החדשות (מצב-שומר 'לא פעיל' נכון-הגנתית — תהליך-HQ-החי-טרום-44-a עדיין-לא-מדווח-את-השדות; 'אין גיבוי'; סנכרון-ריפו '—'); כפתור-'גבה עכשיו' קיים; ניסיון-שחזור-עם-סיסמה-זמנית → פעולה-עברה-דרך-הפרוקסי-אל-HQ (ה-44-a-הישן-על-הפורט-החזיר 'פעולה לא ידועה') → לוג-שגיאה-עברי-ושדה-הסיסמה-התרוקן-מיד; תצוגת-מובייל-390px-תקינה; אפס-שגיאות-קונסולה/עמוד; בדיקת-clone-מדומה-אמיתית-אל-/tmp-עם-ה-PAT-האמיתי (askpass+env בלבד): clone-הצליח, server.ts-שוחזר, אפס-טוקן-ב-config/פלט, ניקוי-מלא.
+
+Stage Summary:
+- טבעת-השחזור-סגורה: מחיקת-תיקיית-sanbox-כולה → קריאת-סטטוס-ראשונה משחזרת-את-הקוד-מהריפו-הפרטי (clone בהיגיינה-מלאה) ומקימה-HQ — בלי-מגע-אדם; תיקייה-חלקית → משוחזרים-נעקבים-בלבד-והכספת-שורדת.
+- הכרטיס-'ריבונות' כעת-לוח-מבצעים-מלא: שומר/גיבוי-מוצפן/סנכרון-ריפו/דחיפה-עצמית + גיבוי-עכשיו + שחזור-כספת-בסיסמת-אם שאינה-מתמקמת-בשום-מאגר.
+- חוזה-הסיסמה נשמר מקצה-לקצה: טופס → פרוקסי (גוף-בלבד) → HQ payload — אפס-לוגים/קבלות/תשובות.
+- פתוח: עם-הפעלה-מחדשה-של-HQ-על-הקוד-החדש (44-a) השורות-יתמלאו-בנתונים-חיים; הפורטל-כבר-מוכן-ומגיב-בנחישות-כששדה-חסר.
+---
+Task ID: 44-a
+Agent: Claude סוכן-משנה 44-a (כספת-גיבוי)
+Task: גיבוי-כספת-מוצפן בתוך-הריפו + שחזור + סנכרון-דו-כיווני — core/backup.ts (AES-256-GCM+scrypt), CLI-שחזור, אינטגרציה ב-ops/server, allowlist-צופן-בסריקה.
+
+Work Log:
+- נקראו-worklog (42..43) והקוד-הקיים (ops/vault/auth/server/scan-patterns) — המשכתי על-Bun-stdlib-בלבד, אפס-תלויות.
+- core/backup.ts (חדש, node:crypto/fs/path בלבד): vaultBackup() — אוסף secrets/ (קבצים-בלבד, ממוינים), payload {v:1,ts,files:[{name,b64}]}; הצפנה salt אקראי 16B + scryptSync(32) + AES-256-GCM + iv אקראי 12B; פורמט base64("SQV1"+salt+iv+authTag+ct); יעד vault/vault-backup.enc מצב-600. מניעת-רעש: sha256 על המיפוי-הממוין שם→תוכן; hash-זהה-לקבלה → לא-כותב (written:false), רק-מעדכן ts ב-db/vault-backup.json.
+- vaultRestore(password): פענוח (salt/iv/tag מהקובץ-עצמו); כישלון-GCM → 'סיסמה-שגויה-או-גיבוי-פגום'; שמות-מאומתים מול ^[\w.\-\u0590-\u05FF]+$ (חשוד → דילוג+ציון, מניעת-מסלולים); כתיבה-חזרה אל secrets/ ב-600; hq.password-שוחזר-והשתנה → מחיקת db/auth.json (בנייה-מחדש-בעלייה); קבלה receipts/vault-restore-last.json {ok,restored,ts} — שמות-בלבד. import.meta.main: SOV_ACTION=backup|restore (סיסמה-ל-restore מ-HQ_VAULT_PASS-בלבד), פלט-JSON-ממוסק + exit-code.
+- scripts/vault-restore.ts (חדש, CLI-לבעלים): סיסמה מ-HQ_VAULT_PASS או מ-stdin (שאלה-ללא-הד-דרך-stty, החזרת-הד-תמיד); readline של-Bun נתקע-על-stdin-מוזרם → הוחלף-בקריאה-ידנית עד-ירידת-שורה/סוף-הזרמה (נבדק: צינור-עם/בלי-ירידת-שורה, stdin-ריק, סיסמה-שגויה). exit 1-בכישלון.
+- ops.ts: (1) runSecretScan — דילוג-מפורש על vault/vault-backup.enc (allowlist-מתועד); (2) autoPush — vaultBackup אחרי-syncMemory-ולפני-בדיקת-dirty (try/catch, לא-חוסם), תוצאה {ok,written,hashShort} בשדה `backup` של-שתי-הקבלות; (3) pushToGitHub שלב-2.5 — pull --rebase --autostash origin main כשיש-upstream; כישלון → rebase --abort (best-effort) + חזרה stage:'pull' fail-closed (אסור-force); (4) runAction(action, payload?) + מקרים vault-backup/vault-restore (סיסמה-מחרוזת-לא-ריקה-אחרת 'נדרשת סיסמה'); (5) collectStatus — vaultBackup {exists,ts,hashShort,bytes}, repoSync {ahead,behind}, guardian {alive,pid} מ-~/.sovereign/guardian.pid; StatusExtra-עודכן.
+- server.ts: נגעתי-רק-במטפל-/api/action — password (מחרוזת-בלבד) מהגוף עובר ל-runAction(action,{password}); חוזה-OpsModule-עודכן. שאר-הקובץ-טרום-קיים (44-b-במקביל).
+- .gitattributes (חדש): memory/worklog.md merge=union — מיזוג-איחוד ליומן-העבודה בסנכרון-בין-מכונות.
+- בדיקות-חיות: vault-backup ok:true (2360B, 4 קבצים, קבלה-נכתבה) → הרצה-שנייה written:false (אין-רעש); secret-scan clean:true גם-כשה-.enc-מסומן-בגיט (שליטה-שלילית: בלי-ה-allowlist generic-long היה-תופס-אותו); עיגול-שחזור-מלא — sha256-של-כל-4 הסודות זהים-לפני/אחרי; סיסמה-שגויה → ok:false+exit 1 והקבצים-לא-נפגעו (השוואה-חוזרת); hqFetch: 401-ללא-אימות, vault-backup/vault-restore/סיסמה-שגויה עובדים-ממוסק; auth.json-נשמר-כשהסיסמה-לא-השתנתה; בדיקת-דליפות — הסיסמה-לא-מופיעה בקוד/קבלות/db/vault/זיכרון; קבצי-/tmp-נמחקו-מיד; tsc --strict-על-3 הקבצים-נקי; bun run lint — אפס-ממצאים-ב-sanbox (992-טרום-קיימים ב-Domain/public-console — מחוץ-לסביבת-sanbox).
+
+Stage Summary:
+- הכספת-נוסעת-עם-הריפו: vault/vault-backup.enc (AES-256-GCM, מפתח-scrypt מסיסמת-האם) ייקומט-ויידחף — מחיקת-תיקיית-sanbox-כבר-לא-קטלנית; שחזור-בעלים: HQ_VAULT_PASS="..." bun scripts/vault-restore.ts, או פעולת-vault-restore בפורטל (כשהפרוקסי-יעביר payload.password).
+- סנכרון-דו-כיווני: כל-דחיפה-מושכת-קודם-ב-rebase (בלי-force, fail-closed); היומן-מתמזג-union — שתי-מכונות-יכולות-לדחוף-לסירוגין.
+- גיבוי-אוטומטי בכל-autoPush (hash — אפס-רעש-קומיטים); הסטטוס-חושף vaultBackup/repoSync/guardian.
+- גבול-כנות: מסלול-TTY-אינטראקטיבי (stty) לא-נבדק-בפועל (אין-מסוף-אינטראקטיבי-בסנדבוקס) — env/צינור/ריק/שגוי נבדקו; השרת-החי-על-3010 יטען-את-הקוד-החדש-רק-אחרי-הפעלה-מחדש (אינטגרטור).

@@ -12,11 +12,36 @@
  * כישלון → exit 1.
  */
 import { execSync } from 'node:child_process';
-import * as readline from 'node:readline/promises';
 
 import { vaultRestore } from '../core/backup.ts';
 
-/** קריאת-שורה-אחת-מ-stdin; כשיש-מסוף — הד-מושתק-זמנית-דרך-stty (ומוחזר-תמיד). */
+/**
+ * קריאת-שורה-אחת-מ-stdin בלי-readline (readline של-Bun נתקע-על-stdin-מוזרם).
+ * נגמר-בירידת-שורה (מקלדת) או-בסוף-הזרמה (צינור/קובץ) — מה-שמגיע-קודם.
+ */
+async function readLineRaw(): Promise<string> {
+  return new Promise((resolve) => {
+    let buf = '';
+    const done = (val: string) => {
+      process.stdin.removeListener('data', onData);
+      process.stdin.removeListener('end', onEnd);
+      process.stdin.removeListener('error', onEnd);
+      process.stdin.pause();
+      resolve(val);
+    };
+    const onData = (chunk: Buffer | string) => {
+      buf += typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+      const nl = buf.search(/[\r\n]/);
+      if (nl >= 0) done(buf.slice(0, nl));
+    };
+    const onEnd = () => done(buf);
+    process.stdin.on('data', onData);
+    process.stdin.on('end', onEnd);
+    process.stdin.on('error', onEnd);
+  });
+}
+
+/** קריאת-הסיסמה-מ-stdin; כשיש-מסוף — הד-מושתק-זמנית-דרך-stty (ומוחזר-תמיד). */
 async function readPasswordFromStdin(): Promise<string> {
   const isTTY = Boolean(process.stdin.isTTY);
   process.stdout.write('הזן סיסמת-אם: ');
@@ -28,14 +53,7 @@ async function readPasswordFromStdin(): Promise<string> {
     }
   }
   try {
-    const rl = readline.createInterface({ input: process.stdin, terminal: false });
-    let line = '';
-    try {
-      line = await rl.question('');
-    } catch {
-      line = ''; // קצה-קלט/שגיאת-קריאה — מחרוזת-ריקה
-    }
-    rl.close();
+    const line = await readLineRaw();
     return line.trim();
   } finally {
     if (isTTY) {

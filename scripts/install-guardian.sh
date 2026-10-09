@@ -54,6 +54,20 @@ else
   echo "!! secrets/pat.env חסר — אין-מקור-אימות לשחזור-תיקייה (השומר-ידווח restore-blocked)"
 fi
 
+# 4.5) guardian.env — סיסמת-האם-לשחזור-כספת-אוטונומי (מצב 600; אף-הד-של-תוכן)
+#      הערה: אותה-רמת-חשיפה-כמו-secrets/hq.password-עצמו (אותו-משתמש, אותה-מכונה) —
+#      בלעדיה-השומר-משחזר-קוד-אך-לא-סודות; איתה-התחייה-שלמה-ואפס-התערבות.
+if [ -f "$SANBOX/secrets/hq.password" ]; then
+  if printf 'HQ_VAULT_PASS=%s\n' "$(cat "$SANBOX/secrets/hq.password" 2>/dev/null)" > "$SOV/guardian.env" 2>/dev/null; then
+    chmod 600 "$SOV/guardian.env" 2>/dev/null
+    echo "✓ guardian.env עודכן (מפתח-שחזור-כספת, מצב 600)"
+  else
+    echo "!! כתיבת guardian.env נכשלה — שחזור-כספת-יידרש הזנת-סיסמה ידני"
+  fi
+else
+  echo "!! secrets/hq.password חסר — guardian.env לא ייכתב (שחזור-כספת-ידרוש הזנת-סיסמה)"
+fi
+
 # 5) הקמה-אם-לא-חי (מופע-יחיד לפי guardian.pid)
 GPID=""
 if [ -f "$SOV/guardian.pid" ]; then

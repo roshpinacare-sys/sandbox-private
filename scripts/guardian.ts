@@ -42,6 +42,9 @@ const PIDFILE = path.join(SOV_DIR, 'guardian.pid');
 const RECEIPTS_FILE = path.join(SOV_DIR, 'guardian.jsonl');
 const REMOTE_ENV = path.join(SOV_DIR, 'remote.env');
 const ASKPASS_PATH = path.join(SOV_DIR, '.askpass.sh');
+// guardian.env — משתני-סביבה-אופציונליים-לשומר (כגון HQ_VAULT_PASS-לשחזור-כספת-אוטונומי);
+// נכתב-על-ידי install-guardian.sh מ-secrets/hq.password במצב 600 — אותה-רמת-חשיפה-כמו-המקור.
+const GUARDIAN_ENV = path.join(SOV_DIR, 'guardian.env');
 
 type Config = { sanboxPath: string; projectPath: string; remoteUrl: string };
 
@@ -315,10 +318,41 @@ function restoreVault(now: number): void {
   }
 }
 
+/* ---------- טעינת-סביבה-אופציונלית (guardian.env) ---------- */
+
+/**
+ * loadSovereignEnv — קורא ~/.sovereign/guardian.env (שורות KEY=VALUE) ומזריק
+ * ל-process.env רק-משתנים-שעדיין-לא-מוגדרים. מטרה: שחזור-כספת-אוטונומי (HQ_VAULT_PASS)
+ * גם-אם-השומר-הוקם-בלי-המשתנה. נקרא-בכל-טיק — קריאה-זולה-של-קובץ-זעיר.
+ * הקובץ-נכתב-על-ידי install-guardian.sh במצב 600 ואינו-נכלל-בקבלות-או-בפלט.
+ */
+function loadSovereignEnv(): void {
+  try {
+    const raw = readFileSync(GUARDIAN_ENV, 'utf8');
+    for (const line of raw.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (trimmed.length === 0 || trimmed.startsWith('#')) continue;
+      const eq = trimmed.indexOf('=');
+      if (eq <= 0) continue;
+      const key = trimmed.slice(0, eq).trim();
+      const value = trimmed.slice(eq + 1).trim().replace(/^["']|["']$/g, '');
+      if (key.length > 0 && value.length > 0 && !(key in process.env)) {
+        process.env[key] = value;
+      }
+    }
+  } catch {
+    /* אין-guardian.env — מותר; שחזור-הכספת-פשוט-יידרש-התערבות-בעלים */
+  }
+}
+
 /* ---------- הטיק ---------- */
 
 async function tick(): Promise<void> {
   const now = Date.now();
+
+  /* אפס-סביבה: טעינת-guardian.env-בכל-טיק (מוזיל; רק-משתנים-חסרים-נקבעים)
+   * — כך-שחזור-הכספת-עובד-גם-אם-השומר-הוקם-בלי-HQ_VAULT_PASS-בסביבה. */
+  loadSovereignEnv();
 
   /* a. שחזור-תיקייה — אם-sanbox-חסר (או-server.ts-חסר) */
   let sanboxReady = existsSync(SANBOX) && existsSync(path.join(SANBOX, 'server.ts'));
