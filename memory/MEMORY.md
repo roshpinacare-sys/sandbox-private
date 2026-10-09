@@ -139,3 +139,4 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 
 # MEMORY.md — זיכרון מזוקק (מעודכן 2026-10-08 · מקור-אמת: worklog.md)
 
+

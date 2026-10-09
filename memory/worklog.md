@@ -4960,3 +4960,4 @@ Stage Summary:
 - PAT file stays at /tmp/pat_extract/extracted_content.bin (not committed anywhere, not exposed in logs).
 - Key files: src/app/page.tsx (redirect), public/console/* (static site).
 
+
