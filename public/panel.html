@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex">
+  <title>Head Corner — לוח המפעיל</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+        <path d="M12 3l7 2.8v5.4c0 4.6-2.9 8-7 9.8-4.1-1.8-7-5.2-7-9.8V5.8L12 3z"></path>
+        <circle cx="12" cy="11" r="2.1"></circle>
+        <line x1="12" y1="13.1" x2="12" y2="16"></line>
+      </svg>
+      <span class="brand-name">Head Corner</span>
+      <span class="brand-sep" aria-hidden="true">·</span>
+      <span class="brand-sub">לוח המפעיל</span>
+    </div>
+    <div class="top-status">
+      <span id="live-dot" class="dot" aria-hidden="true"></span>
+      <span id="live-text">מתחבר…</span>
+    </div>
+    <button id="logout" type="button" class="btn btn-danger">התנתקות</button>
+  </header>
+
+  <main class="wrap">
+    <div id="net-banner" class="banner" role="alert" hidden>אין תקשורת עם השרת או שהוא אינו תקין — ינוסה שוב בעוד 30 שניות.</div>
+
+    <section class="grid">
+
+      <article class="card" aria-labelledby="c-server">
+        <header class="card-head">
+          <svg class="cicon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+          <h2 id="c-server">מצב שרת</h2>
+        </header>
+        <dl class="kv">
+          <div class="kv-row"><dt>זמן פעילות</dt><dd id="st-uptime">—</dd></div>
+          <div class="kv-row"><dt>פורט 3000 · פורטל</dt><dd id="st-p3000" class="mono" dir="ltr">—</dd></div>
+          <div class="kv-row"><dt>פורט 3010 · HQ</dt><dd id="st-p3010" class="mono" dir="ltr">—</dd></div>
+          <div class="kv-row"><dt>תוקף סשן</dt><dd id="st-session">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="card" aria-labelledby="c-vault">
+        <header class="card-head">
+          <svg class="cicon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <h2 id="c-vault">כספת</h2>
+          <span id="vault-count" class="chip" hidden></span>
+        </header>
+        <div id="vault-wrap" class="tbl-wrap" hidden>
+          <table class="tbl">
+            <thead>
+              <tr><th>שם</th><th>סוג</th><th>ערך ממוסך</th></tr>
+            </thead>
+            <tbody id="vault-body"></tbody>
+          </table>
+        </div>
+        <p id="vault-empty" class="empty" hidden>הכספת ריקה.</p>
+        <p class="foot-note">סריקת סודות אחרונה: <span id="st-scan">—</span></p>
+      </article>
+
+      <article class="card" aria-labelledby="c-git">
+        <header class="card-head">
+          <svg class="cicon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>
+          <h2 id="c-git">גיט</h2>
+        </header>
+        <dl class="kv">
+          <div class="kv-row"><dt>ענף</dt><dd id="st-branch" class="mono" dir="auto">—</dd></div>
+          <div class="kv-row"><dt>קבצים נעקבים</dt><dd id="st-tracked">—</dd></div>
+          <div class="kv-row"><dt>קומיט אחרון</dt><dd id="st-commit" class="mono" dir="auto">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="card" aria-labelledby="c-actions">
+        <header class="card-head">
+          <svg class="cicon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+          <h2 id="c-actions">פעולות</h2>
+        </header>
+        <div class="actions-row">
+          <button type="button" class="btn act" data-action="secret-scan">סריקת סודות</button>
+          <button type="button" class="btn act" data-action="push-github">דחיפה לגיטהאב</button>
+          <button type="button" class="btn act" data-action="git-status">סטטוס גיט</button>
+        </div>
+        <div id="log" class="log" aria-live="polite" aria-label="יומן פעולות"></div>
+      </article>
+
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var REFRESH_MS = 30000;
+
+    var liveDot = document.getElementById('live-dot');
+    var liveText = document.getElementById('live-text');
+    var netBanner = document.getElementById('net-banner');
+    var logoutBtn = document.getElementById('logout');
+    var logBox = document.getElementById('log');
+    var actBtns = Array.prototype.slice.call(document.querySelectorAll('.act'));
+
+    var timer = null;
+    var busy = false;
+
+    /* ---------- עזרים ---------- */
+
+    function redirectToLogin() {
+      if (timer) { clearInterval(timer); timer = null; }
+      window.location.href = '/';
+    }
+
+    function setLive(state, text) {
+      liveDot.className = 'dot' + (state ? ' ' + state : '');
+      liveText.textContent = text;
+    }
+
+    function setText(id, value) {
+      document.getElementById(id).textContent =
+        (value === null || value === undefined || value === '') ? '—' : String(value);
+    }
+
+    function el(tag, cls, text) {
+      var node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text !== null && text !== undefined) node.textContent = text;
+      return node;
+    }
+
+    function fmtUptime(u) {
+      if (u === null || u === undefined) return '—';
+      if (typeof u === 'string') return u;
+      var s = Number(u);
+      if (!isFinite(s) || s < 0) return '—';
+      var days = Math.floor(s / 86400);
+      var hours = Math.floor((s % 86400) / 3600);
+      var mins = Math.floor((s % 3600) / 60);
+      var parts = [];
+      if (days) parts.push(days + ' ימים');
+      if (days || hours) parts.push(hours + ' שעות');
+      parts.push(mins + ' דקות');
+      return parts.join(' ');
+    }
+
+    function fmtWhen(v) {
+      if (v === null || v === undefined || v === '') return '—';
+      var d = new Date(v);
+      if (isNaN(d.getTime())) return String(v);
+      return d.toLocaleString('he-IL', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    function fmtPort(v) {
+      if (v === null || v === undefined || v === '') return '—';
+      if (typeof v === 'boolean') return v ? 'פעיל' : 'לא פעיל';
+      return String(v);
+    }
+
+    /* ---------- לוג ---------- */
+
+    var MAX_LOG_LINES = 250;
+
+    function logLine(text, cls) {
+      var time = new Date().toLocaleTimeString('he-IL', { hour12: false });
+      var line = el('div', 'log-line' + (cls ? ' ' + cls : ''));
+      line.appendChild(el('span', 'log-time', time));
+      line.appendChild(el('span', 'log-msg', text));
+      logBox.appendChild(line);
+      while (logBox.childElementCount > MAX_LOG_LINES) {
+        logBox.removeChild(logBox.firstChild);
+      }
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    /* ---------- כספת ---------- */
+
+    function renderVault(items) {
+      var body = document.getElementById('vault-body');
+      var wrap = document.getElementById('vault-wrap');
+      var empty = document.getElementById('vault-empty');
+      var count = document.getElementById('vault-count');
+
+      body.textContent = '';
+      var list = Array.isArray(items) ? items : [];
+
+      if (!list.length) {
+        wrap.hidden = true;
+        empty.hidden = false;
+        count.hidden = true;
+        count.textContent = '';
+        return;
+      }
+
+      wrap.hidden = false;
+      empty.hidden = true;
+      count.hidden = false;
+      count.textContent = list.length + ' פריטים';
+
+      list.forEach(function (item) {
+        var tr = el('tr');
+        var name = el('td', 'mono', item && item.name != null ? String(item.name) : '—');
+        name.dir = 'auto';
+        var kind = el('td', null, item && item.kind != null ? String(item.kind) : '—');
+        kind.dir = 'auto';
+        var masked = el('td', 'masked mono', item && item.masked != null ? String(item.masked) : '—');
+        masked.dir = 'ltr';
+        tr.appendChild(name);
+        tr.appendChild(kind);
+        tr.appendChild(masked);
+        body.appendChild(tr);
+      });
+    }
+
+    /* ---------- סטטוס ---------- */
+
+    function renderStatus(data) {
+      var ports = data.ports || {};
+      var git = data.git || {};
+
+      setText('st-uptime', fmtUptime(data.uptime));
+      setText('st-p3000', fmtPort(ports.p3000));
+      setText('st-p3010', fmtPort(ports.p3010));
+      setText('st-session', fmtWhen(data.sessionExpiresAt));
+      setText('st-scan', fmtWhen(data.scanLast));
+      setText('st-branch', git.branch);
+      setText('st-tracked', git.trackedFiles);
+      setText('st-commit', git.lastCommit);
+
+      renderVault(data.vault);
+    }
+
+    function refreshStatus() {
+      fetch('/api/status', { credentials: 'same-origin' })
+        .then(function (res) {
+          if (res.status === 401) {
+            redirectToLogin();
+            return null;
+          }
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data) return;
+          netBanner.hidden = true;
+          setLive('ok', 'מחובר');
+          renderStatus(data);
+        })
+        .catch(function () {
+          setLive('err', 'אין חיבור');
+          netBanner.hidden = false;
+        });
+    }
+
+    /* ---------- פעולות ---------- */
+
+    function runAction(action) {
+      if (busy) return;
+      busy = true;
+      actBtns.forEach(function (b) { b.disabled = true; });
+      logLine('run: ' + action + ' …');
+
+      fetch('/api/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: action })
+      }).then(function (res) {
+        if (res.status === 401) {
+          redirectToLogin();
+          return null;
+        }
+        return res.json().catch(function () { return null; }).then(function (data) {
+          if (!res.ok || !data || data.ok !== true) {
+            logLine(res.status === 429
+              ? 'השרת עמוס — נסו שוב בעוד רגע.'
+              : 'הפעולה נכשלה (קוד ' + res.status + ').', 'log-err');
+            return;
+          }
+          var summary;
+          try { summary = JSON.stringify(data); } catch (e) { summary = '[תשובה לא קריאה]'; }
+          logLine(summary, 'log-ok');
+          refreshStatus();
+        });
+      }).catch(function () {
+        logLine('השרת אינו זמין — הפעולה לא בוצעה.', 'log-err');
+        setLive('err', 'אין חיבור');
+      }).then(function () {
+        busy = false;
+        actBtns.forEach(function (b) { b.disabled = false; });
+      });
+    }
+
+    actBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        runAction(btn.getAttribute('data-action'));
+      });
+    });
+
+    /* ---------- התנתקות ---------- */
+
+    logoutBtn.addEventListener('click', function () {
+      logoutBtn.disabled = true;
+      fetch('/api/logout', { method: 'POST', credentials: 'same-origin' })
+        .catch(function () { /* מתנתקים מקומית גם בלי תשובה */ })
+        .then(function () { redirectToLogin(); });
+    });
+
+    /* ---------- אתחול ---------- */
+
+    refreshStatus();
+    timer = setInterval(refreshStatus, REFRESH_MS);
+
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) refreshStatus();
+    });
+  })();
+  </script>
+</body>
+</html>
