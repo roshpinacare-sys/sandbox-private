@@ -2,3 +2,4 @@
 # (שני-מופעים-ריבוניים-חיים-כותבים-לאותו-ריפו — התנגשות-rebase על-יומנים-נפסקת-מהיום)
 *.jsonl merge=union
 memory/worklog.md merge=union
+memory/MEMORY.md merge=union

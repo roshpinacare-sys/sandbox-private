@@ -335,7 +335,58 @@ export function lastAutoPush(): string | null {
   }
 }
 
-/** סנכרון-הזיכרון: MEMORY.md + worklog.md מהפרויקט-הראשי → sanbox/memory/ (נדחף-לגיט) */
+/**
+ * פיצול-למדורים (T-53): יומני-הזיכרון הם append-only משותפים-לכל-הסוכנים.
+ * worklog.md — מדור-נפתח-בשורת '---' בלבד; MEMORY.md — מדור-נפתח-בכותרת '## '.
+ * המדור-הראשון-במערך = ההקדמה (לפני-המפריד-הראשון; עשוי-להיות-ריק).
+ */
+function splitMemorySections(content: string, mode: 'dash' | 'hash'): string[] {
+  const isBoundary = (l: string): boolean =>
+    mode === 'dash' ? /^---\s*$/.test(l) : /^## /.test(l);
+  const secs: string[] = [];
+  let cur: string[] = [];
+  let seenBoundary = false;
+  for (const l of content.split('\n')) {
+    if (isBoundary(l)) {
+      secs.push(cur.join('\n'));
+      cur = [l];
+      seenBoundary = true;
+    } else {
+      cur.push(l);
+    }
+  }
+  secs.push(cur.join('\n'));
+  return seenBoundary ? secs : [content]; // אין-מפרידים — הקובץ-כולו-מדור-אחד
+}
+
+/** איחוד-append-only-by-hash: הבסיס=העותק-העשיר-יותר; מדורים-ייחודיים-של-הצד-השני-מתווספים-בסדרם. */
+function mergeMemorySections(a: string, b: string, mode: 'dash' | 'hash'): string {
+  const sa = splitMemorySections(a, mode);
+  const sb = splitMemorySections(b, mode);
+  const base = sa.length >= sb.length ? sa : sb;
+  const other = base === sa ? sb : sa;
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const push = (s: string): void => {
+    const key = s.trim();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    out.push(s);
+  };
+  for (const s of base) push(s);
+  for (const s of other) push(s);
+  return out.join('\n').replace(/\n{3,}$/g, '\n\n') + '\n';
+}
+
+/**
+ * סנכרון-זיכרון-באיחוד (T-53, תיקון-דריסה): MEMORY.md + worklog.md הם יומנים append-only
+ * משותפים-לכל-הסוכנים (המכונה-הזו + התאום). ההעתקה-הגורפת-הקודמת דרסה-את-מדורי-התאום
+ * (אירוע-06871b8: מחיקת-3452 שורות-יומן — נתפס-באימות-אפס-אמון ותוקן-כאן בשורש).
+ * האיחוד-by-hash מכניס-גם-את-מדורי-הפרויקט-וגם-את-מדורי-ה-sandbox, מדלג-על-כפילויות
+ * מדויקות, וכותב-את-הסופרסט-לשני-הצדדים — התכנסות-מלאה, אפס-אובדן-רשומות.
+ * במקביל: .gitattributes מאחד-ברמת-הגיט (*.jsonl · memory/worklog.md · memory/MEMORY.md
+ * merge=union) — שכבת-הגנה-שנייה-מפני-התנגשויות-rebase-בין-מופעים.
+ */
 export function syncMemory(): { synced: string[]; missing: string[] } {
   const synced: string[] = [];
   const missing: string[] = [];
@@ -344,11 +395,36 @@ export function syncMemory(): { synced: string[]; missing: string[] } {
   } catch {
     /* קיים */
   }
-  for (const name of ['MEMORY.md', 'worklog.md']) {
+  const jobs: { name: string; mode: 'dash' | 'hash' }[] = [
+    { name: 'worklog.md', mode: 'dash' },
+    { name: 'MEMORY.md', mode: 'hash' },
+  ];
+  for (const { name, mode } of jobs) {
     try {
-      const src = path.join(PROJECT_ROOT, name);
-      const content = readFileSync(src, 'utf8');
-      writeFileSync(path.join(SANDBOX_DIR, 'memory', name), content, 'utf8');
+      const projectPath = path.join(PROJECT_ROOT, name);
+      const sandboxPath = path.join(SANDBOX_DIR, 'memory', name);
+      let projectContent: string | null = null;
+      let sandboxContent: string | null = null;
+      try {
+        projectContent = readFileSync(projectPath, 'utf8');
+      } catch {
+        /* חסר-בפרויקט */
+      }
+      try {
+        sandboxContent = readFileSync(sandboxPath, 'utf8');
+      } catch {
+        /* חסר-ב-sandbox */
+      }
+      if (projectContent == null && sandboxContent == null) {
+        missing.push(name);
+        continue;
+      }
+      let merged: string;
+      if (projectContent == null) merged = sandboxContent as string;
+      else if (sandboxContent == null) merged = projectContent;
+      else merged = mergeMemorySections(projectContent, sandboxContent, mode);
+      writeFileSync(projectPath, merged, 'utf8');
+      writeFileSync(sandboxPath, merged, 'utf8');
       synced.push(name);
     } catch {
       missing.push(name);
