@@ -77,6 +77,9 @@ function textHebrew(body: string, status: number): Response {
 /* ---------- עזרי-בקשה ---------- */
 
 function getSessionToken(req: Request): string | null {
+  // ערוץ-זהות-כפול: cookie (רגיל) או x-hq-session (fallback ל-iframe/HTTPS-תצוגה)
+  const hdr = req.headers.get('x-hq-session');
+  if (hdr && hdr.trim()) return hdr.trim();
   const header = req.headers.get('cookie');
   if (!header) return null;
   for (const part of header.split(';')) {
@@ -96,6 +99,12 @@ function isAuthed(req: Request): boolean {
 }
 
 function requestIp(req: Request, server: HQServer): string {
+  // הפרוקסי מעביר את ה-IP האמיתי — כך נעילת-הניסיונות הוגנת לכל-לקוח בנפרד
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) {
+    const first = fwd.split(',')[0]?.trim();
+    if (first) return first;
+  }
   try {
     return server?.requestIP?.(req)?.address ?? 'לא-ידוע';
   } catch {
@@ -212,7 +221,8 @@ async function handleLogin(req: Request, server: HQServer): Promise<Response> {
     clearFails(ip);
     const token = await createSession();
     appendAuthLog(ip, true);
-    return json({ ok: true }, 200, {
+    // טוקן-גם-בגוף: הפורטל משתמש-בו כערוץ-זהות-משני כשהדפדפן חוסם-עוגיות-שלישוניות (iframe)
+    return json({ ok: true, token }, 200, {
       'Set-Cookie': `${SESSION_COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MAX_AGE}`,
     });
   }
