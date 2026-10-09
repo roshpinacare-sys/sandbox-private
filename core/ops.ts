@@ -669,32 +669,58 @@ export async function pushToGitHub(): Promise<PushResult> {
     Accept: 'application/vnd.github+json',
   };
 
-  // 4) זיהוי-משתמש
+  // 4) זיהוי-משתמש — עם-הפרדה-כנה-בין-טוקן-פסול (401) לבין-מגבלת-קצב (403/429):
+  //    סערת-מכסה-משותפת (לקח-T-48) לא-יכולה-להיחשב-“PAT-נדחה” — זה-שקר-קבלות
+  //    שחוסם-את-הלב-השני. ניסיונות-חוזרים → ואז-נפילה-חכמה: שם-הבעלים-מה-remote-הקיים.
   let login = '';
-  try {
-    const res = await fetch('https://api.github.com/user', {
-      headers: ghHeaders,
-      signal: AbortSignal.timeout(20_000),
-    });
-    let loginFromApi = '';
-    if (res.ok) {
-      const j = (await res.json()) as { login?: unknown };
-      if (typeof j.login === 'string') loginFromApi = j.login;
+  const authAttempt = async (): Promise<{ ok: boolean; status: number; rateLimited: boolean; login: string }> => {
+    try {
+      const res = await fetch('https://api.github.com/user', {
+        headers: ghHeaders,
+        signal: AbortSignal.timeout(20_000),
+      });
+      if (res.ok) {
+        const j = (await res.json()) as { login?: unknown };
+        const l = typeof j.login === 'string' ? j.login : '';
+        return { ok: l.length > 0, status: res.status, rateLimited: false, login: l };
+      }
+      const rateLimited = res.status === 403 || res.status === 429;
+      return { ok: false, status: res.status, rateLimited, login: '' };
+    } catch {
+      return { ok: false, status: 0, rateLimited: false, login: '' };
     }
-    if (!res.ok || loginFromApi.length === 0) {
-      const r = base({ stage: 'auth', commit, error: 'PAT נדחה על ידי GitHub' });
+  };
+  let attempt = await authAttempt();
+  for (let i = 0; i < 3 && !attempt.ok && attempt.rateLimited; i++) {
+    await new Promise((r) => setTimeout(r, 4000 * (i + 1))); // 4ש·8ש·12ש
+    attempt = await authAttempt();
+  }
+  if (attempt.ok) {
+    login = attempt.login;
+  } else if (attempt.rateLimited || attempt.status === 0) {
+    // מגבלת-קצב/אי-נגישות ≠ טוקן-פסול: שם-הבעלים-מה-remote-הקיים (הדחיפה-עצמה
+    // תיכשל-בכנות-אצל-הגיט-אם-הטוקן-באמת-פסול — הגיט-הוא-השופט-האמתי).
+    try {
+      const cur = (await git(['remote', 'get-url', 'origin'])).trim();
+      const m = cur.match(/github\.com[/:]([^/]+)\//);
+      if (m?.[1]) login = m[1];
+    } catch {
+      /* אין-remote — ייכשל-למטה-בשקיפות */
+    }
+    if (!login) {
+      const r = base({ stage: 'auth', commit, error: `GitHub-מוגבל-כרגע (HTTP ${attempt.status || 'network'}) ואין-remote-לגזור-ממנו-שם-בעלים — דחיפה-תידחה` });
       appendPushReceipt(r, true);
       return r;
     }
-    login = loginFromApi;
-  } catch (e) {
-    const r = base({ stage: 'auth', commit, error: `GitHub לא נגיש: ${sanitizeOutput(safeErrMsg(e), pat)}` });
+  } else {
+    const r = base({ stage: 'auth', commit, error: 'PAT נדחה על ידי GitHub' });
     appendPushReceipt(r, true);
     return r;
   }
   const repoFull = `${login}/sanbox`;
 
-  // 5) יצירת-ריפו-אם-חסר (422 = כבר-קיים — מתעלמים)
+  // 5) יצירת-ריפו-אם-חסר (422 = כבר-קיים — מתעלמים; 403/429 = מגבלת-קצב — הריפו-קיים
+  //    ממילא-בדחיפות-הקבועות, דילוג-כנה-במקום-חסימת-שקר — לקח-T-48)
   try {
     const res = await fetch('https://api.github.com/user/repos', {
       method: 'POST',
@@ -702,7 +728,7 @@ export async function pushToGitHub(): Promise<PushResult> {
       body: JSON.stringify({ name: 'sanbox', private: true, auto_init: false }),
       signal: AbortSignal.timeout(20_000),
     });
-    if (!res.ok && res.status !== 422) {
+    if (!res.ok && res.status !== 422 && res.status !== 403 && res.status !== 429) {
       const r = base({ stage: 'repo-create', repo: repoFull, commit, error: `יצירת-ריפו נכשלה (HTTP ${res.status})` });
       appendPushReceipt(r, true);
       return r;
