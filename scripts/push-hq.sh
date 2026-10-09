@@ -193,13 +193,22 @@ ASKPASS_CREATED=1
 
 # --- משיכה-ב-rebase-לפני-דחיפה (פריטה-זהה-ל-autoPush ב-core/ops.ts — לקח-T-49:
 #     הדחיפה-העצמית-של-HQ-עלולה-להקדים-את-הדוחף-הידני; בלי-rebase-הדחיפה-נדחית) ---
-PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
-  git pull --rebase origin main 2>&1)" || {
+# T-51: תאום-ריבוני-שני-חי-במקביל — התנגשות-rebase אינה-כשל-סופי:
+# ניקוי → ניסיון-חוזר-אחד-עם -X theirs (יומני-*.jsonl מתמזגים-union-דרך-.gitattributes).
+if ! PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
+  git pull --rebase origin main 2>&1)"; then
   printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
-  log_push false pull "$COMMIT" "$REPO_FULL" true
-  echo 'משיכת-rebase נכשלה — fail-closed (אין-force)'
-  exit 1
-}
+  git rebase --abort 2>/dev/null || true
+  echo 'התנגשות-rebase — ניסיון-חוזר-אחד-עם -X theirs…'
+  if ! PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
+    git pull --rebase --autostash -X theirs origin main 2>&1)"; then
+    printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
+    git rebase --abort 2>/dev/null || true
+    log_push false pull "$COMMIT" "$REPO_FULL" true
+    echo 'משיכת-rebase נכשלה גם-בניסיון-החוזר — fail-closed (אין-force)'
+    exit 1
+  fi
+fi
 printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
 COMMIT="$(git rev-parse --short HEAD)"
 

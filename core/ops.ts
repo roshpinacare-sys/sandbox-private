@@ -631,18 +631,34 @@ export async function pushToGitHub(): Promise<PushResult> {
     }
     if (askpassReady) {
       try {
-        await git(['pull', '--rebase', '--autostash', 'origin', 'main'], {
-          GIT_TERMINAL_PROMPT: '0',
-          GIT_ASKPASS: ASKPASS_PATH,
-          HQ_TOKEN: patEarly,
-        });
+        try {
+          await git(['pull', '--rebase', '--autostash', 'origin', 'main'], {
+            GIT_TERMINAL_PROMPT: '0',
+            GIT_ASKPASS: ASKPASS_PATH,
+            HQ_TOKEN: patEarly,
+          });
+        } catch {
+          // T-51: תאום-ריבוני-שני-חי-במקביל (סנכרון-בין-מכונות) — התנגשות-rebase
+          // אינה-כשל-סופי: ניקוי → ניסיון-חוזר-אחד עם -X theirs (הרחוק-מנצח-בגדילי-קונפליקט;
+          // יומני-*.jsonl מתמזגים-union-מלא-דרך-.gitattributes — אפס-אובדן-קבלות).
+          try {
+            await git(['rebase', '--abort']);
+          } catch {
+            /* אין-ריבייז-לבטל */
+          }
+          await git(['pull', '--rebase', '--autostash', '-X', 'theirs', 'origin', 'main'], {
+            GIT_TERMINAL_PROMPT: '0',
+            GIT_ASKPASS: ASKPASS_PATH,
+            HQ_TOKEN: patEarly,
+          });
+        }
       } catch (e) {
         try {
           await git(['rebase', '--abort']); // ניקוי-מצב-ריבייז-תקוע (best-effort)
         } catch {
           /* אין-ריבייז-לבטל */
         }
-        const r = base({ stage: 'pull', commit, error: `משיכה-דו-כיוונית נכשלה — דחיפה נחסמה: ${sanitizeOutput(safeErrMsg(e), patEarly)}` });
+        const r = base({ stage: 'pull', commit, error: `משיכה-דו-כיוונית נכשלה גם-בניסיון-החוזר — דחיפה נחסמה: ${sanitizeOutput(safeErrMsg(e), patEarly)}` });
         appendPushReceipt(r, true);
         return r; // fail-closed — אין-דריסה-של-הריפו-המרוחק
       } finally {
