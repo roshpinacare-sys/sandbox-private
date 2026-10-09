@@ -606,6 +606,7 @@ export async function pushToGitHub(): Promise<PushResult> {
   }
 
   // 2.5) pull-rebase דו-כיווני — משיכת-שינויים-מהריפו-לפני-דחיפה (סנכרון-בין-מכונות; אסור-force)
+  //      הריפו-פרטי — המשיכה-מאומתת-כמו-הדחיפה: PAT-מוקדם + askpass-זמני-שנמחק-תמיד.
   let hasUpstream = true;
   try {
     await git(['rev-parse', '--abbrev-ref', '@{u}']);
@@ -613,17 +614,44 @@ export async function pushToGitHub(): Promise<PushResult> {
     hasUpstream = false; // עדיין-לא-נדחף-אף-פעם — אין-מה-למשוך
   }
   if (hasUpstream) {
-    try {
-      await git(['pull', '--rebase', '--autostash', 'origin', 'main']);
-    } catch (e) {
-      try {
-        await git(['rebase', '--abort']); // ניקוי-מצב-ריבייז-תקוע (best-effort)
-      } catch {
-        /* אין-ריבייז-לבטל */
-      }
-      const r = base({ stage: 'pull', commit, error: `משיכה-דו-כיוונית נכשלה — דחיפה נחסמה: ${sanitizeOutput(safeErrMsg(e))}` });
+    const patEarly = await readPat();
+    if (!patEarly) {
+      const r = base({ stage: 'pull', commit, error: 'אין PAT בכספת — משיכה-דו-כיוונית חסומה' });
       appendPushReceipt(r, true);
-      return r; // fail-closed — אין-דריסה-של-הריפו-המרוחק
+      return r;
+    }
+    let askpassReady = false;
+    try {
+      mkdirSync(DB_DIR, { recursive: true });
+      writeFileSync(ASKPASS_PATH, `${ASKPASS_BODY}\n`, { mode: 0o700 });
+      chmodSync(ASKPASS_PATH, 0o700);
+      askpassReady = true;
+    } catch {
+      /* כתיבת-askpass-נכשלה — המשיכה-ייכשל-ותיחסם-בכישלון-למטה */
+    }
+    if (askpassReady) {
+      try {
+        await git(['pull', '--rebase', '--autostash', 'origin', 'main'], {
+          GIT_TERMINAL_PROMPT: '0',
+          GIT_ASKPASS: ASKPASS_PATH,
+          HQ_TOKEN: patEarly,
+        });
+      } catch (e) {
+        try {
+          await git(['rebase', '--abort']); // ניקוי-מצב-ריבייז-תקוע (best-effort)
+        } catch {
+          /* אין-ריבייז-לבטל */
+        }
+        const r = base({ stage: 'pull', commit, error: `משיכה-דו-כיוונית נכשלה — דחיפה נחסמה: ${sanitizeOutput(safeErrMsg(e), patEarly)}` });
+        appendPushReceipt(r, true);
+        return r; // fail-closed — אין-דריסה-של-הריפו-המרוחק
+      } finally {
+        try {
+          rmSync(ASKPASS_PATH, { force: true }); // ה-helper-נמחק-תמיד — גם-אחרי-הצלחה
+        } catch {
+          /* מחיקה-מיטבית */
+        }
+      }
     }
   }
 
