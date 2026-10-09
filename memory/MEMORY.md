@@ -38,3 +38,12 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 - **דחיפה-עצמית:** HQ-כל-30 דק — syncMemory→שינויים?→סריקה→push. זיכרון-נוסע-עם-כל-דחיפה. פעולה-ידנית: 'auto-push'.
 - **תחייה-אחרי-מחיקה:** sh sanbox/scripts/boot-all.sh (משחזר-כספת-מ-upload, מקים-הכל). כיבוי-מכונה=הפעלה-אחת-ידנית-או-כניסה-לפורטל (ensureHQ).
 - הסנטינלים-הישנים-נמחקו-סופית; תפקידיהם-חיים-בגיט-הפרטי-עכשיו.
+
+## ריבונות-אפס-תלות (Task 44, 09/10) — שרשרת-החיים-הסופית
+- **שומר-ריבונות-עצמאי:** ~/.sovereign/guardian.ts (מותקן-מחוץ-לפרויקט!) — שורד-מחיקת-הפרויקט-כולו: שכפול-הריפו-מהגיט (PAT-מ-remote.env, askpass-זמני) → שחזור-כספת (HQ_VAULT_PASS-מ-guardian.env 600) → מפקח → HQ → אפליקציה. מתקין: sh sanbox/scripts/install-guardian.sh (אידמפוטנטי). HQ-בעלייה-מבטיח-שהוא-חי.
+- **גיבוי-כספת-מוצפן-בריפו:** sanbox/vault/vault-backup.enc — AES-256-GCM, מפתח-scrypt-מסיסמת-האם. נכתב-רק-בשינוי-תוכן (hash). נסחב-עם-כל-דחיפה. שחזור: bun sanbox/scripts/vault-restore.ts (HQ_VAULT_PASS-או-stdin) או-בפורטל (שדה-סיסמה→vault-restore; לא-נשמרת-בשום-מקום). הסריקה-מרשה-את-ה-.enc-במפורש (allowlist).
+- **סנכרון-דו-כיווני:** pull --rebase --autostash-מאומת-לפני-כל-דחיפה (fail-closed-בכישלון, אין-force); .gitattributes: worklog=merge-union. תיקון-אינטגרציה: ה-pull-דרש-PAT+askpass-מוקדם (נתגלה-חי).
+- **ensureHQ-משחזר-מגיט:** אם-HQ-מת-וגם-sanbox-חסרה → שכפול-אוטומטי-מ-~/.sovereign/{config.json,remote.env} → הקמה. debounce-שחזור-120ש.
+- **הוכחה-חיה (מבחן-ההשמדה):** נהרגו-HQ+מפקח, sanbox-הועברה-מהדיסק → השומר-בעצמו: שכפל, שיחזר-כספת (4/4-קבצים-זהים-ביט-ביט), הקים-הכל, HQ-כבר-דחף-בעצמו (70db4e6). אימות-דפדפן: כרטיס-ריבונות-מלא (שומר-פעיל/גיבוי/סנכרון/כפתור-גיבוי/שחזור), אפס-שגיאות, מובייל-תקין.
+- **פעולות-חדשות:** vault-backup, vault-restore (payload.password). סטטוס-חדש: ops.guardian/vaultBackup/repoSync.
+- גבול-הכנות-היחיד-שנותר: מכונה-שנכבית-לגמרי — השומר-העצמאי-מוגדר-לרוץ-מיד-עם-סביבת-bun-זמינה (בעלים-במכונה-אישית: cron/systemd-על-install-guardian.sh); בתוך-סנדבוקס-זמני-של-הפלטפורמה — תחייה-בכניסה-הראשונה-לפורטל או-sh boot-all.sh.
