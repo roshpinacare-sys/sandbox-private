@@ -41,6 +41,10 @@ type StatusData = {
   vault?: VaultItem[];
   scanLast?: unknown;
   sessionExpiresAt?: string;
+  ops?: {
+    supervisor?: { alive?: boolean; pid?: number | null };
+    autoPushLast?: string | null;
+  } | null;
   error?: string;
 };
 
@@ -667,6 +671,49 @@ export default function OwnerPortalPage() {
                       ))}
                     </ul>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* כרטיס ריבונות */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <ShieldCheck className="size-4 text-emerald-500" aria-hidden="true" />
+                    ריבונות
+                  </CardTitle>
+                  <CardDescription>
+                    המפקח-הריבוני + דחיפה-עצמית — הרשת-חיה-מהריפו, לא-מהסנדבוקס
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm">המפקח-הריבוני</span>
+                    <Badge
+                      variant={status?.ops?.supervisor?.alive ? "default" : "destructive"}
+                      className="gap-1.5"
+                    >
+                      <span
+                        className={`size-2 rounded-full ${
+                          status?.ops?.supervisor?.alive ? "bg-emerald-500" : "bg-red-500 animate-pulse"
+                        }`}
+                        aria-hidden="true"
+                      />
+                      {status?.ops?.supervisor?.alive
+                        ? `פעיל — pid ${status.ops.supervisor.pid ?? "?"}`
+                        : "לא פעיל"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm">דחיפה-עצמית-אחרונה (כל 30 דק׳)</span>
+                    <Badge variant="secondary" className="font-mono text-xs" dir="ltr">
+                      {status?.ops?.autoPushLast
+                        ? new Date(status.ops.autoPushLast).toLocaleTimeString("he-IL")
+                        : DASH}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    אחרי-מחיקת-סנדבוקס: sh sanbox/scripts/boot-all.sh — והכל-חוזר.
+                  </p>
                 </CardContent>
               </Card>
 

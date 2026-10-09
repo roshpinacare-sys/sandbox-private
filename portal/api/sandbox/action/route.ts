@@ -3,7 +3,7 @@ import { HQ_BASE, HQ_UNAVAILABLE, getHqToken, hqHeaders } from "@/lib/hq-session
 
 export const runtime = "nodejs";
 
-const ALLOWED_ACTIONS = new Set(["secret-scan", "push-github", "ping"]);
+const ALLOWED_ACTIONS = new Set(["secret-scan", "push-github", "auto-push", "ping"]);
 
 /**
  * פרוקסי-פעולות ({action: 'secret-scan' | 'push-github' | 'ping'}):
