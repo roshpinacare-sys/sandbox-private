@@ -36,7 +36,9 @@ import {
 } from 'node:fs';
 import * as path from 'node:path';
 
-const SANDBOX_DIR = '/home/z/my-project/sanbox';
+// T-64: VAULT_SANDBOX_ROOT — מאפשר-לתרגיל-הריבונות (sovereignty-drill.sh) להריץ-שחזור
+// מclone-טרי-אל-תיקיית-בודדים-מבלי-לגעת-בסודות-החיים. ברירת-המחדל-אינה-משתנה.
+const SANDBOX_DIR = process.env.VAULT_SANDBOX_ROOT ?? '/home/z/my-project/sanbox';
 const SECRETS_DIR = path.join(SANDBOX_DIR, 'secrets');
 const VAULT_DIR = path.join(SANDBOX_DIR, 'vault');
 const DB_DIR = path.join(SANDBOX_DIR, 'db');
