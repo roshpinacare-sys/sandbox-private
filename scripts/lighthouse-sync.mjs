@@ -121,6 +121,8 @@ async function main() {
       runner: 'GitLab runner 57265759 (self-healing via boot-all.sh)',
       renderCockpit: 'הצי-מחזיק-את-הנתיב (אי-התנגשות>מאבק)',
       escalations: 'sanbox repo-vault/escalations.json — שערי-בעלים-עם-ראיות',
+      webSense: 'T-62: חיפוש-ריבוני (Tavily x2 · 200) + קריאת-דפים (Jina · 200) — אטום-בכספת · scripts/web-sense.mjs',
+      developmentPaths: 'מ-Head-Corner: browser-use/Skyvern (דפדפן) · vLLM (אינפרנס-עצמאי) · LangSearch (401-ממתין-הפעלה)',
     },
     awakening: [
       '1. הגיט-הוא-הקוד-המלא: שני-עננים-נושאים-sanbox + vault/vault-backup.enc (AES-256-GCM)',
