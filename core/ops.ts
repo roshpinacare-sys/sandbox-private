@@ -29,7 +29,8 @@ import { BASE_RULES, buildDynamicPatterns, type VaultText } from './scan-pattern
 
 const execFileP = promisify(execFile);
 
-export const SANDBOX_DIR = '/home/z/my-project/sanbox';
+// T-65: דינמי-ממיקום-הסקריפט (היה-מקודד-אבסולוטי — נתפס-במשפט-הריבונות)
+export const SANDBOX_DIR = process.env.SANDBOX_DIR ?? path.resolve(import.meta.dir, '..');
 const SECRETS_DIR = path.join(SANDBOX_DIR, 'secrets');
 const RECEIPTS_DIR = path.join(SANDBOX_DIR, 'receipts');
 const DB_DIR = path.join(SANDBOX_DIR, 'db');
@@ -294,7 +295,7 @@ export async function collectStatus(): Promise<Partial<StatusExtra>> {
 
 const SUPERVISOR_PIDFILE = path.join(SANDBOX_DIR, 'db', 'supervisor.pid');
 const AUTOPUSH_RECEIPT = path.join(RECEIPTS_DIR, 'auto-push.jsonl');
-const PROJECT_ROOT = '/home/z/my-project';
+const PROJECT_ROOT = path.resolve(import.meta.dir, '..', '..'); // T-65: דינמי (היה-מקודד)
 
 /** מצב-השומר-החיצוני (~/.sovereign/guardian.pid — pidfile חי?) */
 function guardianStatus(): { alive: boolean; pid: number | null } {
