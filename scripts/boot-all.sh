@@ -18,7 +18,7 @@ if [ ! -f "$ROOT/secrets/pat.env" ]; then
   chmod 600 "$ROOT/secrets/"* 2>/dev/null
 fi
 
-# 1.1) אם-הכספת-עדיין-חסרה: שחזור-מהגיבוי-המוצפן (דורש HQ_VAULT_PASS)
+# 1.5) אם-הכספת-עדיין-חסרה: שחזור-מהגיבוי-המוצפן (דורש HQ_VAULT_PASS)
 if [ ! -f "$ROOT/secrets/pat.env" ] && [ -f "$ROOT/vault/vault-backup.enc" ]; then
   if [ -n "${HQ_VAULT_PASS:-}" ]; then
     echo "… משחזר את הכספת מ-vault/vault-backup.enc (HQ_VAULT_PASS)"
@@ -34,10 +34,24 @@ elif [ ! -f "$ROOT/secrets/pat.env" ]; then
   echo "!! הכספת-חסרה ואין-גיבוי מוצפן — העלה קבצי-כספת אל upload/ והרץ שוב"
 fi
 
-# 2) סנכרון-זיכרון (MEMORY + worklog → הריפו)
+# 1.6) T-54: שחזור-כספת-מלא-מהגיבוי-המוצפן — תמיד-כשאפשר (השחזור-מ-upload-מחזיר
+# רק-את-4-הקבצים-הישנים; nvidia.keys-ועתידיים-חיים-רק-בצופן). הסיסמה-האם = hq.password.
+if [ -f "$ROOT/vault/vault-backup.enc" ] && [ -f "$ROOT/secrets/hq.password" ]; then
+  echo "… משלים-כספת-מהגיבוי-המוצפן (כל-הקבצים)"
+  (cd "$ROOT" && HQ_VAULT_PASS="$(cat "$ROOT/secrets/hq.password")" bun scripts/vault-restore.ts) \
+    && echo "✓ הכספת-המלאה-שוחזרה" || echo "!! השלמת-הכספת-נכשלה (ממשיכים-עם-הקיים)"
+fi
+
+# 2) סנכרון-זיכרון (T-54: איחוד-מדורים-by-hash — לא-העתקה-גורפת; היומן-משותף-לכל-הסוכנים
+# והצד-העשיר-יותר-הוא-הבסיס. נפילת-bun → נפילה-חזרה-להעתקה-הישנה-כמוצא-אחרון)
 mkdir -p "$ROOT/memory"
-cp "$PROJECT/MEMORY.md" "$ROOT/memory/" 2>/dev/null
-cp "$PROJECT/worklog.md" "$ROOT/memory/" 2>/dev/null
+if command -v bun > /dev/null 2>&1 && (cd "$ROOT" && bun -e "const { syncMemory } = await import('$ROOT/core/ops.ts'); syncMemory();" 2>/dev/null); then
+  echo "✓ זיכרון-מסונכרן-באיחוד (syncMemory)"
+else
+  cp "$PROJECT/MEMORY.md" "$ROOT/memory/" 2>/dev/null
+  cp "$PROJECT/worklog.md" "$ROOT/memory/" 2>/dev/null
+  echo "… זיכרון-הועתק-גורפת (נפילה-חזרה — bun-לא-זמין)"
+fi
 
 # 3) המפקח-הריבוני (מיד-מקים-HQ, וממשיך-לפקח-על-הכל-תמידית)
 if pgrep -f 'scripts/supervisor.ts' > /dev/null 2>&1; then

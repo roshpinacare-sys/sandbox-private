@@ -2,15 +2,18 @@
  * supervisor.ts — המפקח-הריבוני של-הרשת (אפס-תלויות, stdlib-בלבד).
  *
  * תפקיד: הכל-שתלוי-סנדבוקס-חי-מכאן-תמידית:
- *  1. HQ (HQ_PORT, sanbox/server.ts) — מת-→ מוקם מיד (דה-באנס 15s) · בדיקת-HTTP.
- *  2. קונסולת-האם (3050 · חוזה-הדלת-הקדמית, T-47) — מתה → מוקמת-דרך-המשגיח-של-zip.
- *  3. דלת-הכניסה (3000 · חוזה-השלום, T-47) — הגשר-הוא-הבעלים: דגדוג-הדקס-במקום-pkill-גלובלי.
- *  4. רכבת-התחזוקה (T-49): heart-tick מקומי כל-15 דק' · mirror-project כל-6 שעות.
- *  5. שער-הזיכרון (T-54, שורש-נפילות-3050): next dev -p 3050 שתפח-מעל-סף-RSS
- *     ממוחזר-מבוקר-לפני-שהקרנל-מכריע — ראיה: dmesg OOM-kill next-server
- *     (pid 18816 · anon-rss 1535828kB · 2026-10-10 ~03:00) + 6-נפילות-3050-ב-3.5-שעות.
- *     ה-OOM-killer אינו-מבחין-בין-תהליכים — הוא-עלול-היה-להרוג-את-הדקס-או-הקוקפיט.
- *  6. בודק-שלא-נולדו-שני-מפקחים (pidfile) — מופע-יחיד.
+ *  1. HQ (פורט 3010, sanbox/server.ts) — מת-→ מוקם מיד (דה-באנס 15s).
+ *  2. אפליקציה ראשית (פורט 3000) — מת-→ חוק-שתי-המכות: שתי-בדיקות-רצופות-מתות
+ *     → מעטפת-תקועה-מטוהרת (pkill) → `bun run dev` מנותק.
+ *  3. בודק-שלא-נולדו-שני-מפקחים (pidfile) — מופע-יחיד.
+ *  4. הלב-השני (T-49): heart-tick.mjs-מקומי-כל-15 דק' — עד-עכשיו-הלב-פעם-רק-ב-CI,
+ *     וריפו-פרטי-חסום-מכסה-מימוט-אותו → דומם. עכשיו-פועם-גם-מקומית-תמיד.
+ *  5. המראה-העננית (T-49): mirror-project.ts-כל-6 שעות (מצערת-פנימית-בתוך-הסקריפט)
+ *     — SovereignConsole-המראה-הייתה-נדחפת-ידנית-בלבד; עכשיו-רענון-אוטונומי.
+ *  6. התחדשות-קוד-חי (T-54): טביעת-אצבע-של-עץ-הקוד (server.ts+core+scripts ב-git-HEAD)
+ *     — שינוי-קוד → ה-HQ-מוחזר-עם-הקוד-החדש. הלקח-מ-T-53: תיקון-על-הדיסק-אינו-פעיל
+ *     בתהליך-חי-שעלה-לפני-התיקון; מעתה-המערכת-מתחדשת-מעצמה-תוך-טיק.
+ *     שינויי-מצב/זיכרון (HQ-syncs-כל-30דק') אינם-מזיזים-את-טביעת-הקוד → אין-אתחולים-מיותרים.
  *
  * גנאלוגיה (T-54): שתי-דריסות-מתחלפות-בין-סוכנים — 4af1acf (19:10) הוסיף-את-שומרי-
  * T-47-ואיבד-את-רכבת-T-49; 32f2512 (19:21) החזיר-T-49-ואיבד-את-השומרים. הקובץ-הזה-
@@ -59,8 +62,22 @@ let consoleLastSpawn = 0;
 let devDeadStrikes = 0;
 let heartLastRun = 0;
 let mirrorLastRun = 0;
-let memGateLastRun = 0;
-let memLogLastRun = 0;
+let lastCodeFingerprint: string | null = null; // T-54: התחדשות-קוד-חי
+
+/** T-54: טביעת-אצבע-של-עץ-הקוד-הרלוונטי-לתהליכים-החיים (server.ts + core/ + scripts/). */
+function codeFingerprint(): string | null {
+  try {
+    const parts: string[] = [];
+    for (const p of ['server.ts', 'core', 'scripts']) {
+      parts.push(
+        execFileSync('git', ['rev-parse', `HEAD:${p}`], { cwd: ROOT, encoding: 'utf8', timeout: 5000 }).trim(),
+      );
+    }
+    return parts.join('|');
+  } catch {
+    return null; // אין-git/אין-HEAD — מדלגים-בשקט
+  }
+}
 
 function log(event: Record<string, unknown>): void {
   try {
@@ -145,6 +162,15 @@ function pidTreeRssKB(pid: number): number {
 
 async function tick(): Promise<void> {
   const now = Date.now();
+
+  /* --- T-54: התחדשות-קוד-חי — עץ-הקוד-זז → ה-HQ-מוחזר-עם-הקוד-החדש (רק-אם-הוא-חי;
+   *    אם-הוא-מת-המנגנון-הרגיל-מקים-אותו-עם-הקוד-הטרי-ממילא) --- */
+  const fp = codeFingerprint();
+  if (fp && lastCodeFingerprint && fp !== lastCodeFingerprint && (await portAlive(HQ_PORT))) {
+    pkillPattern('bun server\\.ts'); // רק-את-ה-HQ — לא-מפקח/שומר/אפליקציה
+    log({ type: 'code-drift-renewal', from: lastCodeFingerprint.slice(0, 30), to: fp.slice(0, 30) });
+  }
+  if (fp) lastCodeFingerprint = fp;
 
   /* --- T-49: הלב-השני (מקומי) — פעימה-כל-15 דק' (detached; הסקריפט-כותב-קבלות-בעצמו) --- */
   if (existsSync(path.join(ROOT, 'scripts', 'heart-tick.mjs')) && now - heartLastRun > HEART_INTERVAL_MS) {
