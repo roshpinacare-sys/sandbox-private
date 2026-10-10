@@ -5655,3 +5655,21 @@ Stage Summary:
 - T-66a: התנגשות-תאומים-שרדה-בזכות-אפס-אמון+גיבוי-לפני-כל-פעולת-גיט-מסוכנת.
 
 
+
+---
+Task ID: 66
+Agent: Z.ai Code (ריבונות-מלאה)
+Task: "מלא בלאגן... לא רואה פוסטים/התקדמות... מלא כפילויות... לבחון את כל הגיט" — אבחון-שורשים+בניית-הגריד+תיקונים+דחיפה
+
+Work Log:
+- אבחון-אפס-אמון: 5 שורשים — ① grids/run.mjs מעולם-לא-התקיים (הצי-עבד-ולא-דיבר) ② heart-tick 3×spawn-'bun'-גולמי ③ public/state.json-מקומי-מיושן ④ כפילויות (worklog-שורש-stub · .tmp-tools-179-קבצים-נעקבים) ⑤ vercel-403-שער-בעלים+too-soon-רעש
+- בניית-הגריד-הריבוני: grids/run.mjs (פוסטים-עברית-מראיות · כלכלה-25 דק' · keep-alive-6 ש' · סריקת-סודות) · spawn-5-בלב · פרסום-למגדלור (grid.json+fleet.grid+state.grid)
+- תקרית-T-66a: תאום-הריץ pull--rebase--autostash--X-theirs על-עבודה-לא-מקומטת → מחיקת-heart-tick+grids-מהדיסק + rebase-זומבי-9 דק'. שחזור-מוצלח (tar-גיבוי→abort→שילוב-מ-519e89b/f29ac7b→שחזור-מהקשר). אפס-אובדן. חוק-תיאום-גיט-נחקק-ב-MEMORY
+- תיקון-חי-של-bug-עצמי: בלוק-הגריד-בlighthouse-sync-הופעל-לפני-הגדרת-gh → נתפס-בקבלה → הועבר-אחרי-ה-PUT → ריצה-מלאה-ok
+- דחיפות: 3693daf (התאום, GitHub+GitLab ok) + d283e39 (אני, GitHub ok+GitLab ok)
+
+Stage Summary:
+- **grid.json-חי-מבחוץ: HTTP-200** (https://roshpinacare-sys.github.io/sovereign-lighthouse/grid.json) · state.json-חי-נושא-grid.posts+fleet.grid
+- הריבון-יראה-מעכשיו-פעילות-גלויה: פוסטים-עברית-מראיות-במגדלור, מוכתב-אוטומטית-מהלב-כל-פעימה
+
+
