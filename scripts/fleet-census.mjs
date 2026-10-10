@@ -108,7 +108,8 @@ try {
   const j = JSON.parse(readFileSync(`${PROJECT}/repo-vault/escalations.json`, 'utf8'));
   const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : Array.isArray(j.escalations) ? j.escalations : []);
   escal.total = arr.length;
-  escal.open = arr.filter((e) => e && String(e.status ?? '').toUpperCase() !== 'RESOLVED').length;
+  // T-56-fix: "RESOLVED-EXEC-CD-29"/"RESOLVED-T-55" וכד' — כל-סטטוס-שמתחיל-בRESOLVED-נסגר
+  escal.open = arr.filter((e) => e && !String(e.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED')).length;
 } catch { escal.error = true; }
 
 const census = {

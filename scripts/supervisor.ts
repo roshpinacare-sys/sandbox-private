@@ -203,8 +203,9 @@ async function tick(): Promise<void> {
       availKB = Number((readFileSync('/proc/meminfo', 'utf8').match(/MemAvailable:\s+(\d+)/) ?? [])[1] ?? 0);
     } catch { /* שקט */ }
     const pressured = availKB > 0 && availKB < MEM_PRESSURE_AVAIL_MB * 1024;
-    // T-56: התבנית-מכסה-גם-dev-וגם-start — הקונסולה-הפכה-בניית-פרודקשן (standalone)
-    for (const pidStr of pidsByPattern('next (dev|start) -p 3050')) {
+    // T-56: התבנית-מכסה-dev · start · standalone (הקונסולה-הפכה-בניית-פרודקשן:
+    // bun /home/z/console-prod/.next/standalone/server.js)
+    for (const pidStr of pidsByPattern('(next (dev|start) -p 3050)|(standalone/server\\.js)')) {
       const pid = Number(pidStr);
       if (!pid) continue;
       const rss = pidTreeRssKB(pid);
