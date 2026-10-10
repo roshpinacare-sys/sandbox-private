@@ -32,7 +32,7 @@
 import net from 'node:net';
 import http from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { vaultBackup } from '../core/backup.ts'; // T-65: ריפוי-עצמי-תקופתי-של-מעטפת-הכספת
 
@@ -43,6 +43,14 @@ const RECEIPTS = path.join(ROOT, 'receipts');
 const DB = path.join(ROOT, 'db');
 const EVENTS = path.join(RECEIPTS, 'supervisor.jsonl');
 const PIDFILE = path.join(DB, 'supervisor.pid');
+
+// T-66c: חיסון-הטעינה-העצמית — הפטולוגיה-שנמדדה-חי: המפקח-רץ-מקוד-ישן-בזיכרון (HQ_PORT=3010)
+// בעוד-המקור-כבר-קנון-3011 → לולאת-החייאה-אינסופית (60 hq-revive · EADDRINUSE ב-db/hq.log).
+// התרופה: בכל-טיק — אם-מט-המקור-שונה-מזה-שנטען → מצמיח-יורש-מהמקור-החי-ופורש.
+// אפס-מפעיל-חוץ; תיקון-מקור-חי-תוך-מחזור-אחד. שינוי-מקור-הוא-אירוע-מבצעי, לא-בקשה.
+const SELF_SRC = path.join(ROOT, 'scripts', 'supervisor.ts');
+let selfSrcMtimeAtBoot = 0;
+try { selfSrcMtimeAtBoot = statSync(SELF_SRC).mtimeMs; } catch { selfSrcMtimeAtBoot = 0; }
 
 const TICK_MS = 10_000;
 const HQ_PORT = Number(process.env.HQ_PORT ?? 3011); // T-66: HQ-קנוני-על-3011 (הדקס-בעלים-על-3010 — מלחמת-הפורטים-נגמרה)
@@ -189,6 +197,20 @@ function pidTreeRssKB(pid: number): number {
 
 async function tick(): Promise<void> {
   const now = Date.now();
+
+  /* --- T-66c: חיסון-הטעינה-העצמית — מקור-זז → יורש-מהמקור-החי-ופרישה-מסודרת ---
+   * סדר-הבריחה: pidfile-מנוטרל קודם (אחרת-היורש-מזוהה-ככפיל-ומת), אח"כ-הצמחה, ויציאה
+ * אחרי-400ms (היורש-כותב-pidfile-משלו). השומר-החיצוני-רואה-מפקח-חי-תמיד. */
+  try {
+    const m = statSync(SELF_SRC).mtimeMs;
+    if (selfSrcMtimeAtBoot && m !== selfSrcMtimeAtBoot) {
+      log({ type: 'supervisor-self-reload', bootMtime: selfSrcMtimeAtBoot, srcMtime: m });
+      try { writeFileSync(PIDFILE, '0'); } catch { /* היורש-יכתוב-את-שלו */ }
+      spawnDetached(BUN, [SELF_SRC], ROOT, path.join(DB, 'supervisor.log'));
+      setTimeout(() => process.exit(0), 400);
+      return;
+    }
+  } catch { /* fail-open — תצפית-מקור-לא-תפיל-מפקח */ }
 
   /* --- T-54: התחדשות-קוד-חי — עץ-הקוד-זז → ה-HQ-מוחזר-עם-הקוד-החדש (רק-אם-הוא-חי;
    *    אם-הוא-מת-המנגנון-הרגיל-מקים-אותו-עם-הקוד-הטרי-ממילא) --- */

@@ -182,13 +182,28 @@ async function main() {
     for (const s of notable.slice(0, 4)) lines.push(`· ${s} [${src.key}]`);
   }
 
+  /* --- T-66c: משימת-המקור-מהיומן — ההתקדמות-האמיתית-נראית (לא-רק-מספרי-קומיטים) ---
+   * הריבון: "אני-לא-רואה-התקדמות" — עתה-כל-פוסט-נושא-את-שורת-המשימה-האחרונה-מהיומן-עצמו. */
+  const lastTask = (() => {
+    try {
+      const txt = readFileSync(join(ROOT, 'memory/worklog.md'), 'utf8');
+      const ids = [...txt.matchAll(/^Task ID:\s*(.+)$/gm)].map((m) => m[1].trim());
+      return ids.length ? ids[ids.length - 1].slice(0, 60) : null;
+    } catch { return null; }
+  })();
+  if (lastTask) lines.push(`· משימת-מקור-ביומן: T-${lastTask.replace(/^T-?/, '')} [worklog]`);
+
   /* --- escalations + לב --- */
   const escal = readJson(join(ROOT, 'repo-vault/escalations.json'), null);
-  const escalOpen = Array.isArray(escal)
-    ? escal.filter((x) => x && !String(x.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED')).length
-    : (escal?.items ? escal.items.filter((x) => !String(x.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED')).length : null);
+  /* T-66c: רק-שערים-חוסמים-נספרים — SUPERSEDED/OPTIONAL/blocking:false אינם-חוסמים-ריבונות
+   * (היה: כל-לא-RESOLVED-נספר-כפתוח → תדמית-"ריבונות-תקועה"-בעודה-חופשית) */
+  const isBlocking = (x) =>
+    x && !String(x.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED') &&
+    x.blocking !== false && !/OPTIONAL|SUPERSEDED/.test(String(x.status ?? '').toUpperCase());
+  const escalAll = Array.isArray(escal) ? escal : (escal?.items ?? []);
+  const escalOpen = Array.isArray(escalAll) ? escalAll.filter(isBlocking).length : null;
   if (escalOpen !== null && escalOpen !== cursor.escalOpen) {
-    lines.push(`· שערי-בעלים-פתוחים: ${escalOpen} (היה ${cursor.escalOpen ?? '?'}) [escalations]`);
+    lines.push(`· שערים-חוסמים: ${escalOpen} (היה ${cursor.escalOpen ?? '?'}) [escalations]`);
     totalNewEvents++;
   }
 
@@ -212,13 +227,29 @@ async function main() {
     title = 'פעימה-ריבונית — הצי-חי, אין-ראיות-חדשות-מאז-הפוסט-הקודם';
     lines.push(`· לב: chain ${String(heart.chain ?? '').slice(0, 8)} · at ${heart.at ?? '?'}`);
   } else if (commits.length > 0) {
+    /* T-66c: כותרת-מהותית-מהקומיט-הראשון — קץ-תבנית-"N קומיטים-חדשים"-השחוקה
+     * (הריבון-ראה-4-פוסטים-תאומים-וקרא-לזה-כפילויות — והיה-צודק) */
     kind = 'report';
-    title = `${commits.length} קומיטים חדשים בריפו-הריבוני — הצי-מתקדם`;
+    const firstSubject = (() => {
+      const first = commits[0] ?? '';
+      const sp = first.indexOf(' ');
+      return sp > 0 ? first.slice(sp + 1).trim().slice(0, 72) : first.slice(0, 72);
+    })();
+    title = `${commits.length} קומיטים: ${firstSubject}${commits.length > 1 ? ` (+${commits.length - 1} עוד)` : ''}`;
     for (const c of commits.slice(0, 5)) lines.push(`· commit: ${c}`);
     if (commits.length > 5) lines.push(`· ועוד ${commits.length - 5} קומיטים (זנב-מלא-בגיט)`);
   } else {
     kind = 'report';
-    title = `פעילות-צי: ${lines.length} אירועים-ראויים-צוינו מ-${totalNewEvents} שורות-קבלות-חדשות`;
+    const firstTag = (() => { const m = (lines[0] ?? '').match(/\[([a-zA-Z]+)\]\s*$/); return m ? m[1] : ''; })();
+    title = `פעילות-צי: ${lines.length} אירועים${firstTag ? ` — ${firstTag}` : ''}`;
+  }
+
+  /* --- T-66c: חיסון-אנטי-כפילות-ברמת-התוכן — זהה-לפוסט-הקודם-בתוך-6 שעות → אין-פוסט ---
+   * (רעש-זהה-אינו-ראיה; keep-alive-השעתי-ממילא-מבטיח-פעימה-חיה) */
+  const postSig = JSON.stringify([title, lines]);
+  if (idx.lastSig === postSig && !keepaliveDue) {
+    writeReceipt({ op: 'grid', ok: true, skipped: 'duplicate-content', msSinceLast: now - lastPostAt });
+    return;
   }
 
   /* --- סריקת-סודות-על-הפוסט (חוסם-פרסום) --- */
@@ -253,7 +284,7 @@ async function main() {
     total: (idx.total ?? 0) + 1,
     lastPostAt: post.ts,
     lastTitle: post.title,
-    lastChainAt: post.chain?.hive?.ok ? post.ts : (idx.lastChainAt ?? null),
+    lastSig: postSig, // T-66c: חיסון-אנטי-כפילות
     cursor: { commit: headNow, lineCounts: Object.fromEntries(SOURCES.map((s) => [s.key, lineCount(s.path)])), escalOpen, heartChain: heart.chain ?? '' },
     recent: recent.slice(-8),
   };

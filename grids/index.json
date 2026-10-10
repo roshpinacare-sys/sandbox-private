@@ -1,26 +1,25 @@
 {
  "schema": "sanbox.grid/1",
- "asof": "2026-10-10T15:59:24.306Z",
- "total": 7,
- "lastPostAt": "2026-10-10T15:59:24.306Z",
- "lastTitle": "פעילות-צי: 1 אירועים-ראויים-צוינו מ-3 שורות-קבלות-חדשות",
- "lastChainAt": null,
+ "asof": "2026-10-10T15:31:35.481Z",
+ "total": 5,
+ "lastPostAt": "2026-10-10T15:31:35.481Z",
+ "lastTitle": "1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
  "cursor": {
-  "commit": "8603fa0b601b738658d870874bbcc3aa72e5b4ea",
+  "commit": "cf57fe17472cce2f51cfb006bde48b712450c476",
   "lineCounts": {
-   "supervisor": 29,
-   "consoleServer": 1,
-   "webRecon": 5,
-   "lighthouse": 5,
-   "stateReplica": 5,
-   "vercelBeacon": 5,
-   "gitlabPush": 3,
-   "pushLog": 2,
-   "sovereigntyDrill": 0,
-   "vaultDrill": 0
+   "supervisor": 500,
+   "consoleServer": 4,
+   "webRecon": 17,
+   "lighthouse": 7,
+   "stateReplica": 455,
+   "vercelBeacon": 200,
+   "gitlabPush": 55,
+   "pushLog": 62,
+   "sovereigntyDrill": 11,
+   "vaultDrill": 2
   },
   "escalOpen": null,
-  "heartChain": "ae82950336c2245a26762ae4"
+  "heartChain": "e0b37d0577f78a95d3a530af"
  },
  "recent": [
   {
@@ -48,25 +47,10 @@
    "title": "2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
   },
   {
-   "id": "gmv2jeslv",
-   "ts": "2026-10-10T15:16:37.853Z",
-   "kind": "report",
-   "title": "4 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
-  },
-  {
-   "id": "gmv2khghs",
-   "ts": "2026-10-10T15:46:41.739Z",
+   "id": "gmv2jy171",
+   "ts": "2026-10-10T15:31:35.481Z",
    "kind": "report",
    "title": "1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
-  },
-  {
-   "id": "gmv2kxswb",
-   "ts": "2026-10-10T15:59:24.306Z",
-   "kind": "report",
-   "title": "פעילות-צי: 1 אירועים-ראויים-צוינו מ-3 שורות-קבלות-חדשות",
-   "chain": {
-    "ok": false
-   }
   }
  ]
 }

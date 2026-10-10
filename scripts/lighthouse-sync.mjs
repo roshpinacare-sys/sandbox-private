@@ -36,7 +36,7 @@ const PAGES_URL = `https://${OWNER}.github.io/${REPO}/`;
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const BRANCH = 'main';
 const TAIL = 7;
-const PAGE_VERSION = 'T-66b.1'; // T-66b: גרסת-הדף — עליית-גרסה-מכתיבה-פרסום-גם-בשער-השינוי (הדף-מוצר-בפני-עצמו)
+const PAGE_VERSION = 'T-66c.1'; // T-66c: עליית-גרסה-מכתיבה-פרסום-גם-בשער-השינוי (הדף-מוצר-בפני-עצמו)
 
 function maskSecret(s) {
   if (typeof s !== 'string' || s.length < 12) return '•••';
@@ -284,8 +284,12 @@ async function main() {
   if (hit) throw new Error(`חסימת-פרסום: חשד-סוד-בתוכן (${maskSecret(hit[0])})`);
 
   /* --- T-66: אפס-שקר-מקומי — public/state.json מתעדכן-מאותו-מצב-שנדחף ---
-   * (היה-נולד-מיושן-וזרע-תדמית-"אין-התקדמות" — הריבון-ראה-heartAt-ישן) --- */
+   * (היה-נולד-מיושן-וזרע-תדמית-"אין-התקדמות" — הריבון-ראה-heartAt-ישן) ---
+   * T-66c: גם-הדף-עצמו-וגם-זנת-הגריד-נכתבים-מקומית — public/ הוא-שיקוף-מלא-של-המגדלור
+   * (קונסולת-האם-3050-מגישה-אותם-דרך-עורקות-ה-/state.json+-/grid.json-החדשים) --- */
   try { writeFileSync(join(ROOT, 'public/state.json'), contentStr); } catch { /* fail-open */ }
+  try { writeFileSync(join(ROOT, 'public/index.html'), buildPage()); } catch { /* fail-open */ }
+  try { writeFileSync(join(ROOT, 'public/grid.json'), JSON.stringify({ ...(gridIdx ?? {}), posts: gridPosts }, null, 1) + '\n'); } catch { /* fail-open */ }
 
   const pat = readPat();
   const auth = { Authorization: `token ${pat}`, Accept: 'application/vnd.github+json' };
