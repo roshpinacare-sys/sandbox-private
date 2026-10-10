@@ -16,7 +16,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 receipt() {
-  LINE="{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"$1\"}"
+  LINE="{\"ts\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",$1}"
   echo "$LINE" >> "$LOG"
   echo "[vault-drill] $LINE"
   # שמירה-על-זנב-קצר
@@ -29,10 +29,10 @@ receipt() {
 
 # 1) טביעות-אצבע-לפני + רשת-ביטחון-מחוץ-לסנדבוקס
 if [ ! -d secrets ]; then
-  receipt '"ok":false,"reason":"no-vault-dir"}'
+  receipt '"ok":false,"reason":"no-vault-dir"'
   exit 1
 fi
-sha256sum secrets/* > "$TMP/before.sha" 2>/dev/null || { receipt '"ok":false,"reason":"hash-before-failed"}'; exit 1; }
+sha256sum secrets/* > "$TMP/before.sha" 2>/dev/null || { receipt '"ok":false,"reason":"hash-before-failed"'; exit 1; }
 cp -a secrets "$TMP/backup"
 
 # 2) המחיקה-המדומה
@@ -40,13 +40,13 @@ rm -rf secrets
 
 # 3) שחזור-מהמטען-המוצפן (אותו-מסלול-כמו-boot-all)
 if [ ! -f vault/vault-backup.enc ]; then
-  receipt '"ok":false,"reason":"no-encrypted-cargo"}'
+  receipt '"ok":false,"reason":"no-encrypted-cargo"'
   cp -a "$TMP/backup" secrets
   exit 1
 fi
 PASS="$(cat "$TMP/backup/hq.password")"
 if ! HQ_VAULT_PASS="$PASS" bun scripts/vault-restore.ts > "$TMP/restore.out" 2>&1; then
-  receipt '"ok":false,"reason":"restore-failed"}'
+  receipt '"ok":false,"reason":"restore-failed"'
   cp -a "$TMP/backup" secrets
   exit 1
 fi
@@ -54,9 +54,9 @@ fi
 # 4) אימות-ביט-ביט
 sha256sum secrets/* > "$TMP/after.sha" 2>/dev/null
 if diff -q "$TMP/before.sha" "$TMP/after.sha" > /dev/null 2>&1; then
-  receipt "\"ok\":true,\"result\":\"bit-identical\",\"files\":$(wc -l < "$TMP/after.sha")}"
+  receipt "\"ok\":true,\"result\":\"bit-identical\",\"files\":$(wc -l < "$TMP/after.sha")"
 else
-  receipt '"ok":false,"result":"hash-mismatch"}'
+  receipt '"ok":false,"result":"hash-mismatch"'
   cp -a "$TMP/backup" secrets
   exit 1
 fi
