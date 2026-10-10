@@ -1,0 +1,15 @@
+{
+  "schema": "roshpina.owner-escalations/1",
+  "escalations": [
+    {
+      "id": "vercel-token-read-only",
+      "opened": "2026-10-10T05:39:51Z",
+      "task": "T-57",
+      "gate": "POST /v13/deployments + POST /v9/projects → 403 (forbidden, create)",
+      "proven": "GET /v2/user=200 · GET /v9/projects=200 · GET /v2/teams=200 · GET /v6/deployments=200 — קריאה-מלאה, כתיבה-חסומה",
+      "needed_from_owner": "Head Corner: ליצור-טוקן-וורסל-ב-scope-מלא (Full Account Scope / deployments:create + projects:create) ולהחליף-ערך-vercel_token-ב-secrets/vercel.keys",
+      "workaround_live": "המגדלור-חי-בינתיים-ב-GitLab-Pages (.gitlab-ci.yml + gen-pages-beacon.sh) — קונסולה-חוץ-מכונה-ללא-וורסל",
+      "status": "OPEN — התשתית-מוכנה; scripts/vercel-beacon.mjs-יצית-עצמו-ברגע-שהטוקן-מלא-בכספת (שער-השינוי-כולל-טביעת-טוקן)"
+    }
+  ]
+}
