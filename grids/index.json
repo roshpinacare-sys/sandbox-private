@@ -1,0 +1,32 @@
+{
+ "schema": "sanbox.grid/1",
+ "asof": "2026-10-10T13:00:27.313Z",
+ "total": 1,
+ "lastPostAt": "2026-10-10T13:00:27.313Z",
+ "lastTitle": "5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+ "cursor": {
+  "commit": "89b6b882fcfe9ea62fb2b5fc6b8eeeaa1ca16a63",
+  "lineCounts": {
+   "supervisor": 500,
+   "consoleServer": 4,
+   "webRecon": 7,
+   "lighthouse": 7,
+   "stateReplica": 446,
+   "vercelBeacon": 200,
+   "gitlabPush": 46,
+   "pushLog": 52,
+   "sovereigntyDrill": 11,
+   "vaultDrill": 2
+  },
+  "escalOpen": null,
+  "heartChain": "959784fbfd1a71b0bfc3bd48"
+ },
+ "recent": [
+  {
+   "id": "gmv2ejo6i",
+   "ts": "2026-10-10T13:00:27.313Z",
+   "kind": "report",
+   "title": "5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  }
+ ]
+}

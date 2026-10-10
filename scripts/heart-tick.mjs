@@ -103,11 +103,12 @@ signal('ticked=1\n');
 console.log(`[heart] ✔ ${at} · head=${head} · prev=${prev} · chain=${chain} · mode=${tick.mode}`);
 
 /* === T-56: השכפול-הריבוני — עם-כל-פעימה, תמצית-החיים-נחתמת-גם-בענן-השני
- * (Supabase-פוסטגרס-חוץ-מכונה · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
+ * (Supabase-פוסטגרס-חוץ-מכונה · fail-open · רק-מקומי — ב-CI-אין-כספת)
+ * T-66: process.execPath (חיסון-PATH — שיעור-T-64: אל-תניח-ש-'bun' נמצא) === */
 try {
   const { spawn } = await import('node:child_process');
   if (typeof CI === 'undefined' || !CI) {
-    const child = spawn('bun', [path.join(HERE, 'state-replica.mjs')], {
+    const child = spawn(process.execPath, [path.join(HERE, 'state-replica.mjs')], {
       cwd: ROOT, detached: true, stdio: 'ignore',
     });
     child.unref();
@@ -119,7 +120,7 @@ try {
 try {
   const { spawn } = await import('node:child_process');
   if (typeof CI === 'undefined' || !CI) {
-    const child = spawn('bun', [path.join(HERE, 'vercel-beacon.mjs')], {
+    const child = spawn(process.execPath, [path.join(HERE, 'vercel-beacon.mjs')], {
       cwd: ROOT, detached: true, stdio: 'ignore',
     });
     child.unref();
@@ -132,7 +133,7 @@ try {
 try {
   const { spawn } = await import('node:child_process');
   if (typeof CI === 'undefined' || !CI) {
-    const child = spawn('bun', [path.join(HERE, 'lighthouse-sync.mjs')], {
+    const child = spawn(process.execPath, [path.join(HERE, 'lighthouse-sync.mjs')], {
       cwd: ROOT, detached: true, stdio: 'ignore',
     });
     child.unref();
@@ -152,3 +153,18 @@ try {
     child.unref();
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הסייר */ }
+
+/* === T-66: הגריד-הריבוני (grids/run.mjs) — הקול-של-הצי · פעילות-גלויה-מראיות ===
+ * הריבון-ביקש-לראות-פוסטים-והתקדמות: מעולם-לא-התקיים-גריד (רק-שורה-במפקד-הצי).
+ * כל-פעימה-מזמינה-פוסט-גריד-אחד; הרץ-עצמו מחליט-קצב (מינימום-25 דק' בין-פוסטים ·
+ * keep-alive-כל-6 שעות · אפס-ראיות=skip-שקט-עם-nextRunAt). פוסטים-עברית-מראיות-מהדיסק
+ * (קומיטים+קבלות+escalations) · סריקת-סודות-לפני-כתיבה · קבלות: grids/receipts.jsonl === */
+try {
+  const { spawn } = await import('node:child_process');
+  if (typeof CI === 'undefined' || !CI) {
+    const child = spawn(process.execPath, [path.join(HERE, '..', 'grids', 'run.mjs')], {
+      cwd: ROOT, detached: true, stdio: 'ignore',
+    });
+    child.unref();
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הגריד */ }
