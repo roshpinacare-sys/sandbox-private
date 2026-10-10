@@ -125,3 +125,16 @@ try {
     child.unref();
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-המגדלור */ }
+
+/* === T-60: הכתבת-המגדלור-הציבורי — עם-כל-פעימה, state.json נודד אל
+ * roshpinacare-sys/sovereign-lighthouse (GitHub-Pages · שרד-מחיקת-סנדבוקס בפועל)
+ * (שער-שינוי+סריקת-סודות-בפנים · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
+try {
+  const { spawn } = await import('node:child_process');
+  if (typeof CI === 'undefined' || !CI) {
+    const child = spawn('bun', [path.join(HERE, 'lighthouse-sync.mjs')], {
+      cwd: ROOT, detached: true, stdio: 'ignore',
+    });
+    child.unref();
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-ההכתבה */ }
