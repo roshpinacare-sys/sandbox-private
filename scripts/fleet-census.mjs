@@ -17,6 +17,7 @@ import net from 'node:net';
 import http from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, existsSync, statSync, readdirSync, openSync, readSync, closeSync } from 'node:fs';
+import { createDecipheriv, scryptSync } from 'node:crypto';
 
 const PROJECT = '/home/z/my-project';
 const REPOS = {
@@ -162,6 +163,44 @@ try {
   escal.open = arr.filter((e) => e && !String(e.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED')).length;
 } catch { escal.error = true; }
 
+// T-64: בדיקה-עצמית-קריפטוגרפית של מעטפת-הכספת — פענוח-GCM-אמיתי מול הסיסמה-החיה.
+// השיעור: מעטפת-ישנה/מוחזרת (קדנס pull -X theirs) יכלה-לשבת-בשקט-שעות-בלי-שאף-עין-תבחין.
+// בדיקה-זו-נועלת-ok: מעטפת-שאינה-נפתחת = פרצה-ריבונות-שקטה. אפס-תוכן-סוד-בפלט.
+function vaultSelfCheck() {
+  const out = { exists: false, magic: false, decrypts: false, sealedFiles: 0, bytesMatchReceipt: false };
+  try {
+    const encPath = `${PROJECT}/sanbox/vault/vault-backup.enc`;
+    if (!existsSync(encPath)) return out;
+    out.exists = true;
+    const encoded = readFileSync(encPath, 'utf8');
+    const blob = Buffer.from(encoded, 'base64');
+    out.magic = blob.subarray(0, 4).toString('ascii') === 'SQV1';
+    if (!out.magic || blob.length <= 48) return out;
+    const salt = blob.subarray(4, 20);
+    const iv = blob.subarray(20, 32);
+    const tag = blob.subarray(32, 48);
+    const ct = blob.subarray(48);
+    let password = '';
+    try { password = readFileSync(`${PROJECT}/sanbox/secrets/hq.password`, 'utf8').trim(); } catch {}
+    if (password.length === 0) return out;
+    try {
+      const key = scryptSync(password, salt, 32);
+      const d = createDecipheriv('aes-256-gcm', key, iv);
+      d.setAuthTag(tag);
+      const plain = Buffer.concat([d.update(ct), d.final()]);
+      const payload = JSON.parse(plain.toString('utf8'));
+      out.decrypts = Array.isArray(payload.files);
+      out.sealedFiles = out.decrypts ? payload.files.length : 0;
+    } catch { out.decrypts = false; }
+    try {
+      const rc = JSON.parse(readFileSync(`${PROJECT}/sanbox/db/vault-backup.json`, 'utf8'));
+      out.bytesMatchReceipt = typeof rc.bytes === 'number' ? rc.bytes === Buffer.byteLength(encoded, 'utf8') : false;
+    } catch {}
+    return out;
+  } catch { return out; }
+}
+const vaultSelf = vaultSelfCheck();
+
 const census = {
   asof: new Date().toISOString(),
   machine: {
@@ -197,6 +236,7 @@ const census = {
   vaults: {
     walletEnc: fileTruth(`${PROJECT}/repo-vault/wallet.enc.json`),
     secretsBackup: fileTruth(`${PROJECT}/sanbox/vault/vault-backup.enc`),
+    secretsSelfCheck: vaultSelf, // T-64: המעטפת-נפתחת-בפועל-מול-הסיסמה-החיה + התאמת-בייטים-לקבלה
     patEnv: fileTruth(`${PROJECT}/upload/pat.env`),
     sovereignRemote: fileTruth(`${process.env.HOME}/.sovereign/remote.env`),
     agentKey: fileTruth(`${process.env.HOME}/.sovereign/agent-key.env`),
@@ -212,6 +252,7 @@ const ok =
   census.ports[3011].http &&
   census.ports[3050].http &&
   receiptsIntegrity.corrupt === 0 && // T-61: שרשרת-הראיות-חייבת-להיות-שלמה
+  vaultSelf.decrypts === true && // T-64: מעטפת-הכספת-נפתחת-בפועל (אנטי-החזרה-שקטה-של-בלוב-ישן)
   census.repos.every((r) => r.exists === true && !String(r.head).startsWith('error'));
 
 console.log(JSON.stringify({ ...census, ok }, null, 1));

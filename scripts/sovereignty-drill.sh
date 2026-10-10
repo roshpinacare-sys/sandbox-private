@@ -56,9 +56,10 @@ done
 echo "[6/7] ✓ $(echo "$names_live" | wc -l) קבצי-סודות — bit-identity מלא"
 
 echo "[7/7] בדיקת-ארטיפקטים-חיוניים ב-clone…"
-for p in worklog.md repo-vault/RECOVERY-PLAYBOOK.md repo-vault/wallet.enc.json sanbox/vault/vault-backup.enc; do
-  [ -f "$T/cc/$p" ] || fail "artifact:$p"
+for p in worklog.md repo-vault/RECOVERY-PLAYBOOK.md repo-vault/wallet.enc.json; do
+  [ -f "$T/cc/$p" ] || fail "artifact:cc/$p"
 done
+[ -f "$T/sb/vault/vault-backup.enc" ] || fail "artifact:sb/vault/vault-backup.enc"
 CC_HEAD="$(git -C "$T/cc" rev-parse HEAD)"
 SB_HEAD="$(git -C "$T/sb" rev-parse HEAD)"
 
