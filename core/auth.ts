@@ -48,6 +48,22 @@ function tryLoadAuth(): boolean {
     const h = Buffer.from(raw.hash, 'hex');
     const s = Buffer.from(raw.salt, 'hex');
     if (h.length !== KEY_LEN || s.length !== SALT_LEN) throw new Error('אורכי hash/salt לא תקינים');
+
+    /* T-66b — ריפוי-עצמי נגד-auth.json ישן: auth.json יכול להיוולד לפני-ש-secrets/hq.password
+     * שוחזר-מהכספת (נמדד-חי: auth.json 11:26 · hq.password 12:31 → 401 תמידי עם-הסיסמה-האמיתית
+     * ביד-וההצהרה-השקרית "נעול-עד-הבעלים"). הצלבה: אם-הסיסמה-החיה-קיימת ואינה-תואמת-את-ה-hash
+     * השמור — ה-hash ישן/זר → בנייה-מחדש-מהסיסמה-החיה (המפעיל-הפנימי, אפס-המתנה-לבעלים). */
+    if (existsSync(HQ_PASSWORD_FILE)) {
+      const livePw = readFileSync(HQ_PASSWORD_FILE, 'utf8').trim();
+      if (livePw) {
+        const candidate = scryptSync(livePw, s, KEY_LEN, SCRYPT_PARAMS);
+        if (!timingSafeEqual(candidate, h)) {
+          console.error('[auth] db/auth.json אינו-תואם את secrets/hq.password החי (hash ישן/זר) — נבנה-מחדש-מהסיסמה-החיה (ריפוי-עצמי T-66b).');
+          return false;
+        }
+      }
+    }
+
     hashBuf = h;
     saltBuf = s;
     return true;
