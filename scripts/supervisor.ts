@@ -21,6 +21,10 @@
  * גנאלוגיה (T-55): השער-הפך-מודע-לחץ — הראיות (04:46:37→04:56:44, בדיוק-קולדאון)
  * חשפו-הלו-מיחזור: עץ-3050-החם-נמדד-על-הסף-גם-ברגיעה → המשגיח-הרג-שרת-בריא-
  * כל-10-דק'. מעתה-מיחזור-רק-בלחץ-אמיתי (RSS>סף וגם MemAvailable<סף); אחרת mem-gate-hold.
+ * גנאלוגיה (T-56): הדקס-הפך-פרודקשן-standalone (/home/z/dex-prod — נמדד: RSS-229MB-נגד-1094MB-dev,
+ * -79%). dex-revive-מנותב-דרך-המשגר-הקנוני (dex-daemon/launch-prod.sh: heal+port-guard+self-heal —
+ * במקום-לעוקף-את-שער-הפורט-וליצור-כותב-כפול-על-dex.db). קריסות-HQ-נראות-עתה-ב-db/hq.log
+ * (הלקח: 8-החיות-05:48–06:00-היו-EADDRINUSE-שקט-מול-נושא-תלוי-מלחץ-בנייה — stdio:ignore בילע-ראיות).
  *
  * יולד-על-ידי server.ts בעלייה, boot-all.sh, או-השומר-החיצוני — תמיד-detached+unref.
  * קבלות: receipts/supervisor.jsonl (מוגבל), pid: db/supervisor.pid
@@ -28,7 +32,7 @@
 import net from 'node:net';
 import http from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 // נגזרות-מיקום-דינמיות: המפקח-חי-בתוך-הריפו — ROOT=sanbox, PROJECT=ההורה-שלו
@@ -44,7 +48,7 @@ const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
 const DEV_PORT = 3000;
 const CONSOLE_PORT = 3050; // T-47: קונסולת-האם (חוזה-הדלת-הקדמית)
 const ZIP = path.join(PROJECT, 'zip');
-const SAOS_DEX = path.join(PROJECT, 'saos-dex');
+const DEX_DAEMON = path.join(PROJECT, 'mini-services', 'dex-daemon'); // T-56: המשגר-הקנוני-של-הדקס (standalone-פרודקשן)
 const HQ_SPAWN_DEBOUNCE_MS = 15_000;
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;
 const CONSOLE_SPAWN_DEBOUNCE_MS = 30_000;
@@ -60,6 +64,7 @@ const MEM_PRESSURE_AVAIL_MB = Number(process.env.MEM_PRESSURE_AVAIL_MB ?? 350); 
 const MEM_GATE_COOLDOWN_MS = 10 * 60_000; // שקט-אחרי-מיחזור (לתת-לשרת-החדש-להתחמם)
 
 let hqLastSpawn = 0;
+let hqHeldLogLastRun = 0; // T-56: מצערת-קבלת-hq-port-held-no-http (תצפית-על-נושא-תלוי)
 let devLastSpawn = 0;
 let consoleLastSpawn = 0;
 let devDeadStrikes = 0;
@@ -137,9 +142,18 @@ function pkillPattern(pattern: string): boolean {
   } catch { return false; }
 }
 
-function spawnDetached(cmd: string, args: string[], cwd: string): number | null {
+function spawnDetached(cmd: string, args: string[], cwd: string, logFile?: string): number | null {
   try {
-    const child = spawn(cmd, args, { cwd, detached: true, stdio: 'ignore' });
+    let stdio: ('ignore' | number)[] = ['ignore', 'ignore', 'ignore'];
+    if (logFile) {
+      // T-56: קריסות-שקטות-הן-חור-אבחון (נמדד: EADDRINUSE-נבלע-8-פעמים) — לוג-קובץ-לכל-שירות-קריטי
+      try {
+        mkdirSync(path.dirname(logFile), { recursive: true });
+        const fd = openSync(logFile, 'a');
+        stdio = ['ignore', fd, fd];
+      } catch { /* נפילה-חזרה-ל-ignore */ }
+    }
+    const child = spawn(cmd, args, { cwd, detached: true, stdio });
     child.unref();
     return child.pid ?? null;
   } catch {
@@ -229,11 +243,18 @@ async function tick(): Promise<void> {
     }
   }
 
-  /* --- HQ (HQ_PORT): מת → מיד-מוקם --- FIX(T-47): בדיקת-HTTP (לא-TCP-בלבד) --- */
+  /* --- HQ (HQ_PORT): מת → מיד-מוקם --- FIX(T-47): בדיקת-HTTP (לא-TCP-בלבד) ---
+   * T-56: תצפית-על-נושא-תלוי — נמדד-חי (05:48–06:00): לחץ-בנייה-תלה-את-ה-HQ-מחזיק-פורט-
+   * בלי-לענות → כל-spawn-מת-EADDRINUSE-בשקט → סערת-החיות. מעתה: קריסות-HQ-נופלות-ל-db/hq.log,
+   * ופורט-תפוס-בלי-HTTP = קבלת-hq-port-held-no-http (מוצערת) — ראיה-לפני-כל-פעולה-עתידית. */
   if (!(await httpAlive(HQ_PORT, '/'))) {
+    if ((await portAlive(HQ_PORT)) && now - hqHeldLogLastRun > 600_000) {
+      hqHeldLogLastRun = now;
+      log({ type: 'hq-port-held-no-http', port: HQ_PORT });
+    }
     if (now - hqLastSpawn > HQ_SPAWN_DEBOUNCE_MS) {
       hqLastSpawn = now;
-      const pid = spawnDetached('bun', ['server.ts'], ROOT);
+      const pid = spawnDetached('bun', ['server.ts'], ROOT, path.join(DB, 'hq.log'));
       log({ type: 'hq-revive', pid, port: HQ_PORT, check: 'http' });
     }
   }
@@ -270,8 +291,9 @@ async function tick(): Promise<void> {
       } else if (now - devLastSpawn > DEV_SPAWN_DEBOUNCE_MS) {
         devLastSpawn = now;
         if (!(await portAlive(3010))) {
-          const pid = spawnDetached('bun', ['run', 'dev'], SAOS_DEX);
-          log({ type: 'dex-revive', pid, port: 3010 });
+          // T-56: דרך-המשגר-הקנוני (heal+port-guard+standalone) — לא-עוקף-את-שער-הפורט
+          const pid = spawnDetached('bun', ['run', 'dev'], DEX_DAEMON);
+          log({ type: 'dex-revive', pid, port: 3010, via: 'dex-daemon-launch-prod' });
         }
         devDeadStrikes = 0;
       }
