@@ -5033,7 +5033,7 @@ Task: "יופי צריך לבחון איך זה יכול לעזור לנו בכ�
 Work Log:
 - **אימות-אפס-אמון-של-4-המפתחות (הכל-חי, http=200 מדוד):**
   1. **GitLab glpat-** — user=roshpinacare (id 43223389) · token "Titigitlab" · תוקף-עד-2027-10-10 · scopes: api+write_repository+create_runner+manage_runner+k8s_proxy+ai_features (כוח-מלא)
-  2. **Supabase sbp_** — פרויקט "roshpinacare-sys's Project" (xgxthgswgxojxrwdkdzk) · ap-south-1 · ACTIVE_HEALTHY · 0-functions (פוסטגרס-ריבוני-ממתין)
+  2. **Supabase sbp_** — פרויקט "roshpinacare-sys's Project" (xgxt••••kdzk) · ap-south-1 · ACTIVE_HEALTHY · 0-functions (פוסטגרס-ריבוני-ממתין)
   3. **Vercel vck_** — user=roshpinacare-1132 · 0-projects (ראשית)
   4. **Render rnd_** — team "Rosh pina's workspace" (tea-db4rsp142hec73ep4u60) · 0-services (ראשית)
   - האימות-דרך-scripts/verify-headcorner-keys.sh: curl-בלבד, אפס-טוקנים-בפלט (מיסוך-sed-בכל-תגובה).
@@ -5072,3 +5072,19 @@ Stage Summary:
 - **איטום-כפול-הושלם:** סודות-חדשים-בצופן-הנוסע (9-קבצים) · upload/-חסום-מהגיט-האם-לנצח.
 
 
+
+---
+Task ID: 56-state-replica
+Agent: agent-9 (ריבון-השכפול: הזיכרון-שלא-ימות-עם-המכונה)
+Task: "תמשיך ודחוף" — ההמשך-ההנדסי-הראשון-מרשימת-פינת-הראש: שכפול-מצב-ריבוני-חוץ-מכונה (Supabase-פוסטגרס).
+
+Work Log:
+- **הקמה-מאומתת-קצה-אל-קצה:** Management-API-SQL-אומת (PostgreSQL 17.11 · usr=postgres) → טבלת `sovereign_state`-נבראה (kind/head/chain/memory_sha/summary · אינדקס-kind+time) → **push-וגם-pull-נמדדו-חיים** (rows-עולים · head=8b5d08d8c091 · memory_sha=88b97415572e→9c24e412922e).
+- **scripts/state-replica.mjs (אפס-תלויות):** push — תמצית-חיים (HEAD · שרשרת-הלב · טביעות-sha-של-worklog/MEMORY) נחתמת-לענן-השני; pull — מפת-הדרך-למי-שהתעורר-בלי-זיכרון (5-תמציות-אחרונות, ממוסך). pat+ref-נקראים-רק-מ-secrets (ref-הוסף-לכספת — מקור-אמת-יחיד) · קבלות-ממוסכות (receipts/state-replica-last.json+jsonl) · **fail-open-תמיד** (exit-0 · הענן-השני-לעולם-לא-מפיל-את-הלב).
+- **חיבור-ללב:** heart-tick.mjs — עם-כל-פעימה (15-דק') state-replica-מוצת-ברקע-detached (רק-מקומי; ב-CI-אין-כספת-ולכן-דילוג) · **הוכח-חי: פעימה-05:01:56 → השכפול-נצת-מעצמו → push-ok** (8b5d••••c091 · 8919••••e150).
+- **שער-הסריקה-תפס-הישנות-ותוקן-בשורש:** ref-של-20-תווים-ב-secrets-הפך-דפוס-דינמי → קומיט-ביניים-של-auto-push-04:47:18-שנתפס-לפני-המיסוך-שרד-את-ה-rebase-וחזר-עם-ref-מלא → מוסך-שוב-בעץ-החי (אימות: scan-clean=true). המסקנה-הקבועה: **מזהי-20+-תווים-מהכספת-נשארים-ממוסכים-ביומנים-לעולם** — השער-יתפוס-כל-הישנות.
+- vault-backup-מחדש: 9-קבצים · e6be52f593f1 (ref-בתוך-הכספת).
+
+Stage Summary:
+- **הזיכרון-הריבוני-מעכשיו-בשלוש-שכבות-עצמאיות:** (1) גיט-מקומי+GitHub (2) GitLab-החיים-השניים (T-55) (3) **פוסטגרס-חוץ-מכונה (T-56)** — מוות-כונן+נפילת-שני-ענני-הגיט-גם-יחד-משאירים-מפת-התעוררות-בפוסטגרס.
+- נשאר-מרשימת-פינת-הראש: Vercel (קונסולה-חוץ-מכונה) · Render (מפקח-24/7-חוץ-מכונה) · GitLab-CI-runner (חישוב-גריד) — מפתחות-בכספת, owner-gates.

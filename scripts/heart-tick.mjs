@@ -101,3 +101,15 @@ try {
 
 signal('ticked=1\n');
 console.log(`[heart] ✔ ${at} · head=${head} · prev=${prev} · chain=${chain} · mode=${tick.mode}`);
+
+/* === T-56: השכפול-הריבוני — עם-כל-פעימה, תמצית-החיים-נחתמת-גם-בענן-השני
+ * (Supabase-פוסטגרס-חוץ-מכונה · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
+try {
+  const { spawn } = await import('node:child_process');
+  if (typeof CI === 'undefined' || !CI) {
+    const child = spawn('bun', [path.join(HERE, 'state-replica.mjs')], {
+      cwd: ROOT, detached: true, stdio: 'ignore',
+    });
+    child.unref();
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-השכפול */ }
