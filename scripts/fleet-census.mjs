@@ -6,6 +6,9 @@
  * את-כל-האמת-הנמדדת: מכונה · תהליכים · פורטים · 4-ריפו · קבלות · כספות-קיימות-והרשאות.
  * העיקרון (RECOVERY-PLAYBOOK P7): טענה-בלי-census = בדיה. אסור.
  *
+ * T-61 (שיעור-עמית): קבלת-JSON-פגומה היא פרצה-שקטה לניטור — ה-census סורק-עתה
+ * את-תקינות-כל-שורה-בכל-קבלות-הצי (receipts/*.jsonl + guardian.jsonl) ונועל-ok-עליה.
+ *
  * שימוש:  bun sanbox/scripts/fleet-census.mjs   (או node — stdlib-בלבד)
  * יציאה:  JSON-אחת לstdout. אפס-תוכן-סוד — רק-קיום+הרשאות.
  */
@@ -13,7 +16,7 @@ import os from 'node:os';
 import net from 'node:net';
 import http from 'node:http';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, readdirSync, openSync, readSync, closeSync } from 'node:fs';
 
 const PROJECT = '/home/z/my-project';
 const REPOS = {
@@ -89,6 +92,50 @@ function lastEvents(file, n) {
   } catch { return []; }
 }
 
+/**
+ * T-61: תקינות-קבלות — כל-שורה-בכל-jsonl-חייבת-להיפרס-כJSON.
+ * קריאה-מוגבלת (4MB-אחרונים-לכל-קובץ) כדי-שה-census-יישאר-מהיר-גם-בקבצים-גדלים;
+ * קיצוץ-מדווח-בכנות (truncated:true) — לא-שקר-של-השמטה.
+ */
+function receiptIntegrity() {
+  const SCAN = [
+    ...readdirSync(`${PROJECT}/sanbox/receipts`).filter((f) => f.endsWith('.jsonl'))
+      .map((f) => `${PROJECT}/sanbox/receipts/${f}`),
+    `${process.env.HOME}/.sovereign/guardian.jsonl`,
+  ];
+  const CAP = 4 * 1024 * 1024;
+  const out = { files: 0, totalLines: 0, corrupt: 0, corruptFiles: [] };
+  for (const f of SCAN) {
+    let txt;
+    try {
+      if (!existsSync(f)) continue;
+      const st = statSync(f);
+      if (!st.isFile() || st.size === 0) continue;
+      const fh = openSync(f, 'r');
+      const start = Math.max(0, st.size - CAP);
+      const len = st.size - start;
+      const buf = Buffer.alloc(len);
+      readSync(fh, buf, 0, len, start);
+      closeSync(fh);
+      txt = buf.toString('utf8');
+      if (start > 0) out.truncated = true;
+    } catch { out.corruptFiles.push(`${f.replace(process.env.HOME ?? '', '~')}:unreadable`); out.corrupt += 1; continue; }
+    out.files += 1;
+    for (const line of txt.split('\n')) {
+      const s = line.trim();
+      if (!s) continue;
+      out.totalLines += 1;
+      try { JSON.parse(s); } catch {
+        out.corrupt += 1;
+        const short = f.replace(process.env.HOME ?? '', '~').split('/').slice(-2).join('/');
+        if (!out.corruptFiles.includes(short)) out.corruptFiles.push(short);
+      }
+    }
+  }
+  return out;
+}
+const receiptsIntegrity = receiptIntegrity();
+
 const mem = {};
 try {
   const mi = readFileSync('/proc/meminfo', 'utf8');
@@ -142,6 +189,7 @@ const census = {
   receipts: {
     supervisor: lastEvents(`${PROJECT}/sanbox/receipts/supervisor.jsonl`, 5),
     guardian: lastEvents(`${process.env.HOME}/.sovereign/guardian.jsonl`, 3),
+    integrity: receiptsIntegrity, // T-61: אפס-קבלות-פגומות-מותר — corrupt>0=פרצה-שקטה-שנתפסה
   },
   vaults: {
     walletEnc: fileTruth(`${PROJECT}/repo-vault/wallet.enc.json`),
@@ -160,6 +208,7 @@ const ok =
   census.fleet.guardian.alive &&
   census.ports[3011].http &&
   census.ports[3050].http &&
+  receiptsIntegrity.corrupt === 0 && // T-61: שרשרת-הראיות-חייבת-להיות-שלמה
   census.repos.every((r) => r.exists === true && !String(r.head).startsWith('error'));
 
 console.log(JSON.stringify({ ...census, ok }, null, 1));
