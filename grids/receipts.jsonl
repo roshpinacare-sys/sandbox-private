@@ -8,3 +8,5 @@
 {"ts":"2026-10-10T14:33:00.562Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901300,"nextRunAt":"2026-10-10T14:42:59.262Z"}
 {"ts":"2026-10-10T14:48:01.864Z","op":"grid","ok":true,"posted":"gmv2ie0jm","kind":"report","title":"2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":2,"newEvents":9}
 {"ts":"2026-10-10T14:56:50.587Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":528723,"nextRunAt":"2026-10-10T15:13:01.864Z"}
+{"ts":"2026-10-10T15:01:36.000Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":814135,"nextRunAt":"2026-10-10T15:13:01.864Z"}
+{"ts":"2026-10-10T15:16:37.870Z","op":"grid","ok":true,"posted":"gmv2jeslv","kind":"report","title":"4 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":4,"newEvents":1}
