@@ -19,3 +19,5 @@
 {"ts":"2026-10-10T15:46:37.024Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901542,"nextRunAt":"2026-10-10T15:56:35.481Z"}
 {"ts":"2026-10-10T15:55:35.462Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":1439980,"nextRunAt":"2026-10-10T15:56:35.481Z"}
 {"ts":"2026-10-10T16:10:37.034Z","op":"grid","ok":true,"posted":"gmv2lc7z0","kind":"report","title":"6 קומיטים: HQ sync 2026-10-10T15:56:21.858Z (+5 עוד)","commits":6,"newEvents":20}
+{"ts":"2026-10-10T16:25:38.394Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901360,"nextRunAt":"2026-10-10T16:35:37.033Z"}
+{"ts":"2026-10-10T16:40:39.823Z","op":"grid","ok":true,"recorded":"gmv2mev0g","kind":"report","title":"8 קומיטים: T-66c-final: PROVEN=true (sovereignty-drill-11/11) · ריפוי-תוכן-בלוב (va (+7 עוד)","commits":8,"newEvents":14,"chain":"no-key"}
