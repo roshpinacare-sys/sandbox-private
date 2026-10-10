@@ -113,3 +113,15 @@ try {
     child.unref();
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-השכפול */ }
+
+/* === T-57: המגדלור-הריבוני — עם-כל-פעימה-שבה-המצב-זז, index.html-ריבוני-מועלה-לוורסל
+ * (קונסולה-שחיה-בלי-המכונה · שער-שינוי-בפנים · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
+try {
+  const { spawn } = await import('node:child_process');
+  if (typeof CI === 'undefined' || !CI) {
+    const child = spawn('bun', [path.join(HERE, 'vercel-beacon.mjs')], {
+      cwd: ROOT, detached: true, stdio: 'ignore',
+    });
+    child.unref();
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-המגדלור */ }
