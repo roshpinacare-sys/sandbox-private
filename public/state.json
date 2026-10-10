@@ -13,16 +13,33 @@
     "vaultBytes": 4708
   },
   "memoryLayers": [
-    { "layer": "github", "detail": "roshpinacare-sys/sanbox" },
-    { "layer": "gitlab", "detail": "roshpinacare/sanbox + Pages-הזה" },
-    { "layer": "postgres", "detail": "Supabase sovereign_state (state-replica)" },
-    { "layer": "lighthouse", "detail": "https://roshpinacare-sys.github.io/sovereign-lighthouse — Pages ציבורי (T-59)" },
-    { "layer": "pages-beacon", "detail": "הקונסולה-הזו — נולדה-ב-CI-חוץ-מכונה" }
+    {
+      "layer": "github",
+      "detail": "roshpinacare-sys/sanbox"
+    },
+    {
+      "layer": "gitlab",
+      "detail": "roshpinacare/sanbox + Pages-הזה"
+    },
+    {
+      "layer": "postgres",
+      "detail": "Supabase sovereign_state (state-replica)"
+    },
+    {
+      "layer": "lighthouse",
+      "detail": "https://roshpinacare-sys.github.io/sovereign-lighthouse — Pages ציבורי (T-59)"
+    },
+    {
+      "layer": "pages-beacon",
+      "detail": "הקונסולה-הזו — נולדה-ב-CI-חוץ-מכונה"
+    }
   ],
   "fleet": {
     "runner": "GitLab runner 57265759 (online, self-healing via boot-all.sh)",
     "renderCockpit": "הצי-מחזיק-את-הנתיב (אי-התנגשות>מאבק)",
-    "escalations": "repo-vault/escalations.json — שערי-בעלים-עם-ראיות"
+    "escalations": "repo-vault/escalations.json — שערי-בעלים-עם-ראיות",
+    "webSense": "T-62: חיפוש-ריבוני (Tavily x2) + קריאת-דפים (Jina-reader) — אטום בכספת · scripts/web-sense.mjs",
+    "developmentPaths": "מ-Head-Corner: browser-use/Skyvern (אוטומציית-דפדפן) · vLLM (אינפרנס-עצמאי) · langsearch (חיפוש-נוסף, 401-לא-מאומת)"
   },
   "awakening": [
     "1. הגיט-הוא-הקוד-המלא: שני-עננים-נושאים-sanbox + vault/vault-backup.enc (AES-256-GCM)",
