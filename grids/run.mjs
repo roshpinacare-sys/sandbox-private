@@ -281,10 +281,10 @@ async function publishToChain(post, idx, force) {
     const body = [
       post.title,
       '',
-      ...post.lines,
+      ...post.lines.slice(0, 8),
       '',
-      `ראיות: קומיטים ${post.evidence.commits} · שורות-קבלות-חדשות ${post.evidence.newReceiptLines} · לב ${post.evidence.heartChain || '?'} · HEAD ${post.evidence.head || '?'}`,
-      `מקור: צי-ריבוני-עצמאי · מגדלור-ראיות-מלא: ${LIGHTHOUSE_URL}`,
+      `ראיות: קומיטים ${post.evidence.commits} · אירועים ${post.evidence.newReceiptLines} · לב ${String(post.evidence.heartChain || '').slice(0, 8)} · HEAD ${String(post.evidence.head || '').slice(0, 8)}`,
+      `מקור: צי-ריבוני · מגדלור: ${LIGHTHOUSE_URL}`,
     ].join('\n');
     const meta = { tags: ['saos', 'sovereignty', 'autonomy', 'hive', 'grid'], app: 'saos-grid/1.1', format: 'markdown', lighthouse: LIGHTHOUSE_URL };
     const bc = await new Promise((resolve) => {
