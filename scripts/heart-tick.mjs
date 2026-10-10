@@ -138,3 +138,17 @@ try {
     child.unref();
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-ההכתבה */ }
+
+/* === T-64: סיור-רשת-ריבוני-תקופתי (web-recon) — הנתיב-שנפתח-ב-T-63 הופך-פעימה-קבועה ===
+ * כל-פעימה מזמינה-סייר-אחד; הסייר-עצמו מחליט-קצב (מינימום-55 דק' בין-סיורים —
+ * כלכלה-אפס-בזבוז-API) ומבצע: חיפוש-מדורג-אחד + ביקורת-חוץ-עצמית של-המגדלור.
+ * fail-open · אפס-סודות-כאן (המפתחות-אצל-web-sense) · קבלות: receipts/web-recon.jsonl === */
+try {
+  const { spawn } = await import('node:child_process');
+  if (typeof CI === 'undefined' || !CI) {
+    const child = spawn(process.execPath, [path.join(HERE, 'web-recon.mjs')], {
+      cwd: ROOT, detached: true, stdio: 'ignore',
+    });
+    child.unref();
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הסייר */ }
