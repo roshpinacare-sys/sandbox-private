@@ -47,7 +47,8 @@ const TICK_MS = 10_000;
 const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
 const DEV_PORT = 3000;
 const CONSOLE_PORT = 3050; // T-47: קונסולת-האם (חוזה-הדלת-הקדמית)
-const ZIP = path.join(PROJECT, 'zip');
+// T-64: עץ-zip נמחק מהדיסק ואינו בשום היסטוריית-מראה — קונסולת-האם עתה מהריפו-הריבוני (scripts/console-server.ts)
+const BUN = process.execPath; // T-64: עצמאות-PATH — השומר מקים-אותנו בסביבה-חלקה (נמדד: spawn 'bun'→ENOENT posix_spawn)
 const DEX_DAEMON = path.join(PROJECT, 'mini-services', 'dex-daemon'); // T-56: המשגר-הקנוני-של-הדקס (standalone-פרודקשן)
 const HQ_SPAWN_DEBOUNCE_MS = 15_000;
 const DEV_SPAWN_DEBOUNCE_MS = 60_000;
@@ -67,6 +68,7 @@ let hqLastSpawn = 0;
 let hqHeldLogLastRun = 0; // T-56: מצערת-קבלת-hq-port-held-no-http (תצפית-על-נושא-תלוי)
 let devLastSpawn = 0;
 let consoleLastSpawn = 0;
+let consoleSrcLogLastRun = 0; // T-64: דה-באנס-לוג-על-מקור-חסר (פעם-ב-10 דק' — לא-סערת-קבלות)
 let devDeadStrikes = 0;
 let heartLastRun = 0;
 let memGateLastRun = 0; // T-55: FIX — היה-בשימוש-בלי-הצהרה-מאז-סוף-T-54 (tick-error-בכל-טיק-על-תהליך-חדש; החי-הישן-הסתיר-את-זה)
@@ -154,6 +156,9 @@ function spawnDetached(cmd: string, args: string[], cwd: string, logFile?: strin
       } catch { /* נפילה-חזרה-ל-ignore */ }
     }
     const child = spawn(cmd, args, { cwd, detached: true, stdio });
+    // T-64: שגיאת-spawn-אסינכרונית (ENOENT על בינארי/cwd) נפלטת-כאירוע-'error', לא-חריגה-מסונכרנת —
+    // try/catch לא תופס אותה. בלי-המנוון: לולאת-קריסה-מלאה של המשגיח (נמדד-חי: 4+ revives 11:10–11:11).
+    child.on('error', () => {});
     child.unref();
     return child.pid ?? null;
   } catch {
@@ -254,7 +259,7 @@ async function tick(): Promise<void> {
     }
     if (now - hqLastSpawn > HQ_SPAWN_DEBOUNCE_MS) {
       hqLastSpawn = now;
-      const pid = spawnDetached('bun', ['server.ts'], ROOT, path.join(DB, 'hq.log'));
+      const pid = spawnDetached(BUN, ['server.ts'], ROOT, path.join(DB, 'hq.log'));
       log({ type: 'hq-revive', pid, port: HQ_PORT, check: 'http' });
     }
   }
@@ -265,10 +270,17 @@ async function tick(): Promise<void> {
    * FIX(T-54): אם-המשגיח-כבר-חי — לא-שוגר-שני (פורט-מת-זמנית-בזמן-קימפול
    * יצר-משגיחים-כפולים; נמדד: 18329+28698). המשגיח-החי-מחיה-את-הילד-בעצמו. */
   if (!(await httpAlive(CONSOLE_PORT, '/'))) {
-    if (pidsByPattern('mini-services/web/index.ts').length === 0 && now - consoleLastSpawn > CONSOLE_SPAWN_DEBOUNCE_MS) {
+    const consoleEntry = path.join(ROOT, 'scripts', 'console-server.ts');
+    if (!existsSync(consoleEntry)) {
+      // T-64: מקור-חסר ≠ קריסה — תצפית-מדודה-בדה-באנס, והמשגיח-ממשיך-לשמור-על-השאר
+      if (now - consoleSrcLogLastRun > 600_000) {
+        consoleSrcLogLastRun = now;
+        log({ type: 'console-source-missing', entry: 'scripts/console-server.ts' });
+      }
+    } else if (pidsByPattern('console-server.ts').length === 0 && now - consoleLastSpawn > CONSOLE_SPAWN_DEBOUNCE_MS) {
       consoleLastSpawn = now;
-      const pid = spawnDetached('bun', ['mini-services/web/index.ts'], ZIP);
-      log({ type: 'console-revive', pid, port: CONSOLE_PORT });
+      const pid = spawnDetached(BUN, [consoleEntry], ROOT, path.join(DB, 'console.log'));
+      log({ type: 'console-revive', pid, port: CONSOLE_PORT, via: 'repo-canonical' });
     }
   }
 
@@ -292,7 +304,7 @@ async function tick(): Promise<void> {
         devLastSpawn = now;
         if (!(await portAlive(3010))) {
           // T-56: דרך-המשגר-הקנוני (heal+port-guard+standalone) — לא-עוקף-את-שער-הפורט
-          const pid = spawnDetached('bun', ['run', 'dev'], DEX_DAEMON);
+          const pid = spawnDetached(BUN, ['run', 'dev'], DEX_DAEMON);
           log({ type: 'dex-revive', pid, port: 3010, via: 'dex-daemon-launch-prod' });
         }
         devDeadStrikes = 0;
