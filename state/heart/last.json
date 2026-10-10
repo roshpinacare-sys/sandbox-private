@@ -1,8 +1,8 @@
 {
  "schema": "sanbox.heart/1",
- "at": "2026-10-10T08:31:08.254Z",
+ "at": "2026-10-10T08:49:59.743Z",
  "mode": "local",
- "head": "8934802d98dd",
- "prevChain": "5bd02ad027b7e31ed5c60164",
- "chain": "1585dd9ecebe65723bdcde17"
+ "head": "012c2741731f",
+ "prevChain": "6abef05bc365d0c5b5e6b148",
+ "chain": "dfadcde6da8e7259abef7698"
 }
