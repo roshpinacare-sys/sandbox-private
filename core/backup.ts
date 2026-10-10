@@ -36,7 +36,9 @@ import {
 } from 'node:fs';
 import * as path from 'node:path';
 
-const SANDBOX_DIR = '/home/z/my-project/sanbox';
+// T-65: היה-מקודד-אבסולוטי — מכונה-חדשה-לא-הייתה-יכולה-לפתוח-את-הכספת (נתפס-במשפט-הריבונות).
+// עתה: דינמי-ממיקום-הסקריפט (core/→sanbox) עם-עקיפה-סביבתית. התנהגות-חיה-זהה.
+const SANDBOX_DIR = process.env.SANDBOX_DIR ?? path.resolve(import.meta.dir, '..');
 const SECRETS_DIR = path.join(SANDBOX_DIR, 'secrets');
 const VAULT_DIR = path.join(SANDBOX_DIR, 'vault');
 const DB_DIR = path.join(SANDBOX_DIR, 'db');
