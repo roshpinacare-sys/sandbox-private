@@ -64,6 +64,8 @@ let devLastSpawn = 0;
 let consoleLastSpawn = 0;
 let devDeadStrikes = 0;
 let heartLastRun = 0;
+let memGateLastRun = 0; // T-55: FIX — היה-בשימוש-בלי-הצהרה-מאז-סוף-T-54 (tick-error-בכל-טיק-על-תהליך-חדש; החי-הישן-הסתיר-את-זה)
+let memLogLastRun = 0;  // T-55: FIX — כנ"ל (מצערת-קבלות-תצפית)
 let mirrorLastRun = 0;
 let lastCodeFingerprint: string | null = null; // T-54: התחדשות-קוד-חי
 
