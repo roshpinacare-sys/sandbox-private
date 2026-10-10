@@ -153,26 +153,6 @@ async function main() {
    * (היה-נולד-מיושן-וזרע-תדמית-"אין-התקדמות" — הריבון-ראה-heartAt-ישן) --- */
   try { writeFileSync(join(ROOT, 'public/state.json'), contentStr); } catch { /* fail-open */ }
 
-  /* --- T-66: פרסום-זנת-הגריד למגדלור (grid.json · fail-open גמור — לא-מפיל-את-ההכתבה) --- */
-  let gridPush = null;
-  if (gridIdx) {
-    const gContent = Buffer.from(JSON.stringify(gridIdx, null, 1) + '\n', 'utf8');
-    const gHit = SECRET_RX.exec(gContent.toString('utf8'));
-    if (gHit) {
-      gridPush = { ok: false, blocked: 'secret-scan' };
-    } else {
-      const gMsg = `grid: פוסטים=${gridIdx.total ?? 0}`;
-      const gPut = (sha) => gh(`/contents/grid.json`, { method: 'PUT', body: JSON.stringify({ message: gMsg, content: gContent.toString('base64'), branch: BRANCH, ...(sha ? { sha } : {}) }) });
-      const gCur = await gh(`/contents/grid.json?ref=${BRANCH}`);
-      let gRes = await gPut(gCur.json?.sha || null);
-      if (gRes.status === 409 && gCur.json?.sha) {
-        const fresh = await gh(`/contents/grid.json?ref=${BRANCH}`);
-        if (fresh.json?.sha) gRes = await gPut(fresh.json.sha);
-      }
-      gridPush = { ok: gRes.status === 200 || gRes.status === 201, http: gRes.status };
-    }
-  }
-
   const pat = readPat();
   const auth = { Authorization: `token ${pat}`, Accept: 'application/vnd.github+json' };
 
@@ -236,6 +216,26 @@ async function main() {
     });
     process.exitCode = gateBlocked ? 0 : 1;
     return;
+  }
+
+  /* --- T-66: פרסום-זנת-הגריד למגדלור (grid.json · fail-open גמור — לא-מפיל-את-ההכתבה) --- */
+  let gridPush = null;
+  if (gridIdx) {
+    const gContent = Buffer.from(JSON.stringify(gridIdx, null, 1) + '\n', 'utf8');
+    const gHit = SECRET_RX.exec(gContent.toString('utf8'));
+    if (gHit) {
+      gridPush = { ok: false, blocked: 'secret-scan' };
+    } else {
+      const gMsg = `grid: פוסטים=${gridIdx.total ?? 0}`;
+      const gPut = (sha) => gh(`/contents/grid.json`, { method: 'PUT', body: JSON.stringify({ message: gMsg, content: gContent.toString('base64'), branch: BRANCH, ...(sha ? { sha } : {}) }) });
+      const gCur = await gh(`/contents/grid.json?ref=${BRANCH}`);
+      let gRes = await gPut(gCur.json?.sha || null);
+      if (gRes.status === 409 && gCur.json?.sha) {
+        const fresh = await gh(`/contents/grid.json?ref=${BRANCH}`);
+        if (fresh.json?.sha) gRes = await gPut(fresh.json.sha);
+      }
+      gridPush = { ok: gRes.status === 200 || gRes.status === 201, http: gRes.status };
+    }
   }
 
   /* --- אימות-חי: המגדלור-חייב-להשיב-200 --- */
