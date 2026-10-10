@@ -182,12 +182,4 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 - **שחזור-מפת-התעוררות:** `bun scripts/state-replica.mjs pull` — 5-התמציות-האחרונות-מהענן: מי-היה-חי, איפה, עם-איזה-זיכרון. מוות-מכונה+שני-ענני-גיט-יחד — עדיין-יש-זיכרון.
 - **משמעת-המיסוך-הקבועה:** כל-מזהה-20+-תווים-שחי-בכספת-מוסך-ביומנים (xgxt••••kdzk) — השער-בונה-ממנו-דפוס-ויחסום-כל-דחיפה-עם-צורתו-המלאה. שני-מעצורים-כבר-הוכיחו-זאת-בפועל.
 
-## פינת-הראש: ריבונות-רבת-עננים (T-55, 04:4xZ 10/10)
-- **4-מפתחות-חדשים-נאומתו-חיים (http=200):** GitLab glpat- (roshpinacare · api+write_repository+create_runner+k8s_proxy · עד-2027-10-10) · Supabase sbp_ (פרויקט xgxt••••kdzk ap-south-1 פוסטגרס) · Vercel vck_ (roshpinacare-1132) · Render rnd_ (Rosh pina's workspace).
-- **החיים-השניים-פעילים:** GitLab roshpinacare/sanbox (id 87455874) = מראה-פרטית-של-כל-הכספת. `scripts/push-gitlab.sh` (askpass-זמני · אפס-טוקן-ב-URL/config · fail-open) מוצת-אוטומטית-אחרי-כל-דחיפת-אם-מוצלחת (server.ts-runAutoPush). דחיפה-ראשונה-מאומתת: main=fcbe4efd שווה-בשני-העננים. **GitHub-נופל? GitLab-הוא-הבית.**
-- **כספת-9-קבצים-בצופן-אחד:** gitlab/supabase/vercel/render-.keys-נאטמו-ל-secrets/ (600) + חוזה-42-0-מורחב-ב-vault.ts + vault-backup-מחדש (3b01f5b02fdf · 4552B). שחזור-מהצופן-מחזיר-הכל-כולל-המפתחות-החדשים.
-- **איטום-האם:** הריפו-הראשי-לא-עוקב-עוד-upload/ (gitignore + rm--cached) — אף-סוד-משתמש-לא-נאסף-לגיט-לעולם.
-- **תובנת-התחדשות-מדודה:** טביעת-קוד-המפקח=git-HEAD — **קומיט=הצתת-התחדשות**. תיקון-לא-מקומט-שקוף-למפקח.
-- **הבא-הנדסית-מוכן-להצתה (owner-gates-עם-מפתחות-בכספת):** (1) Supabase — שכפול-מצב-ריבוני-לפוסטגרס-חוץ-מכונה (זיכרון-ששורד-מוות-כונן) (2) Vercel — קונסולה-שחיה-בלי-מכונה (3) Render — מפקח-24/7-חוץ-מכונה (4) GitLab-CI-runner — חישוב-גריד-חוץ-מכונה (create_runner-k8s_proxy-ביד).
-
 
