@@ -16,7 +16,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, statSync, appendFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -36,6 +36,7 @@ const PAGES_URL = `https://${OWNER}.github.io/${REPO}/`;
 const API = `https://api.github.com/repos/${OWNER}/${REPO}`;
 const BRANCH = 'main';
 const TAIL = 7;
+const PAGE_VERSION = 'T-66b.1'; // T-66b: גרסת-הדף — עליית-גרסה-מכתיבה-פרסום-גם-בשער-השינוי (הדף-מוצר-בפני-עצמו)
 
 function maskSecret(s) {
   if (typeof s !== 'string' || s.length < 12) return '•••';
@@ -72,6 +73,109 @@ function writeReceipt(obj) {
   console.log(`[lighthouse] ${line}`);
 }
 
+/* --- T-66b: הדף-החי — נולד-מהלב-בכל-פעימה; מציג-לב+גריד-מלא+שערי-בעלים-גלויים --- */
+function buildPage() {
+  return `<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ראש פינה — מגדלור ריבוני</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background: #0a0a0f; color: #e7e7ee; min-height: 100vh; padding: 24px; }
+.wrap { max-width: 820px; margin: 0 auto; }
+header { text-align: center; padding: 28px 0 18px; }
+.pulse { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 12px #22c55e; animation: p 2s infinite; }
+@keyframes p { 50% { opacity: .4; } }
+h1 { font-size: 1.7rem; margin: 12px 0 4px; }
+.sub { color: #9a9ab0; font-size: .95rem; }
+.stat, .card { background: #14141c; border: 1px solid #26263a; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.stat b, .card b { color: #d4b483; }
+.stat code { background: #1d1d29; padding: 2px 7px; border-radius: 6px; font-size: .85rem; direction: ltr; unicode-bidi: embed; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin: 14px 0; }
+.l-name { font-weight: 700; color: #d4b483; margin-bottom: 6px; }
+.l-detail { font-size: .88rem; color: #b9b9cc; }
+h2 { font-size: 1.15rem; color: #d4b483; margin: 26px 0 10px; }
+ol, ul { padding-inline-start: 22px; }
+li { margin-bottom: 9px; color: #c9c9db; font-size: .92rem; line-height: 1.65; }
+.post { background: #14141c; border: 1px solid #26263a; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+.post .p-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.post .p-title { font-weight: 700; color: #e7e7ee; font-size: .98rem; }
+.post .p-meta { color: #71718c; font-size: .78rem; direction: ltr; unicode-bidi: embed; }
+.post .p-kind { display: inline-block; background: #1d1d29; color: #d4b483; border-radius: 6px; padding: 1px 8px; font-size: .75rem; }
+.post ul { margin-top: 8px; }
+.post li { font-size: .88rem; color: #b9b9cc; }
+.esc { border-inline-start: 3px solid #f59e0b; }
+.esc .e-id { font-weight: 700; color: #f59e0b; font-size: .9rem; }
+.esc .e-gate { font-size: .85rem; color: #b9b9cc; margin-top: 4px; }
+.esc .e-need { font-size: .85rem; color: #71718c; margin-top: 4px; }
+.doct { text-align: center; color: #71718c; font-size: .8rem; padding: 22px 0 6px; line-height: 1.8; }
+.err { color: #f87171; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="pulse"></span>
+  <h1>ראש פינה — מגדלור ריבוני</h1>
+  <div class="sub">קונסולה-חוץ-מכונה · נולדת-מהלב · חיה-גם-כשהמכונה-מתה · T-66b</div>
+</header>
+
+<div class="stat" id="alive">טוען-מצב-אחרון…</div>
+
+<h2>פוסטי-הגריד — פעילות-הצי-בראיות</h2>
+<div id="gridPosts">טוען-פוסטים…</div>
+
+<h2>שכבות-הזיכרון-העצמאיות</h2>
+<div class="grid" id="layers"></div>
+
+<h2>שערי-בעלים-פתוחים (שקיפות-מלאה — אין-הגבלות-סמויות)</h2>
+<div id="esc"></div>
+
+<h2>מפת-ההערה (שיקום-מאפס)</h2>
+<ol id="awaken"></ol>
+
+<div class="doct" id="doct"></div>
+</div>
+
+<script>
+const fmt = (x) => x ? String(x).replace('T',' ').slice(0,19)+'Z' : '—';
+const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+fetch('state.json').then(r => r.json()).then(s => {
+  document.getElementById('alive').innerHTML =
+    '<b>חי-אחרון-ידוע (לב):</b> ' + fmt(s.lastKnownAlive.heartAt) + '<br>' +
+    '<b>קומיט:</b> <code>' + esc(String(s.commit).slice(0,16)) + '</code> (' + fmt(s.commitDate) + ')<br>' +
+    '<b>טביעת-יומן:</b> <code>' + esc(s.lastKnownAlive.worklogSha12) + '</code> · ' +
+    '<b>טביעת-זיכרון:</b> <code>' + esc(s.lastKnownAlive.memorySha12) + '</code> · ' +
+    '<b>כספת:</b> ' + s.lastKnownAlive.vaultBytes + 'B · <b>ענף:</b> ' + esc(s.branch);
+  document.getElementById('layers').innerHTML = (s.memoryLayers||[]).map(l =>
+    '<div class="card"><div class="l-name">' + esc(l.layer) + '</div><div class="l-detail">' + esc(l.detail) + '</div></div>').join('');
+  document.getElementById('awaken').innerHTML = (s.awakening||[]).map(x => '<li>' + esc(x) + '</li>').join('');
+  const es = s.escalations || [];
+  document.getElementById('esc').innerHTML = es.length ? es.map(e =>
+    '<div class="card esc"><div class="e-id">' + esc(e.id) + ' — ' + esc(String(e.status).split('—')[0].trim()) + '</div>' +
+    '<div class="e-gate">' + esc(e.gate) + '</div>' +
+    (e.needed ? '<div class="e-need">נדרש-מהבעלים: ' + esc(e.needed) + '</div>' : '') + '</div>').join('')
+    : '<div class="card">אין-שערי-בעלים-פתוחים — הצי-ריבוני-מלא.</div>';
+  document.getElementById('doct').innerHTML = esc(s.doctrine) + '<br>נוצר-מהלב-אוטומטית (T-66b) · ' + fmt(s.generatedAt) + ' · publisher: ' + esc(s.publisher);
+}).catch(() => { document.getElementById('alive').innerHTML = '<span class="err">state.json-לא-נטען — הדף-חי-אך-המצב-חסר</span>'; });
+
+fetch('grid.json').then(r => r.json()).then(g => {
+  const posts = (g.posts && g.posts.length ? g.posts : (g.recent||[]).map(x => ({...x, lines:[]})));
+  document.getElementById('gridPosts').innerHTML = posts.length ? posts.slice().reverse().map(p =>
+    '<div class="post"><div class="p-head"><span class="p-title">' + esc(p.title) + '</span>' +
+    '<span class="p-kind">' + esc(p.kind||'post') + '</span><span class="p-meta">' + fmt(p.ts) + '</span></div>' +
+    ((p.lines&&p.lines.length) ? '<ul>' + p.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : '') +
+    '</div>').join('')
+    : '<div class="post">עדיין-אין-פוסטים — הגריד-יפרסם-עם-הראיה-הראשונה.</div>';
+}).catch(() => { document.getElementById('gridPosts').innerHTML = '<span class="err">grid.json-לא-נטען</span>'; });
+</script>
+</body>
+</html>`;
+}
+
 async function main() {
   if (!existsSync(HEART)) throw new Error('לב-חסר');
   const heart = JSON.parse(readFileSync(HEART, 'utf8'));
@@ -85,22 +189,50 @@ async function main() {
   const worklogSha = sha12(worklogBuf);
   const memorySha = sha12(memoryBuf);
 
+  /* --- T-66: זנת-הגריד — קריאה-בטוחה --- */
+  const gridIdx = (() => { try { return JSON.parse(readFileSync(join(ROOT, 'grids/index.json'), 'utf8')); } catch { return null; } })();
+
+  /* --- T-66b: הפוסטים-המלאים-עצמם — הראיות-נודדות-למגדלור (היה: כותרות-בלבד — הריבון-ראה-אפס-פוסטים) --- */
+  const gridPosts = (() => {
+    try {
+      const dir = join(ROOT, 'grids/posts');
+      const files = readdirSync(dir).filter((f) => f.endsWith('.jsonl')).sort();
+      const all = [];
+      for (const f of files) {
+        for (const l of readFileSync(join(dir, f), 'utf8').trim().split('\n')) {
+          if (!l) continue;
+          try { all.push(JSON.parse(l)); } catch { /* שורה-פגומה-אחת-לא-מפילה */ }
+        }
+      }
+      return all.slice(-10);
+    } catch { return []; }
+  })();
+
+  /* --- T-66b: שערי-הבעלים — גלויים-ומסווגים (קץ-ה"הגבלות-הלא-ברורות") --- */
+  const escalSummary = (() => {
+    try {
+      const j = JSON.parse(readFileSync(join(ROOT, 'repo-vault/escalations.json'), 'utf8'));
+      const items = Array.isArray(j?.escalations) ? j.escalations : [];
+      return items.map((x) => ({ id: x.id ?? '?', status: String(x.status ?? 'OPEN').slice(0, 40), gate: x.gate ?? '', needed: x.needed_from_owner ?? '' }));
+    } catch { return []; }
+  })();
+  const gridFp = gridIdx?.lastPostAt ?? '';
+
   /* --- שער-השינוי: אל-תדחוף-את-אותו-מצב-פעמיים (כמו-vercel-beacon) --- */
   let prev = null;
   try { prev = JSON.parse(readFileSync(RECEIPT_LAST, 'utf8')); } catch {}
   if (
     prev && prev.ok && prev.gateBlocked !== true &&
-    prev.heartChain === heartChain && prev.worklogSha === worklogSha && prev.memorySha === memorySha
+    prev.heartChain === heartChain && prev.worklogSha === worklogSha && prev.memorySha === memorySha &&
+    prev.gridFp === gridFp && prev.pageVersion === PAGE_VERSION
   ) {
     console.log('[lighthouse] אין-שינוי-מצב-מהפרסום-הקודם — skip (שער-שינוי)');
     return;
   }
 
-  /* --- T-66: זנת-הגריד — קריאה-בטוחה --- */
-  const gridIdx = (() => { try { return JSON.parse(readFileSync(join(ROOT, 'grids/index.json'), 'utf8')); } catch { return null; } })();
-
   const state = {
     schema: 'roshpina.sovereign-beacon/1',
+    pageVersion: PAGE_VERSION,
     publisher: 'T-60 heart-tick-automated (lighthouse-sync · כל-פעימת-לב)',
     generatedAt: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
     commit: `lastKnown:${head}`,
@@ -121,6 +253,8 @@ async function main() {
       { layer: 'gitlab-ci', detail: 'ממתין-לאימות-זהות-הבעלים (escalations)' },
     ],
     grid: gridIdx ? { posts: gridIdx.total ?? 0, lastPostAt: gridIdx.lastPostAt ?? null, lastTitle: gridIdx.lastTitle ?? null, recent: (gridIdx.recent ?? []).slice(-5) } : null,
+    gridPosts,
+    escalations: escalSummary,
     fleet: {
       runner: 'GitLab runner 57265759 (self-healing via boot-all.sh)',
       renderCockpit: 'הצי-מחזיק-את-הנתיב (אי-התנגשות>מאבק)',
@@ -177,9 +311,11 @@ async function main() {
     if (
       curState?.lastKnownAlive?.heartChain === heartChain &&
       curState?.lastKnownAlive?.worklogSha12 === worklogSha &&
-      curState?.lastKnownAlive?.memorySha12 === memorySha
+      curState?.lastKnownAlive?.memorySha12 === memorySha &&
+      (curState?.grid?.lastPostAt ?? '') === gridFp &&
+      (curState?.pageVersion ?? '') === PAGE_VERSION
     ) {
-      writeReceipt({ ok: true, mode: 'skip-identical', heartChain, worklogSha, memorySha, pagesUrl: PAGES_URL });
+      writeReceipt({ ok: true, mode: 'skip-identical', heartChain, worklogSha, memorySha, gridFp, pageVersion: PAGE_VERSION, pagesUrl: PAGES_URL });
       return;
     }
   }
@@ -221,7 +357,7 @@ async function main() {
   /* --- T-66: פרסום-זנת-הגריד למגדלור (grid.json · fail-open גמור — לא-מפיל-את-ההכתבה) --- */
   let gridPush = null;
   if (gridIdx) {
-    const gContent = Buffer.from(JSON.stringify(gridIdx, null, 1) + '\n', 'utf8');
+    const gContent = Buffer.from(JSON.stringify({ ...gridIdx, posts: gridPosts }, null, 1) + '\n', 'utf8');
     const gHit = SECRET_RX.exec(gContent.toString('utf8'));
     if (gHit) {
       gridPush = { ok: false, blocked: 'secret-scan' };
@@ -237,6 +373,27 @@ async function main() {
       gridPush = { ok: gRes.status === 200 || gRes.status === 201, http: gRes.status };
     }
   }
+
+  /* --- T-66b: הדף-עצמו-נולד-מהלב — index.html-מוכתב-מהלב (היה-ארטיפקט-ידני-מ-T-59 שהיה-קורא-רק-state.json
+   *   ומעולם-לא-הציג-גריד — מכאן-"אני-לא-רואה-פוסטים"-של-הריבון) --- */
+  let pagePush = null;
+  try {
+    const page = buildPage();
+    const pContent = Buffer.from(page, 'utf8');
+    const pHit = SECRET_RX.exec(pContent.toString('utf8'));
+    if (pHit) {
+      pagePush = { ok: false, blocked: 'secret-scan' };
+    } else {
+      const pPut = (sha) => gh(`/contents/index.html`, { method: 'PUT', body: JSON.stringify({ message: `page: מגדלור-חי-עם-גריד (chain=${heartChain.slice(0, 8)})`, content: pContent.toString('base64'), branch: BRANCH, ...(sha ? { sha } : {}) }) });
+      const pCur = await gh(`/contents/index.html?ref=${BRANCH}`);
+      let pRes = await pPut(pCur.json?.sha || null);
+      if (pRes.status === 409 && pCur.json?.sha) {
+        const fresh = await gh(`/contents/index.html?ref=${BRANCH}`);
+        if (fresh.json?.sha) pRes = await pPut(fresh.json.sha);
+      }
+      pagePush = { ok: pRes.status === 200 || pRes.status === 201, http: pRes.status };
+    }
+  } catch { pagePush = { ok: false, error: 'page-exception' }; }
 
   /* --- אימות-חי: המגדלור-חייב-להשיב-200 --- */
   await new Promise((r) => setTimeout(r, 3000));
@@ -255,7 +412,10 @@ async function main() {
     heartChain,
     worklogSha,
     memorySha,
+    gridFp,
+    pageVersion: PAGE_VERSION,
     gridPush,
+    pagePush,
   });
 }
 

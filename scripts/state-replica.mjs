@@ -51,6 +51,11 @@ function receipt(push, ok, extra = {}) {
   const rec = { ts: nowIso(), mode: push ? 'push' : 'pull', ok, ...extra };
   writeFileSync(LAST, JSON.stringify(rec, null, 2));
   appendFileSync(LOG, JSON.stringify(rec) + '\n');
+  /* T-66b: תקרת-זנב — היה-צמיחה-בלתי-מוגבלת (451-שורות-נמדדו); שאר-הקבלות-מתוקרבות-כבר */
+  try {
+    const lines = readFileSync(LOG, 'utf8').trim().split('\n').filter(Boolean);
+    if (lines.length > 500) writeFileSync(LOG, lines.slice(-500).join('\n') + '\n');
+  } catch { /* שקט — fail-open */ }
   return rec;
 }
 

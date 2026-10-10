@@ -76,6 +76,20 @@ async function main() {
   if (!token) return fail('אין-vercel_token-בכספת');
   const tokenFp = createHash('sha256').update(token).digest('hex').slice(0, 8);
 
+  /* === T-66b: שער-כלכלה-ל-403-ידוע — שער-בעלים (escalation vercel-token-read-only) לא-יישרף-כל-פעימה ===
+   * עוגן = last403At (ה-403-האחרון-בפועל; קבלות-הדילוג-נושאות-אותו-קדימה-בלי-להזיז-אותו — אחרת-דילוג-נצחי=כיבוי-תמידי).
+   * טוקן-חדש-מכספת (טביעה-שונה) = פתרון-העלאה → ניסיון-מיידי-מתיר. FORCE-עוקף. מעל-6ש: ניסיון-אחד → 403 → צינון-מחדש.
+   * הפעלה-תמידית-של-הערוץ-בקצב-שנון · בזבוז-אפס בינתיים. */
+  try {
+    const prevG = JSON.parse(readFileSync(LAST, 'utf8'));
+    const anchor = prevG.last403At ?? prevG.ts;
+    if (!FORCE && prevG.tokenFp === tokenFp && prevG.gateBlocked && Date.now() - Date.parse(anchor) < 6 * 3_600_000) {
+      receipt(true, { skipped: 'owner-gate-403-cooldown', gateBlocked: true, tokenFp, last403At: anchor, nextTryAt: new Date(Date.parse(anchor) + 6 * 3_600_000).toISOString() });
+      console.log('[beacon] ⏭ 403-בעלים-ידוע — צינון-עד ' + new Date(Date.parse(anchor) + 6 * 3_600_000).toISOString().slice(11, 16) + 'Z (הערוץ-חי; בזבוז-אפס)');
+      return;
+    }
+  } catch { /* קבלה-ראשונה */ }
+
   /* === שער-השינוי: אין-טעם-להעלות-אותו-מצב-עם-אותו-טוקן ===
    * דילוג-גם-אחרי-הצלחה-וגם-אחרי-403-הרשאות (גשם-על-שער-נעול-אינו-פותח-אותו);
    * כשל-רשת-חוזר-תמיד (transient). טוקן-חדש-מכספת = טביעה-חדשה = ניסיון-מחדש. === */
@@ -225,7 +239,7 @@ async function main() {
   if (!resp.ok) {
     const body = await resp.text();
     const gateBlocked = resp.status === 403; // הרשאות-לא-ישתנו-בניסיון-חוזר — שער-הבעלים
-    return fail(`deploy-http-${resp.status}`, { gateBlocked, tokenFp, body: body.slice(0, 300) });
+    return fail(`deploy-http-${resp.status}`, { gateBlocked, tokenFp, last403At: nowIso(), body: body.slice(0, 300) });
   }
   const dep = await resp.json();
 
