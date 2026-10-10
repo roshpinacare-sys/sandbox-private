@@ -18,6 +18,9 @@
  * גנאלוגיה (T-54): שתי-דריסות-מתחלפות-בין-סוכנים — 4af1acf (19:10) הוסיף-את-שומרי-
  * T-47-ואיבד-את-רכבת-T-49; 32f2512 (19:21) החזיר-T-49-ואיבד-את-השומרים. הקובץ-הזה-
  * האיחוד-האמיתי-הראשון-שלשניהם — אפס-אובדן-תכונות.
+ * גנאלוגיה (T-55): השער-הפך-מודע-לחץ — הראיות (04:46:37→04:56:44, בדיוק-קולדאון)
+ * חשפו-הלו-מיחזור: עץ-3050-החם-נמדד-על-הסף-גם-ברגיעה → המשגיח-הרג-שרת-בריא-
+ * כל-10-דק'. מעתה-מיחזור-רק-בלחץ-אמיתי (RSS>סף וגם MemAvailable<סף); אחרת mem-gate-hold.
  *
  * יולד-על-ידי server.ts בעלייה, boot-all.sh, או-השומר-החיצוני — תמיד-detached+unref.
  * קבלות: receipts/supervisor.jsonl (מוגבל), pid: db/supervisor.pid
@@ -186,28 +189,40 @@ async function tick(): Promise<void> {
     log({ type: 'mirror-spawn', pid });
   }
 
-  /* --- T-54: שער-הזיכרון — מיחזור-מבוקר-לפני-הקרנל (שורש-נפילות-3050) ---
-   * next dev -p 3050 חורג-מסף-RSS (אב+ילדים) → SIGTERM-מדויק-להורה-בלבד (לא-pkill-גלובלי!);
-   * המשגיח-של-zip מחיה-אותו-מיידית, ו-console-revive-למטה-כגיבוי. קולדאון-10-דק'-לתת-להתחמם. */
+  /* --- T-54+T-55: שער-הזיכרון — מודע-לחץ (תיקון-הלו-המיחזור) ---
+   * T-54 מדד: מיחזור-בכל-קולדאון (04:46:37→04:56:44 = בדיוק-10-דק') — העץ-החם-
+   * של-3050 (~1.4GB) גבוה-מהסף-גם-כשהמכונה-רגועה (934MB-פנויים) → המשגיח-
+   * הרג-שרת-בריא-כל-10-דק' לנצח (הלו-מיחזור). הקרנל-מאיים-רק-כשהמכונה-דחוקה.
+   * הלקח (מאוטם-בכספת): למחזר-רק-כששני-התנאים-מתקיימים — RSS>סף **וגם**
+   * MemAvailable<סף-לחץ. גדול-בלי-לחץ → mem-gate-hold (קבלה-מוצערת, לא-הרג). */
   if (now - memGateLastRun > MEM_GATE_COOLDOWN_MS) {
+    let availKB = 0;
+    try {
+      availKB = Number((readFileSync('/proc/meminfo', 'utf8').match(/MemAvailable:\s+(\d+)/) ?? [])[1] ?? 0);
+    } catch { /* שקט */ }
+    const pressured = availKB > 0 && availKB < MEM_PRESSURE_AVAIL_MB * 1024;
     for (const pidStr of pidsByPattern('next dev -p 3050')) {
       const pid = Number(pidStr);
       if (!pid) continue;
       const rss = pidTreeRssKB(pid);
       if (rss > MEM_GATE_RSS_MB * 1024) {
+        if (!pressured) {
+          if (now - memLogLastRun > 600_000) {
+            memLogLastRun = now;
+            log({ type: 'mem-gate-hold', pid, rssKB: rss, availKB, thresholdKB: MEM_GATE_RSS_MB * 1024 });
+          }
+          continue; // גדול-אבל-יש-מקום: להשאיר-חי (תיקון-T-55)
+        }
         memGateLastRun = now;
-        try { process.kill(pid, 'SIGTERM'); log({ type: 'mem-gate-recycle', pid, rssKB: rss, thresholdKB: MEM_GATE_RSS_MB * 1024 }); } catch { /* שקט */ }
+        try { process.kill(pid, 'SIGTERM'); log({ type: 'mem-gate-recycle', pid, rssKB: rss, availKB, thresholdKB: MEM_GATE_RSS_MB * 1024 }); } catch { /* שקט */ }
         break; // מיחזור-אחד-לתיקון-לחץ-מספיק; הסריקה-תחזור-בקולדאון-הבא
       }
     }
     // ראיית-לחץ-זיכרון-כללית (תצפית-בלבד · מוצער-10-דק')
-    try {
-      const avail = Number((readFileSync('/proc/meminfo', 'utf8').match(/MemAvailable:\s+(\d+)/) ?? [])[1] ?? 0);
-      if (avail && avail < MEM_PRESSURE_AVAIL_MB * 1024 && now - memLogLastRun > 600_000) {
-        memLogLastRun = now;
-        log({ type: 'mem-pressure', availKB: avail });
-      }
-    } catch { /* שקט */ }
+    if (pressured && now - memLogLastRun > 600_000) {
+      memLogLastRun = now;
+      log({ type: 'mem-pressure', availKB });
+    }
   }
 
   /* --- HQ (HQ_PORT): מת → מיד-מוקם --- FIX(T-47): בדיקת-HTTP (לא-TCP-בלבד) --- */
