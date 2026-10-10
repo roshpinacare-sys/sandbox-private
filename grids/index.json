@@ -1,34 +1,28 @@
 {
  "schema": "sanbox.grid/1",
- "asof": "2026-10-10T17:10:42.624Z",
- "total": 8,
- "lastPostAt": "2026-10-10T17:10:42.624Z",
- "lastTitle": "1 קומיטים: HQ sync 2026-10-10T16:47:18.859Z",
- "lastSig": "[\"1 קומיטים: HQ sync 2026-10-10T16:47:18.859Z\",[\"· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 0eb6•) [stateReplica]\",\"· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 7809•) [stateReplica]\",\"· כשל-דחיפה-גיטלאב (?) [gitlabPush]\",\"· דחיפה-לענן: ? () [pushLog]\",\"· משימת-מקור-ביומן: T-66c-final [worklog]\",\"· commit: 7809c89 HQ sync 2026-10-10T16:47:18.859Z\"]]",
+ "asof": "2026-10-10T17:40:45.353Z",
+ "total": 9,
+ "lastPostAt": "2026-10-10T17:40:45.353Z",
+ "lastTitle": "1 קומיטים: HQ sync 2026-10-10T17:17:18.831Z",
+ "lastSig": "[\"1 קומיטים: HQ sync 2026-10-10T17:17:18.831Z\",[\"· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 7809•) [stateReplica]\",\"· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head b2ef•) [stateReplica]\",\"· דחיפה-לגיטלאב אומתה () [gitlabPush]\",\"· דחיפה-לענן: ? () [pushLog]\",\"· משימת-מקור-ביומן: T-66c-final [worklog]\",\"· commit: b2ef891 HQ sync 2026-10-10T17:17:18.831Z\"]]",
  "cursor": {
-  "commit": "7809c89f19a8d4479ec796f2cd3c228fc55ff1dd",
+  "commit": "b2ef8918c7522a0cd541eab2b4376dceac8bd1c7",
   "lineCounts": {
    "supervisor": 500,
    "consoleServer": 6,
-   "webRecon": 23,
+   "webRecon": 25,
    "lighthouse": 7,
-   "stateReplica": 462,
+   "stateReplica": 464,
    "vercelBeacon": 200,
-   "gitlabPush": 63,
-   "pushLog": 73,
+   "gitlabPush": 64,
+   "pushLog": 74,
    "sovereigntyDrill": 11,
    "vaultDrill": 5
   },
   "escalOpen": 0,
-  "heartChain": "138aa9efa404893f8ffaccd2"
+  "heartChain": "b659aa8c7256340ba6206639"
  },
  "recent": [
-  {
-   "id": "gmv2ewakf",
-   "ts": "2026-10-10T13:10:16.198Z",
-   "kind": "report",
-   "title": "5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
-  },
   {
    "id": "gmv2g8qr1",
    "ts": "2026-10-10T13:47:56.665Z",
@@ -73,6 +67,15 @@
    "ts": "2026-10-10T17:10:42.624Z",
    "kind": "report",
    "title": "1 קומיטים: HQ sync 2026-10-10T16:47:18.859Z",
+   "chain": {
+    "ok": false
+   }
+  },
+  {
+   "id": "gmv2ok528",
+   "ts": "2026-10-10T17:40:45.353Z",
+   "kind": "report",
+   "title": "1 קומיטים: HQ sync 2026-10-10T17:17:18.831Z",
    "chain": {
     "ok": false
    }
