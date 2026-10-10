@@ -16,10 +16,12 @@
       "opened": "2026-10-10T05:56Z",
       "task": "T-57",
       "gate": "CI-jobs=0 · pipeline-instant-failed · POST-pipeline→400 \"Identity verification is required in order to run CI jobs\"",
-      "proven": "yaml=valid (ci/lint) · default_branch=main · shared_runners=true · builds=enabled — הכל-תקין-חוץ-מ-אימות-זהות-הבעלים",
-      "needed_from_owner": "Head Corner: אימות-זהות-ב-GitLab (דשבורד → כרטיס-אשראי/טלפון) — מדיניות-אנטי-מכרות-לחשבונות-חדשים; אין-דרך-API",
+      "proven": "yaml=valid · default_branch=main · runners=true · POST-pipeline→400-אימות-זהות · **runner-עצמאי-57265759: נרשם+רץ+online-אך-polling-jobs→403 — השער-חוסם-גם-ראנרים-עצמאיים** (WAF-נשלל-כגורם: curl-JSON-עובר-באותו-IP)",
+      "needed_from_owner": "Head Corner: אימות-זהות-ב-GitLab-דשבורד (כרטיס/טלפון) — רגע-אחד-פותח: פס-לינה+Pages+runner-חי+צופה-CI",
       "unlocks": "GitLab-Pages-מגדלור (ה-config-כבר-במאגר) + CI-צופה-שלמות-חוץ-מכונה + runner-רישום-עתידי",
-      "status": "OPEN"
+      "status": "OPEN — תשתית-מלאה-עומדת; חוסם-יחיד=אימות-זהות-הבעלים",
+      "updated": "2026-10-10T06:26Z",
+      "workaround_live": "runner-מוקם-וממתין (boot-all-מחייה-עצמית-מהכספת) · token-בכספת · הכל-מוכן-להצתה-מיידית"
     },
     {
       "id": "github-pages-plan",

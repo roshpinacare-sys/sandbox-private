@@ -89,4 +89,28 @@ else
   fi
 fi
 
+
+# 6) רץ-הגריד-הריבוני-בגיטלאב (T-58): gitlab-runner — התקנה-עצמית-אם-חסר + הצתה-אם-מת
+if [ -x "$HOME/.sovereign/bin/gitlab-runner" ] && [ -f "$HOME/.sovereign/gitlab-runner/config.toml" ]; then
+  if pgrep -f 'gitlab-runner run' > /dev/null 2>&1; then
+    echo "✓ gitlab-runner חי"
+  else
+    nohup "$HOME/.sovereign/bin/gitlab-runner" run --config "$HOME/.sovereign/gitlab-runner/config.toml" >> "$HOME/.sovereign/gitlab-runner/runner.log" 2>&1 &
+    echo "✓ gitlab-runner הוקם (pid=$!)"
+  fi
+else
+  echo "… מתקין-gitlab-runner (הורדה+רישום-מהכספת)"
+  RUNNER_TOKEN="$(grep '^gitlab_runner_token=' "$ROOT/secrets/gitlab-runner.keys" 2>/dev/null | cut -d= -f2)"
+  if [ -n "$RUNNER_TOKEN" ]; then
+    mkdir -p "$HOME/.sovereign/bin" "$HOME/.sovereign/gitlab-runner"
+    curl -sL -o "$HOME/.sovereign/bin/gitlab-runner" "https://gitlab-runner-downloads.s3.amazonaws.com/v17.10.1/binaries/gitlab-runner-linux-amd64" \
+      && chmod +x "$HOME/.sovereign/bin/gitlab-runner" \
+      && "$HOME/.sovereign/bin/gitlab-runner" register --non-interactive --url "https://gitlab.com" --token "$RUNNER_TOKEN" --executor "shell" --description "roshpina-sovereign-runner" --config "$HOME/.sovereign/gitlab-runner/config.toml" \
+      && nohup "$HOME/.sovereign/bin/gitlab-runner" run --config "$HOME/.sovereign/gitlab-runner/config.toml" >> "$HOME/.sovereign/gitlab-runner/runner.log" 2>&1 &
+    echo "✓ gitlab-runner מותקן-ומוקם (רקע)"
+  else
+    echo "!! אין-gitlab_runner_token-בכספת — דילוג (fail-open)"
+  fi
+fi
+
 echo "== סוף boot-all — סטטוס תוך 10 שניות: curl 127.0.0.1:3010/api/status (מאומת) =="
