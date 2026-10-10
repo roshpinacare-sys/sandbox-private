@@ -10,6 +10,25 @@
       "needed_from_owner": "Head Corner: ליצור-טוקן-וורסל-ב-scope-מלא (Full Account Scope / deployments:create + projects:create) ולהחליף-ערך-vercel_token-ב-secrets/vercel.keys",
       "workaround_live": "המגדלור-חי-בינתיים-ב-GitLab-Pages (.gitlab-ci.yml + gen-pages-beacon.sh) — קונסולה-חוץ-מכונה-ללא-וורסל",
       "status": "OPEN — התשתית-מוכנה; scripts/vercel-beacon.mjs-יצית-עצמו-ברגע-שהטוקן-מלא-בכספת (שער-השינוי-כולל-טביעת-טוקן)"
+    },
+    {
+      "id": "gitlab-ci-identity-verification",
+      "opened": "2026-10-10T05:56Z",
+      "task": "T-57",
+      "gate": "CI-jobs=0 · pipeline-instant-failed · POST-pipeline→400 \"Identity verification is required in order to run CI jobs\"",
+      "proven": "yaml=valid (ci/lint) · default_branch=main · shared_runners=true · builds=enabled — הכל-תקין-חוץ-מ-אימות-זהות-הבעלים",
+      "needed_from_owner": "Head Corner: אימות-זהות-ב-GitLab (דשבורד → כרטיס-אשראי/טלפון) — מדיניות-אנטי-מכרות-לחשבונות-חדשים; אין-דרך-API",
+      "unlocks": "GitLab-Pages-מגדלור (ה-config-כבר-במאגר) + CI-צופה-שלמות-חוץ-מכונה + runner-רישום-עתידי",
+      "status": "OPEN"
+    },
+    {
+      "id": "github-pages-plan",
+      "opened": "2026-10-10T05:58Z",
+      "task": "T-57",
+      "gate": "POST /repos/.../pages → 422 \"Your current plan does not support GitHub Pages for this repository\"",
+      "needed_from_owner": "Head Corner בוחר: (א) פתיחת-sanbox-לציבור (התוכן-ממוסך-אך-זו-החלטת-בעלים) (ב) שדרוג-חשבון (ג) וורסל-טוקן-מלא (ד) אימות-זהות-GitLab — מספיק-אחד",
+      "unlocks": "מגדלור-חי-מיד-ב-github.io (public/ כבר-מקומט-ב-main)",
+      "status": "OPEN"
     }
   ]
 }

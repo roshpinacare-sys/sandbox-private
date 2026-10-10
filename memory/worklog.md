@@ -5233,3 +5233,20 @@ Stage Summary:
 - נותרו-מפינת-הראש: Render-מפקח-24/7 (דורש-חיבור-OAuth-בדשבורד — owner-gate) · GitLab-CI-runner-רשום (create_runner-ביד) · ורסל-אחרי-טוקן-מלא.
 
 
+
+
+---
+Task ID: 57-gates
+Agent: agent-9 (ריבון-השערים: אבחון-מדויק-של-כל-שערי-הבעלים)
+Task: המשך-T-57 — הצתת-המגדלור: דחיפה → CI → Pages, עד-השער-האחרון-שנתגלה.
+
+Work Log:
+- **הדחיפה-הייתה-ההגנה-בפועל:** נתגלה-**HEAD-נתוק** (ירושת-ה-rebase-המופסק) — main-היה-מצביע-על-היתום-7c318f0; ה-HQ-syncs-התקומטו-על-הראש-הנתוק (93ba4e3→510aadc→T-57-c7e0e43). ניתוח: checkout -B main-על-השרשרת (שכללה-את-origin) → ניקוי-rebase-שריד (rebase --quit) → push-hq.sh-התמודד-עם-התנגשות-rebase-עם--X-theirs-ממילא → **c484a71-ב-GitHub** → מראת-GitLab-ידנית → **c484a71-ב-GitLab** (f727721..c484a71 · errs=0).
+- **ה-CI-נכשל-מיידית-jobs=0 — אבחון-אפס-אמון-של-שלושה-שלבים:** (1) יאמל-שלם-בגיטלאב-עצמו (raw=200-זהה-למקומי) (2) ci/lint → valid:true-errors:0 (3) פרויקט: default_branch=main · runners=true · builds=enabled. השער-האמיתי: **POST-pipeline→400 "Identity verification is required in order to run CI jobs"** — מדיניות-אנטי-מכרות-של-גיטלאב-לחשבונות-חדשים. אין-מעקף-API — owner-gate.
+- **GitHub-Pages-נבדק-אפס-אמון:** POST-pages→**422 "Your current plan does not support GitHub Pages for this repository"** — תוכנית-חינם+ריפו-פרטי. owner-gate.
+- **שלושת-שערי-הבעלים-רשומים-עם-ראיות-מלאות-ב-repo-vault/escalations.json:** vercel-token-read-only · gitlab-ci-identity-verification · github-pages-plan. **כל-אחד-פותח-את-המגדלור-מיד** (התשתית-מקומטת-ומוכנה: .gitlab-ci.yml+public/+vercel-beacon.mjs).
+- לב-ומפקח-ושכפול-המשיכו-לפעום-לאורך-כל-התהליך (state-replica-05:46+ · fail-open-הוכיח-את-עצמו-שוב).
+
+Stage Summary:
+- **ה-T-57-הניב-תשתית-מלאה-שנבדקה-עד-השער:** מגדלור-בשלושה-נתיבים-מוכנים-להצתה-ברגע-שהבעלים-פותח-שער-אחד. בינתיים-הזיכרון-החוץ-מכונה-חי-בפוסטגרס (T-56) והקוד-והמפה-חיים-בשני-ענני-הגיט.
+- **לקח-ה-T:** נתוק-HEAD-הוא-פצצה-מתקתת — ה-HQ-ממשיך-לקומט-על-הראש-הנתוק-בלי-לדעת; **כל-פעולה-מורכבת-דורשת-בדיקת-branch-לפני-ואחרי**.
