@@ -30,7 +30,13 @@ const TOPICS = [
   'מצב רשת החשמל בישראל',
   'GitHub Actions status incidents',
   'autonomous agent resilience patterns',
-];
+  'חדשות טכנולוגיה ובינה מלאכותית היום',
+  'מדדי מקדמים כלכליים ישראל היום',
+  'Bun JavaScript runtime release notes',
+  'Next.js latest release changelog',
+  'open source self-healing infrastructure',
+  'מזג אוויר ישראל סופה עדכון',
+]; // T-66c: 4→10 נושאים — עומק-סיור-גבוה-באותה-כלכלת-API (רוטציה-יומית-ארוכה)
 const topic = TOPICS[Math.floor(Date.now() / 86_400_000) % TOPICS.length];
 
 function receipt(obj) {

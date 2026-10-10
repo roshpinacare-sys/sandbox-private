@@ -71,6 +71,30 @@ const server = http.createServer((req, res) => {
       res.end(body);
       return;
     }
+    /* --- T-66c: עורקות-חיים — state.json+grid.json+הדף-החי, מוכתבים-מהלב (sanbox/public) ---
+     * הפטולוגיה-שנמדדה: Console/-הסטטי-לא-החזיק-state.json (404-חי) והדף-המקומי-היה-ארטיפקט-ישן.
+     * מעתה: הקונסולה-מגישה-את-אותם-קבצים-שהלב-מכתיב-למגדלור — מקור-אמת-יחיד, אפס-עותקים-סטטיים. */
+    const liveArteries: Record<string, string> = {
+      '/state.json': path.join(ROOT, 'public', 'state.json'),
+      '/grid.json': path.join(ROOT, 'public', 'grid.json'),
+      '/lighthouse': path.join(ROOT, 'public', 'index.html'),
+    };
+    if (liveArteries[urlPath]) {
+      const f = liveArteries[urlPath];
+      if (existsSync(f)) {
+        const ext = path.extname(f).toLowerCase();
+        res.writeHead(200, {
+          'content-type': MIME[ext] ?? 'application/octet-stream',
+          'cache-control': 'no-store',
+          'x-sovereign-console': 'mother/2 (T-66c live-artery)',
+        });
+        res.end(readFileSync(f));
+      } else {
+        res.writeHead(503, { 'content-type': 'text/plain; charset=utf-8' });
+        res.end('503 — עורק-טרם-נולד (הלב-יכתוב-בפעימה-הבאה)');
+      }
+      return;
+    }
     const file = safeFile(urlPath === '/' ? 'index.html' : urlPath) ?? safeFile('404.html');
     if (!file) {
       res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });

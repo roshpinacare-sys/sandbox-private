@@ -1,0 +1,193 @@
+{
+ "schema": "sanbox.grid/1",
+ "asof": "2026-10-10T15:31:35.481Z",
+ "total": 5,
+ "lastPostAt": "2026-10-10T15:31:35.481Z",
+ "lastTitle": "1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+ "cursor": {
+  "commit": "cf57fe17472cce2f51cfb006bde48b712450c476",
+  "lineCounts": {
+   "supervisor": 500,
+   "consoleServer": 4,
+   "webRecon": 17,
+   "lighthouse": 7,
+   "stateReplica": 455,
+   "vercelBeacon": 200,
+   "gitlabPush": 55,
+   "pushLog": 62,
+   "sovereigntyDrill": 11,
+   "vaultDrill": 2
+  },
+  "escalOpen": null,
+  "heartChain": "e0b37d0577f78a95d3a530af"
+ },
+ "recent": [
+  {
+   "id": "gmv2ewakf",
+   "ts": "2026-10-10T13:10:16.198Z",
+   "kind": "report",
+   "title": "5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  },
+  {
+   "id": "gmv2g8qr1",
+   "ts": "2026-10-10T13:47:56.665Z",
+   "kind": "report",
+   "title": "7 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  },
+  {
+   "id": "gmv2hbdnc",
+   "ts": "2026-10-10T14:17:59.262Z",
+   "kind": "report",
+   "title": "2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  },
+  {
+   "id": "gmv2ie0jm",
+   "ts": "2026-10-10T14:48:01.864Z",
+   "kind": "report",
+   "title": "2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  },
+  {
+   "id": "gmv2jy171",
+   "ts": "2026-10-10T15:31:35.481Z",
+   "kind": "report",
+   "title": "1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם"
+  }
+ ],
+ "posts": [
+  {
+   "id": "gmv2ewakf",
+   "ts": "2026-10-10T13:10:16.198Z",
+   "kind": "report",
+   "title": "5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· commit: 4f97872 HQ sync 2026-10-10T13:05:28.912Z",
+    "· commit: 519e89b HQ sync 2026-10-10T13:04:38.820Z",
+    "· commit: 958c8fd HQ sync 2026-10-10T12:47:43.649Z",
+    "· commit: fb8ec1e T-64: drill-תיקון-נתיבי-artifact + census-vaultSelfCheck (פענוח-GCM-חי מול הסיסמה — נעול-ב-ok) — מחלקת-החזרת-הבלוב-הישן-נתפסת-מעתה",
+    "· commit: e725951 T-64: מעטפת-כספת-טרייה (5·2344B·d053b304) — הישנה-הוחזרה-בשקט-על-ידי-קדנס-pull -X theirs; restore-מאומת-חי"
+   ],
+   "evidence": {
+    "commits": 5,
+    "newReceiptLines": 1,
+    "escalOpen": null,
+    "heartChain": "86017c410102",
+    "head": "4f9787221ec8"
+   }
+  },
+  {
+   "id": "gmv2g8qr1",
+   "ts": "2026-10-10T13:47:56.665Z",
+   "kind": "report",
+   "title": "7 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 3693•) [stateReplica]",
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 8082•) [stateReplica]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· commit: 8082cbb HQ sync 2026-10-10T13:18:50.121Z",
+    "· commit: d283e39 T-66: תיקון-סדר-בlighthouse-sync (בלוק-הגריד-אחרי-הגדרת-gh — נתפס-בריצה-חיה) · grid.json-201+state.json-חי-עם-grid מאומת-מהאינטרנט · grids/-runtime-מתחדש",
+    "· commit: 3693daf HQ sync 2026-10-10T13:14:09.724Z",
+    "· commit: 1c3795a HQ sync 2026-10-10T13:13:19.621Z",
+    "· commit: d619884 HQ sync 2026-10-10T13:03:31.125Z",
+    "· ועוד 2 קומיטים (זנב-מלא-בגיט)"
+   ],
+   "evidence": {
+    "commits": 7,
+    "newReceiptLines": 12,
+    "escalOpen": null,
+    "heartChain": "4bfbc6e022e0",
+    "head": "8082cbb16d75"
+   }
+  },
+  {
+   "id": "gmv2hbdnc",
+   "ts": "2026-10-10T14:17:59.262Z",
+   "kind": "report",
+   "title": "2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 8082•) [stateReplica]",
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 92ef•) [stateReplica]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· commit: df20ddc HQ sync 2026-10-10T14:13:14.914Z",
+    "· commit: 92effe2 HQ sync 2026-10-10T13:48:05.082Z"
+   ],
+   "evidence": {
+    "commits": 2,
+    "newReceiptLines": 10,
+    "escalOpen": null,
+    "heartChain": "ee3335a97d5a",
+    "head": "df20ddc37a4c"
+   }
+  },
+  {
+   "id": "gmv2ie0jm",
+   "ts": "2026-10-10T14:48:01.864Z",
+   "kind": "report",
+   "title": "2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head df20•) [stateReplica]",
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 378f•) [stateReplica]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· commit: 378f8fe HQ sync 2026-10-10T14:25:36.021Z",
+    "· commit: cb57ad6 T-66b: סקירה-חריפה-ועמוקה — שחרור-חסימות-שקריות (HQ-ריפוי-עצמי-בauth · גריד-נראה-בדף-החי) · דף-נולד-מהלב (buildPage · grid.json-פוסטים-מלאים · gridFp+pageVersion-בשער) · צינון-vercel-מעוגן (last403At) · תקרת-זנב-state-replica"
+   ],
+   "evidence": {
+    "commits": 2,
+    "newReceiptLines": 9,
+    "escalOpen": null,
+    "heartChain": "c9efca5d89a6",
+    "head": "378f8fe11670"
+   }
+  },
+  {
+   "id": "gmv2jeslv",
+   "ts": "2026-10-10T15:16:37.853Z",
+   "kind": "report",
+   "title": "4 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· commit: 181a1f8 T-66: פורט-HQ-הקנון=3011 (boot-all·supervisor·server) — הדקס-הבעלים-היחיד-על-3010; מלחמת-הפורטים-נגמרת-מבנית",
+    "· commit: 6e55533 HQ sync 2026-10-10T14:57:56.387Z",
+    "· commit: 63b8b44 T-66: שער-הכספת-הקנוני (vault-guard-מול-הסיסמה-הבלועה — אסור-לדחוף-בלוב-שלא-נפתח) + פותר-rebase-ממוקד-במקום-X-theirs-עיוור (ריצה=מקומי·קוד/כספת=רחוק) — נגד-מלחמת-הבלובים-בין-המכונות (13:14-מעטפת-T-62-הוחזרה) + כספת-קנונית-מחדש (2-סודות·492B·37d4985c) + pat.env-משוחזר-מהארנק",
+    "· commit: cf57fe1 HQ sync 2026-10-10T14:54:51.029Z"
+   ],
+   "evidence": {
+    "commits": 4,
+    "newReceiptLines": 1,
+    "escalOpen": null,
+    "heartChain": "bf7e461968e9",
+    "head": "181a1f83b2fd"
+   }
+  },
+  {
+   "id": "gmv2jy171",
+   "ts": "2026-10-10T15:31:35.481Z",
+   "kind": "report",
+   "title": "1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם",
+   "lines": [
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head 378f•) [stateReplica]",
+    "· זיכרון-חוץ-מכונה נחתם בפוסטגרס (head cf57•) [stateReplica]",
+    "· דחיפה-לגיטלאב אומתה () [gitlabPush]",
+    "· דחיפה-לענן: ? () [pushLog]",
+    "· commit: cf57fe1 HQ sync 2026-10-10T14:54:51.029Z"
+   ],
+   "evidence": {
+    "commits": 1,
+    "newReceiptLines": 7,
+    "escalOpen": null,
+    "heartChain": "e0b37d0577f7",
+    "head": "cf57fe17472c"
+   }
+  }
+ ]
+}

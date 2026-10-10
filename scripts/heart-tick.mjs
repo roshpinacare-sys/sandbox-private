@@ -126,6 +126,20 @@ try {
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-המגדלור */ }
 
+/* === T-66c: הגריד-הריבוני (grids/run.mjs) — רץ-סנכרונית-לפני-המגדלור (תיקון-תחרות) ===
+ * הפטולוגיה-שנמדדה-חי (T-66c): lighthouse-sync-נולד-לפני-הגריד-וקרא-את-זנת-הגריד
+ * לפני-שהגריד-כתב → המגדלור-הציבורי-היה-תמיד-פעימה-אחת-מיושן (grid.json אחורה-ב-~30 דק').
+ * מעתה: הגריד-רץ-סנכרונית (כל-הכתיבה-דיסק-בלבד · timeout-90s · fail-open) ורק-אחר-כך
+ * המגדלור-נולד-וקורא-זנת-טרייה. הרץ-עצמו-מחליט-קצב (מינימום-25 דק' בין-פוסטים). */
+try {
+  if (typeof CI === 'undefined' || !CI) {
+    const { execFileSync } = await import('node:child_process');
+    execFileSync(process.execPath, [path.join(HERE, '..', 'grids', 'run.mjs')], {
+      cwd: ROOT, timeout: 90_000, stdio: 'ignore',
+    });
+  }
+} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הגריד */ }
+
 /* === T-60: הכתבת-המגדלור-הציבורי — עם-כל-פעימה, state.json נודד אל
  * roshpinacare-sys/sovereign-lighthouse (GitHub-Pages · שרד-מחיקת-סנדבוקס בפועל)
  * (שער-שינוי+סריקת-סודות-בפנים · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
@@ -153,17 +167,3 @@ try {
   }
 } catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הסייר */ }
 
-/* === T-66: הגריד-הריבוני (grids/run.mjs) — הקול-של-הצי · פעילות-גלויה-מראיות ===
- * הריבון-ביקש-לראות-פוסטים-והתקדמות: מעולם-לא-התקיים-גריד (רק-שורה-במפקד-הצי).
- * כל-פעימה-מזמינה-פוסט-גריד-אחד; הרץ-עצמו מחליט-קצב (מינימום-25 דק' בין-פוסטים ·
- * keep-alive-כל-6 שעות · אפס-ראיות=skip-שקט-עם-nextRunAt). פוסטים-עברית-מראיות-מהדיסק
- * (קומיטים+קבלות+escalations) · סריקת-סודות-לפני-כתיבה · קבלות: grids/receipts.jsonl === */
-try {
-  const { spawn } = await import('node:child_process');
-  if (typeof CI === 'undefined' || !CI) {
-    const child = spawn(process.execPath, [path.join(HERE, '..', 'grids', 'run.mjs')], {
-      cwd: ROOT, detached: true, stdio: 'ignore',
-    });
-    child.unref();
-  }
-} catch { /* fail-open — הלב-אף-פעם-לא-נופל-בגלל-הגריד */ }
