@@ -37,7 +37,7 @@ const RECEIPTS_DIR = path.join(ROOT, 'receipts');
 const SCAN_LAST_FILE = path.join(RECEIPTS_DIR, 'scan-last.json');
 const AUTH_LOG_FILE = path.join(RECEIPTS_DIR, 'auth-log.jsonl');
 
-const PORT = Number(process.env.HQ_PORT ?? 3010); // T-46: ניתן-לדריסה (HQ_PORT) — בסביבה-מקומית-שבה-3010-תפוס, HQ-עולה-על-3011-בלי-לגעת-בברירת-המחדל
+const PORT = Number(process.env.HQ_PORT ?? 3011); // T-66: קנון-HQ=3011 (לשעבר-T-46) —: ניתן-לדריסה (HQ_PORT) — בסביבה-מקומית-שבה-3010-תפוס, HQ-עולה-על-3011-בלי-לגעת-בברירת-המחדל
 const SESSION_COOKIE = 'hq_session';
 const SESSION_MAX_AGE = 604800; // 7 ימים בשניות (תואם ל-TTL ב-core/auth)
 const OPS_SPEC = './core/ops'; // הוק לסוכן 42-c — נטען דינמית, רך-כשל

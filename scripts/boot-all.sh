@@ -69,7 +69,7 @@ else
 fi
 
 # 4) HQ מיד (בלי-לחכות-לטיק-הראשון-של-המפקח)
-HQ_PORT="${HQ_PORT:-3010}"
+HQ_PORT="${HQ_PORT:-3011}"
 if curl -s -m 2 -o /dev/null "http://127.0.0.1:${HQ_PORT}/"; then
   echo "✓ HQ (${HQ_PORT}) חי"
 else

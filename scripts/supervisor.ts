@@ -45,7 +45,7 @@ const EVENTS = path.join(RECEIPTS, 'supervisor.jsonl');
 const PIDFILE = path.join(DB, 'supervisor.pid');
 
 const TICK_MS = 10_000;
-const HQ_PORT = Number(process.env.HQ_PORT ?? 3010);
+const HQ_PORT = Number(process.env.HQ_PORT ?? 3011); // T-66: HQ-קנוני-על-3011 (הדקס-בעלים-על-3010 — מלחמת-הפורטים-נגמרה)
 const DEV_PORT = 3000;
 const CONSOLE_PORT = 3050; // T-47: קונסולת-האם (חוזה-הדלת-הקדמית)
 // T-64: עץ-zip נמחק מהדיסק ואינו בשום היסטוריית-מראה — קונסולת-האם עתה מהריפו-הריבוני (scripts/console-server.ts)
