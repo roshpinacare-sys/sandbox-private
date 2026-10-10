@@ -55,7 +55,8 @@ try {
     const last = lines[lines.length - 1];
     const j = JSON.parse(last);
     if (j?.ts && Date.now() - new Date(j.ts).getTime() < MIN_INTERVAL_MS) {
-      receipt({ op: 'recon', ok: true, skipped: 'too-soon', lastTs: j.ts, topic });
+      // T-66: nextRunAt-בקבלה — כך-הקבלה-מתעדת-בעצמה-מתי-הסיור-הבא (לא-נראה-כתקלה)
+      receipt({ op: 'recon', ok: true, skipped: 'too-soon', lastTs: j.ts, nextRunAt: new Date(new Date(j.ts).getTime() + MIN_INTERVAL_MS).toISOString(), topic });
       process.exit(0);
     }
   }

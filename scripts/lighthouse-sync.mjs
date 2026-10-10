@@ -96,6 +96,9 @@ async function main() {
     return;
   }
 
+  /* --- T-66: זנת-הגריד — קריאה-בטוחה --- */
+  const gridIdx = (() => { try { return JSON.parse(readFileSync(join(ROOT, 'grids/index.json'), 'utf8')); } catch { return null; } })();
+
   const state = {
     schema: 'roshpina.sovereign-beacon/1',
     publisher: 'T-60 heart-tick-automated (lighthouse-sync · כל-פעימת-לב)',
@@ -117,6 +120,7 @@ async function main() {
       { layer: 'lighthouse', detail: 'הכתובת-הזו — מוכתבת-מהלב-אוטומטית (T-60)' },
       { layer: 'gitlab-ci', detail: 'ממתין-לאימות-זהות-הבעלים (escalations)' },
     ],
+    grid: gridIdx ? { posts: gridIdx.total ?? 0, lastPostAt: gridIdx.lastPostAt ?? null, lastTitle: gridIdx.lastTitle ?? null, recent: (gridIdx.recent ?? []).slice(-5) } : null,
     fleet: {
       runner: 'GitLab runner 57265759 (self-healing via boot-all.sh)',
       renderCockpit: 'הצי-מחזיק-את-הנתיב (אי-התנגשות>מאבק)',
@@ -125,6 +129,7 @@ async function main() {
       motherConsole: 'T-64: קונסולת-האם 3050 נולדה-מחדש-מהריפו (scripts/console-server.ts) · משגיח-מחוסן (spawn-אסינכרוני+execPath)',
       webRecon: 'T-64: סייר-ריבוני-תקופתי (כל-~שעה): חיפוש-מדורג + ביקורת-חוץ-עצמית-של-המגדלור-מהאינטרנט',
       sovereigntyDrill: 'T-65: משפט-הריבונות (scripts/sovereignty-drill.sh): עננים-מרחוק+clone-טרי+שחזור-כספת+ביט-מול-חיים',
+      grid: gridIdx ? `T-66: הגריד-הריבוני-חי (grids/run.mjs · spawn-5-מהלב) — פוסטים-מראיות: ${gridIdx.total ?? 0} · אחרון: ${gridIdx.lastTitle ?? ''}` : 'T-66: מותקן-ממתין-לפעימה-הראשונה',
       developmentPaths: 'מ-Head-Corner: browser-use/Skyvern (דפדפן) · vLLM (אינפרנס-עצמאי) · LangSearch (401-ממתין-הפעלה)',
     },
     awakening: [
@@ -143,6 +148,30 @@ async function main() {
   /* --- סריקת-סודות-על-התוכן-היוצא (חוסם-הפרסום) --- */
   const hit = SECRET_RX.exec(contentStr);
   if (hit) throw new Error(`חסימת-פרסום: חשד-סוד-בתוכן (${maskSecret(hit[0])})`);
+
+  /* --- T-66: אפס-שקר-מקומי — public/state.json מתעדכן-מאותו-מצב-שנדחף ---
+   * (היה-נולד-מיושן-וזרע-תדמית-"אין-התקדמות" — הריבון-ראה-heartAt-ישן) --- */
+  try { writeFileSync(join(ROOT, 'public/state.json'), contentStr); } catch { /* fail-open */ }
+
+  /* --- T-66: פרסום-זנת-הגריד למגדלור (grid.json · fail-open גמור — לא-מפיל-את-ההכתבה) --- */
+  let gridPush = null;
+  if (gridIdx) {
+    const gContent = Buffer.from(JSON.stringify(gridIdx, null, 1) + '\n', 'utf8');
+    const gHit = SECRET_RX.exec(gContent.toString('utf8'));
+    if (gHit) {
+      gridPush = { ok: false, blocked: 'secret-scan' };
+    } else {
+      const gMsg = `grid: פוסטים=${gridIdx.total ?? 0}`;
+      const gPut = (sha) => gh(`/contents/grid.json`, { method: 'PUT', body: JSON.stringify({ message: gMsg, content: gContent.toString('base64'), branch: BRANCH, ...(sha ? { sha } : {}) }) });
+      const gCur = await gh(`/contents/grid.json?ref=${BRANCH}`);
+      let gRes = await gPut(gCur.json?.sha || null);
+      if (gRes.status === 409 && gCur.json?.sha) {
+        const fresh = await gh(`/contents/grid.json?ref=${BRANCH}`);
+        if (fresh.json?.sha) gRes = await gPut(fresh.json.sha);
+      }
+      gridPush = { ok: gRes.status === 200 || gRes.status === 201, http: gRes.status };
+    }
+  }
 
   const pat = readPat();
   const auth = { Authorization: `token ${pat}`, Accept: 'application/vnd.github+json' };
@@ -226,6 +255,7 @@ async function main() {
     heartChain,
     worklogSha,
     memorySha,
+    gridPush,
   });
 }
 

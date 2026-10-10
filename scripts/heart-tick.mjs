@@ -103,8 +103,7 @@ signal('ticked=1\n');
 console.log(`[heart] ✔ ${at} · head=${head} · prev=${prev} · chain=${chain} · mode=${tick.mode}`);
 
 /* === T-56: השכפול-הריבוני — עם-כל-פעימה, תמצית-החיים-נחתמת-גם-בענן-השני
- * (Supabase-פוסטגרס-חוץ-מכונה · fail-open · רק-מקומי — ב-CI-אין-כספת)
- * T-66: process.execPath (חיסון-PATH — שיעור-T-64: אל-תניח-ש-'bun' נמצא) === */
+ * (Supabase-פוסטגרס-חוץ-מכונה · fail-open · רק-מקומי — ב-CI-אין-כספת) === */
 try {
   const { spawn } = await import('node:child_process');
   if (typeof CI === 'undefined' || !CI) {

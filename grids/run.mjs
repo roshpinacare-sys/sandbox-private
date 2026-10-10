@@ -5,6 +5,8 @@
  * הבעיה-שנתפסה-בחיים (T-66 · דברי-הריבון): "אני-לא-רואה-פוסטים, לא-רואה-התקדמות".
  * האבחון-אימת: grids/run.mjs היה-רק-שורה-במפקד-הצי (fleet-census) — מעולם-לא-התקיים
  * (גם-לא-בהיסטוריית-הגיט). הצי-עבד-אך-לא-דיבר.
+ * (שוחזר-פעמיים: פעם-ראשונה-נמחק-על-ידי-pull--rebase--autostash--X-theirs-של-תאום —
+ *  תקרית-T-66a-המתועדת-ביומן. אפס-בכי — שחזור-מההקשר-ולמעלה-מזה.)
  *
  * הפתרון: הגריד-הוא-קול-הצי. עם-כל-הזמנה-מהלב (spawn-חמישי · heart-tick), הרץ:
  *  1. אוסף-ראיות-חדשות-מאז-הפוסט-הקודם: קומיטים · קבלות-הצי (revive/כשלים/דחיפות/
@@ -86,11 +88,10 @@ const SOURCES = [
   { key: 'vaultDrill', path: join(ROOT, 'receipts/vault-drill.jsonl'), kinds: [] },
 ];
 
-/* מפענח-אירוע-לשורת-פוסט (עברית · אפס-סודות · טוקנים-ממוסכים-אינם-נכנסים-כלל) */
+/* מפענח-אירוע-לשורת-פוסט (עברית · אפס-סודות · טוקנים-לא-נכנסים-כלל) */
 function summarize(sourceKey, line) {
   let e = null;
   try { e = JSON.parse(line); } catch { return null; }
-  const t = e.ts || '';
   const type = String(e.type || e.op || e.mode || '');
   switch (sourceKey) {
     case 'supervisor':
@@ -151,7 +152,6 @@ function main() {
   /* --- איסוף --- */
   const cursor = idx.cursor || {};
   const commits = gitCommits(cursor.commit);
-  const evidence = {};
   const lines = [];
   let totalNewEvents = 0;
 
@@ -165,7 +165,6 @@ function main() {
       const s = summarize(src.key, l);
       if (s) notable.push(s);
     }
-    evidence[src.key] = { newLines: fresh.length, notable: notable.length };
     totalNewEvents += fresh.length;
     for (const s of notable.slice(0, 4)) lines.push(`· ${s} [${src.key}]`);
   }
