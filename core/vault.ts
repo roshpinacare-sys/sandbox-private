@@ -16,12 +16,16 @@ const SECRETS_DIR = path.resolve(import.meta.dir, '..', 'secrets');
 export type VaultItem = { name: string; kind: string; masked: string };
 export type VaultText = { name: string; text: string };
 
-/** סיווג-לפי-שם-קובץ (המיפוי-המוסכם של חוזה-42-0). */
+/** סיווג-לפי-שם-קובץ (המיפוי-המוסכם של חוזה-42-0; T-55 הרחיב: Head-Corner). */
 const KIND_BY_NAME: Record<string, string> = {
   'pat.env': 'github-token',
   'hq.password': 'password',
   'openrouter.keys': 'api-keys',
   'cloudflare.txt': 'cloudflare',
+  'gitlab.keys': 'gitlab-token',
+  'supabase.keys': 'supabase-token',
+  'vercel.keys': 'vercel-token',
+  'render.keys': 'render-token',
 };
 
 /**
@@ -44,6 +48,11 @@ function classify(name: string, text: string): string {
   if (n.includes('cloudflare')) return 'cloudflare';
   if (/(ghp_|gho_|ghs_|ghr_|github_pat)/.test(text)) return 'github-token';
   if (text.includes('sk-or-')) return 'api-keys';
+  // T-55: היוריסטיקות-של-מפתחות-Head-Corner (זיהוי-לפי-תחילית — בלי-לחשוף-דבר)
+  if (text.includes('glpat-')) return 'gitlab-token';
+  if (text.includes('sbp_')) return 'supabase-token';
+  if (text.includes('vck_')) return 'vercel-token';
+  if (text.includes('rnd_')) return 'render-token';
   return 'other';
 }
 

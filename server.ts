@@ -474,6 +474,22 @@ if (import.meta.main) {
       const ops = await import('./core/ops.ts');
       const r = (await ops.autoPush(false)) as Record<string, unknown>;
       console.log(`[server] דחיפה-עצמית: ok=${String(r.ok)} pushed=${String(r.pushed)} ${r.reason ? `(${String(r.reason)})` : ''}`);
+      // T-55 — מראת-GitLab (החיים-השניים): אחרי-כל-דחיפת-אם-מוצלחת, מצית-מראה-GitLab
+      // ברקע-נפרד (fail-open: כשל-GitLab-לעולם-לא-משפיע-על-הדחיפה-ל-GitHub-ולא-על-הלופ).
+      if (r.ok) {
+        try {
+          const { spawn } = await import('node:child_process');
+          const gl = spawn('bash', ['scripts/push-gitlab.sh'], {
+            cwd: ROOT,
+            detached: true,
+            stdio: 'ignore',
+          });
+          gl.unref();
+          console.log('[server] מראת-GitLab-הוצתה-ברקע (החיים-השניים, T-55).');
+        } catch (glErr) {
+          console.error('[server] הצתת-מראת-GitLab-נכשלה (fail-open):', glErr instanceof Error ? glErr.message : glErr);
+        }
+      }
     } catch (err) {
       console.error('[server] דחיפה-עצמית-נכשלה:', err instanceof Error ? err.message : err);
     } finally {
