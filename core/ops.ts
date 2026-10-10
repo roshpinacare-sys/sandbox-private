@@ -661,6 +661,23 @@ export async function pushToGitHub(): Promise<PushResult> {
   let commit: string | undefined;
   try {
     await git(['add', '-A']);
+    // T-66 · שער-הכספת-הקנוני (המקבילה-בpush-hq.sh): בלוב-שאינו-נפתח-בסיסמה-הבלועה
+    // לא-נכנס-לגיט — משוחרר-מהstaging (הself-heal-של-T-65-מרפא-את-המקומי-בעצמו).
+    try {
+      const stagedVault = await git(['diff', '--cached', '--name-only']);
+      if (stagedVault.split('\n').some((l) => l.trim() === 'vault/vault-backup.enc')) {
+        const guardRun = Bun.spawnSync(['bun', 'scripts/vault-guard.mjs', 'vault/vault-backup.enc'], {
+          cwd: '/home/z/my-project/sanbox', stdout: 'pipe', stderr: 'pipe',
+        });
+        if (guardRun.exitCode !== 0) {
+          await git(['restore', '--staged', '--worktree', '--', 'vault/vault-backup.enc']);
+          const receipt = base({ stage: 'vault-guard', commit, error: 'בלוב-לא-קנוני-הושמט-מהקומיט (fail-closed-לכספת)'});
+          appendPushReceipt(receipt, true);
+        }
+      }
+    } catch {
+      /* השער-אינו-חוסם-את-המשך-הזרימה-בשגיאה-פנימית — fail-closed-כפול-מטופל-למטה */
+    }
     const porcelain = await git(['status', '--porcelain']);
     if (porcelain.trim().length > 0) {
       const msg = `HQ sync ${new Date().toISOString()}`;
@@ -716,18 +733,32 @@ export async function pushToGitHub(): Promise<PushResult> {
           });
         } catch {
           // T-51: תאום-ריבוני-שני-חי-במקביל (סנכרון-בין-מכונות) — התנגשות-rebase
-          // אינה-כשל-סופי: ניקוי → ניסיון-חוזר-אחד עם -X theirs (הרחוק-מנצח-בגדילי-קונפליקט;
-          // יומני-*.jsonl מתמזגים-union-מלא-דרך-.gitattributes — אפס-אובדן-קבלות).
+          // אינה-כשל-סופי.
+          // T-66-תיקון-מחלקה: במקום `-X theirs`-עיוור (T-64: החזיר-בשקט-בלוב-כספת-ישן)
+          // פותר-ממוקד: קבצי-ריצה=מקומי-מנצח · קוד/כספת=הרחוק-מנצח (אפס-דריסת-עמיתים).
           try {
             await git(['rebase', '--abort']);
           } catch {
             /* אין-ריבייז-לבטל */
           }
-          await git(['pull', '--rebase', '--autostash', '-X', 'theirs', 'origin', 'main'], {
+          await git(['pull', '--rebase', '--autostash', 'origin', 'main'], {
             GIT_TERMINAL_PROMPT: '0',
             GIT_ASKPASS: ASKPASS_PATH,
             HQ_TOKEN: patEarly,
           });
+          const resolver = Bun.spawnSync(['bash', 'scripts/rebase-resolve.sh'], {
+            cwd: '/home/z/my-project/sanbox',
+            env: { ...process.env, SANBOX_DIR: '/home/z/my-project/sanbox' },
+            stdout: 'pipe', stderr: 'pipe',
+          });
+          if (resolver.exitCode !== 0) {
+            try {
+              await git(['rebase', '--abort']);
+            } catch {
+              /* אין-ריבייז-לבטל */
+            }
+            throw new Error(`rebase-resolve נכשל: ${new TextDecoder().decode(resolver.stderr || resolver.stdout).slice(0, 160)}`);
+          }
         }
       } catch (e) {
         try {

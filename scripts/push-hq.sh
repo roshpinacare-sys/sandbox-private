@@ -127,6 +127,18 @@ fi
 
 # --- auto-commit ---
 git add -A
+# T-66 · שער-הכספת-הקנוני: בלוב-כספת-שאינו-נפתח-בסיסמה-הבלועה-לא-נכנס-לגיט.
+# (הלקח-החי-מ-13:14-ה-10.10: התאום-החזיר-מעטפת-T-62-לא-פתיחה-על-פני-הקנונית —
+#  מלחמת-בלובים-בין-שתי-מכונות. השער-חוסם-אותה-מבנית: מה-שלא-נפתח-לא-נדחף;
+#  הself-heal-של-T-65-מרפא-את-המקומי-בכל-10-דק'.)
+if git diff --cached --name-only | grep -q '^vault/vault-backup.enc$'; then
+  if ! bun "$SANBOX/scripts/vault-guard.mjs" "$SANBOX/vault/vault-backup.enc"; then
+    git restore --staged --worktree -- vault/vault-backup.enc 2>/dev/null || true
+    echo 'vault-guard: בלוב-לא-קנוני-הושמט-מהקומיט (fail-closed-לכספת, המשך-לשאר)'
+    mkdir -p "$RECEIPTS"
+    printf '{"ts":"%s","guard":"vault","ok":false,"action":"blob-excluded-from-commit"}\n' "$(now_iso)" >> "$RECEIPTS/vault-guard.jsonl"
+  fi
+fi
 if ! git diff --cached --quiet; then
   MSG="HQ sync $(now_iso)"
   if ! git commit -m "$MSG" 2>/dev/null; then
@@ -193,19 +205,17 @@ ASKPASS_CREATED=1
 
 # --- משיכה-ב-rebase-לפני-דחיפה (פריטה-זהה-ל-autoPush ב-core/ops.ts — לקח-T-49:
 #     הדחיפה-העצמית-של-HQ-עלולה-להקדים-את-הדוחף-הידני; בלי-rebase-הדחיפה-נדחית) ---
-# T-51: תאום-ריבוני-שני-חי-במקביל — התנגשות-rebase אינה-כשל-סופי:
-# ניקוי → ניסיון-חוזר-אחד-עם -X theirs (יומני-*.jsonl מתמזגים-union-דרך-.gitattributes).
+# T-51: תאום-ריבוני-שני-חי-במקביל — התנגשות-rebase אינה-כשל-סופי.
+# T-66-תיקון-מחלקה: במקום `-X theirs`-עיוור (שהחזיר-בשקט-בלוב-כספת-ישן — T-64)
+# פותר-ממוקד: קבצי-ריצה=מקומי-מנצח · קוד/כספת=הרחוק-מנצח (אפס-דריסת-עמיתים).
 if ! PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
-  git pull --rebase origin main 2>&1)"; then
+  git pull --rebase --autostash origin main 2>&1)"; then
   printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
-  git rebase --abort 2>/dev/null || true
-  echo 'התנגשות-rebase — ניסיון-חוזר-אחד-עם -X theirs…'
-  if ! PULL_OUT="$(GIT_TERMINAL_PROMPT=0 GIT_ASKPASS="$ASKPASS" HQ_TOKEN="$PAT" \
-    git pull --rebase --autostash -X theirs origin main 2>&1)"; then
-    printf '%s\n' "$PULL_OUT" | awk -v t="$PAT" '{ gsub(t, "••••"); print }'
+  echo 'התנגשות-rebase — פותר-ממוקד (ריצה=מקומי · קוד/כספת=רחוק)…'
+  if ! SANBOX_DIR="$SANBOX" bash "$SANBOX/scripts/rebase-resolve.sh"; then
     git rebase --abort 2>/dev/null || true
     log_push false pull "$COMMIT" "$REPO_FULL" true
-    echo 'משיכת-rebase נכשלה גם-בניסיון-החוזר — fail-closed (אין-force)'
+    echo 'משיכת-rebase נכשלה גם-בפותר-הממוקד — fail-closed (אין-force)'
     exit 1
   fi
 fi
