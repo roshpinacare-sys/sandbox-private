@@ -221,9 +221,11 @@ async function tick(): Promise<void> {
 
   /* --- קונסולת-האם (3050 · חוזה-הדלת-הקדמית): מתה → מוקמת (T-47) ---
    * המשגיח-של-zip (בון-טהור) מקים-ומחיה-את-next-dev-שלה-בלולאה; אנחנו
-   * מקימים-את-המשגיח-עצמו. בדיקת-HTTP על-3050-ישירות (הגשר-לא-מעורב). */
+   * מקימים-את-המשגיח-עצמו. בדיקת-HTTP על-3050-ישירות (הגשר-לא-מעורב).
+   * FIX(T-54): אם-המשגיח-כבר-חי — לא-שוגר-שני (פורט-מת-זמנית-בזמן-קימפול
+   * יצר-משגיחים-כפולים; נמדד: 18329+28698). המשגיח-החי-מחיה-את-הילד-בעצמו. */
   if (!(await httpAlive(CONSOLE_PORT, '/'))) {
-    if (now - consoleLastSpawn > CONSOLE_SPAWN_DEBOUNCE_MS) {
+    if (pidsByPattern('mini-services/web/index.ts').length === 0 && now - consoleLastSpawn > CONSOLE_SPAWN_DEBOUNCE_MS) {
       consoleLastSpawn = now;
       const pid = spawnDetached('bun', ['mini-services/web/index.ts'], ZIP);
       log({ type: 'console-revive', pid, port: CONSOLE_PORT });
