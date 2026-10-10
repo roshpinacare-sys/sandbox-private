@@ -62,6 +62,32 @@ const TAG_LEN = 16;
 /** סיסמת-האם — מפתח-ההצפנה של-הגיבוי */
 const PASSWORD_FILE = path.join(SECRETS_DIR, 'hq.password');
 
+/**
+ * T-65: vaultBlobOpens — בדיקה-עצמית: האם-המעטפת-הקיימת-נפתחת-בפועל-עם-הסיסמה.
+ * נגד-מחלקת-ההחזרה-השקטה שנתגלתה ב-T-64: קדנס pull -X theirs החזיר-בלוב-ישן
+ * והקבלה-המשיכה-לטעון-תקינות (bytes=prevBytes) בזמן-שאף-סיסמה-לא-פתחה-אותו.
+ * hash-קבלה-זהה-עוד-לא-אומר-כלום אם-הבלוב-עצמו-מת — לכן-ה-hash-match-מחייב-גם-פענוח-תקין.
+ */
+function vaultBlobOpens(password: string): boolean {
+  try {
+    const encoded = readFileSync(VAULT_ENC_PATH, 'utf8');
+    const blob = Buffer.from(encoded, 'base64');
+    if (blob.length <= MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN) return false;
+    if (blob.subarray(0, MAGIC.length).toString('ascii') !== MAGIC) return false;
+    const salt = blob.subarray(MAGIC.length, MAGIC.length + SALT_LEN);
+    const iv = blob.subarray(MAGIC.length + SALT_LEN, MAGIC.length + SALT_LEN + IV_LEN);
+    const tag = blob.subarray(MAGIC.length + SALT_LEN + IV_LEN, MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN);
+    const ct = blob.subarray(MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN);
+    const key = scryptSync(password, salt, KEY_LEN);
+    const d = createDecipheriv('aes-256-gcm', key, iv);
+    d.setAuthTag(tag);
+    Buffer.concat([d.update(ct), d.final()]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** תוצאת-פעולת-כספת — מוסקת-בלבד (אף-שדה-כאן-אינו-מכיל-תוכן-סודות) */
 export interface VaultBackupResult {
   ok: boolean;
@@ -153,7 +179,8 @@ export async function vaultBackup(): Promise<VaultBackupResult> {
       }
     })();
     const prev = prevReceipt;
-    if (prev && typeof prev.hash === 'string' && prev.hash === hash) {
+    // T-65: hash-זהה-מחייב-גם-פענוח-תקין — מעטפת-שאינה-נפתחת = נכתבת-מחדש (ריפוי-עצמי)
+    if (prev && typeof prev.hash === 'string' && prev.hash === hash && vaultBlobOpens(password)) {
       const prevBytes = typeof prev.bytes === 'number' ? prev.bytes : undefined;
       writeReceipt(VAULT_BACKUP_RECEIPT, { hash, ts, bytes: prevBytes, files: files.length, hashShort });
       return { ok: true, written: false, bytes: prevBytes, files: files.length, hashShort, ts };

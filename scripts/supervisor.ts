@@ -34,6 +34,7 @@ import http from 'node:http';
 import { spawn, execFileSync } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { vaultBackup } from '../core/backup.ts'; // T-65: ריפוי-עצמי-תקופתי-של-מעטפת-הכספת
 
 // נגזרות-מיקום-דינמיות: המפקח-חי-בתוך-הריפו — ROOT=sanbox, PROJECT=ההורה-שלו
 const ROOT = path.resolve(import.meta.dir, '..');
@@ -58,6 +59,7 @@ const MAX_EVENTS = 500;
 // T-49: רכבת-התחזוקה-האוטונומית
 const HEART_INTERVAL_MS = 15 * 60_000;      // פעימה-מקומית-של-הלב-השני
 const MIRROR_INTERVAL_MS = 6 * 60 * 60_000; // רענון-המראה-העננית (מצערת-נוספת-בתוך-הסקריפט)
+const VAULT_BACKUP_INTERVAL_MS = 10 * 60_000; // T-65: גיבוי-כספת-מרפא-עצמי-כל-10-דק'
 
 // T-54: שער-הזיכרון — מיחזור-מבוקר-לפני-הקרנל
 const MEM_GATE_RSS_MB = Number(process.env.MEM_GATE_RSS_MB ?? 1100); // סף-RSS (אב+ילדים) למיחזור-מבוקר
@@ -75,6 +77,7 @@ let memGateLastRun = 0; // T-55: FIX — היה-בשימוש-בלי-הצהרה-�
 let memLogLastRun = 0;  // T-55: FIX — כנ"ל (מצערת-קבלות-תצפית)
 let mirrorLastRun = 0;
 let lastCodeFingerprint: string | null = null; // T-54: התחדשות-קוד-חי
+let vaultLastRun = 0; // T-65: מתזמן-גיבוי-הכספת-המרפא
 
 /** T-54: טביעת-אצבע-של-עץ-הקוד-הרלוונטי-לתהליכים-החיים (server.ts + core/ + scripts/). */
 function codeFingerprint(): string | null {
@@ -208,6 +211,20 @@ async function tick(): Promise<void> {
     mirrorLastRun = now;
     const pid = spawnDetached('bun', ['scripts/mirror-project.ts'], ROOT);
     log({ type: 'mirror-spawn', pid });
+  }
+
+  /* --- T-65: ריפוי-עצמי-של-כספת-הסודות — כל-10-דק' ---
+   * השיעור-מ-T-64: מעטפת-ישנה/מוחזרת (קדנס pull -X theirs) ישבה-שעות-בשקט —
+   * הקבלה-טענה-תקינות-אך-הבלוב-לא-נפתח. vaultBackup-עתה-מאמת-פענוח-אמיתי
+   * (vaultBlobOpens) וכותב-מחדש-מעטפת-פגומה. כישלון-כאן-לעולם-לא-מפיל-טיק. */
+  if (now - vaultLastRun > VAULT_BACKUP_INTERVAL_MS) {
+    vaultLastRun = now;
+    try {
+      const r = await vaultBackup();
+      log({ type: 'vault-backup', ok: r.ok, written: r.written, files: r.files, bytes: r.bytes, hashShort: r.hashShort, error: r.error });
+    } catch (e) {
+      log({ type: 'vault-backup', ok: false, error: e instanceof Error ? e.message.slice(0, 80) : 'שגיאה' });
+    }
   }
 
   /* --- T-54+T-55: שער-הזיכרון — מודע-לחץ (תיקון-הלו-המיחזור) ---
