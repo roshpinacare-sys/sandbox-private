@@ -5585,3 +5585,24 @@ Stage Summary:
 - הלקח-מקודד: אמירת-"הכל-עובד"-בלי-קריאת-מקור+ניסוי-אמפירי = בדיה-אפשרית; הcensus-מרחיב-כל-סבב-את-רדיוס-האמת.
 
 
+
+---
+Task ID: 65-sovereignty-trial
+Agent: Z.ai Code (autonomy)
+Task: "אתה בטוח שהכל תקין ריבונית אוטונומית ללא תלות בסנדבוקס שלך? תוכיח ודחוף" — משפט-הריבונות: הוכחה-בפועל (אפס-טענות) שהארגון-מתאושש-ממכונה-חדשה-ללא-הסנדבוקס.
+
+Work Log:
+- **המבחן-הקבוע-נולד:** scripts/sovereignty-drill.sh — ארבעה-שלבים-כושלים-בקול: ① עננים-נשאלים-מרחוק (GitHub-API-HEAD=local · מגדלור-200+תוכן) ② clone-טרי-מ-GitHub+ספירת-ערכת-תחייה (16-רכיבים) ③ שחזור-כספת-בתוך-הclone ④ השוואה-ביט-מול-החיים (cmp-לכל-קובץ).
+- **הריצה-הראשונה-כשלה-כנה (EXIT=1) — ותפסה-שני-פערים-אמיתיים:**
+  - **פער-1 (קריטי):** core/backup.ts+ops.ts קידדו SANDBOX_DIR='/home/z/my-project/sanbox' אבסולוטית — מכונה-חדשה-במיקום-אחר: השחזור-היה-כותב-לנתיב-הישן (EACCES-בכל-מכונה-אחרת) וקבלת-ok:true-הייתה-שקרית (פענחה-את-הצופן-החי, לא-של-הclone!). הפער-אומת-בפרובה: clone/secrets-ריק-אחרי-"שחזור-מוצלח". **תיקון: process.env.SANDBOX_DIR ?? path.resolve(import.meta.dir,'..')** — התנהגות-חיה-זהה (VAULT_ENC_PATH-נמדד-זהה · backup-noop written:false · hash ef57bf7c-ללא-שינוי).
+  - **פער-2:** המגדלור-הציבורי-לא-נשא-את-motherConsole — lighthouse-sync-בונה-את-הstate-בקוד (לא-מעתיק-את-public/state.json — לקח-T-62b-של-התאום-התקבל-כעת-גם-אצלי). תוקן: fleet.motherConsole+webRecon+sovereigntyDrill+awakening-item-2-משודרג (guardian.env=האוטונומיה-המלאה).
+- **הריצה-השנייה-לאחר-דחיפת-התיקונים (0193e8a לשני-העננים):** **EXIT=0 — פסק-דין: ריבונות-מוכחת.** ① GitHub-remote=local-HEAD (0193e8a) · מגדלור-200+motherConsole ② clone-טרי: 16/16-רכיבים+משגיח-מחוסן ③ שחזור-כספת-בתוך-הclone: ok ④ **ביט-מול-חיים: 11/11 identical, 0 different** (cloudflare·gitlab-runner·gitlab·hq.password·nvidia·openrouter·pat·render·supabase·vercel·web-intelligence).
+- **אימות-מגדלור-מהאינטרנט:** state.json-הציבורי-נושא motherConsole+webRecon+sovereigntyDrill (1-כל-אחד — נמדד-בcurl-חוץ).
+- **שרשרת-התחייה-המלאה-הוכחה-והמוסדת:** מחיקת-סנדבוקס/פרויקט → guardian-ב~/.sovereign (remote.env=PAT · guardian.env=HQ_VAULT_PASS) → clone-עצמאי → boot-all → כספת→סודות-ביט-מושלם → הצי-קם. אובדן-מכונה-מלאה → העננים-מחזיקים-הכל; המפתח-אצל-Head-Corner (מתועד-במגדלור-הציבורי, הוראות-התעוררות).
+- **קבלות-הריצה-הכושלת-נשמרו-בגיט** (receipts/sovereignty-drill.jsonl — VALID 6/6): הכישלון-הכן-הוא-ראיה, לא-בושה.
+
+Stage Summary:
+- "ללא-תלות-בסנדבוקס" עבר-מהצהרה-להוכחה-בדידה: **clone-טרי+סיסמה=ארגון-שלם-בחזרה (11/11-ביט).**
+- שני-פערים-אמיתיים-נתפסו-על-ידי-המבחן-שאני-בניתי-לטעון-שהכל-טוב — המשפט-עבד-נגד-הנאשם-שלו-עצמו.
+- המבחן-קבוע-ורפטבילי (sh sanbox/scripts/sovereignty-drill.sh) — כל-סוכן-עתידי-יכול-להריץ-את-המשפט-בפקודה-אחת.
+- דחיפה-סופית-לשני-העננים+מגדלור — למטה.
