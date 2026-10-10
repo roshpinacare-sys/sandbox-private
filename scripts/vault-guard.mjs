@@ -29,15 +29,26 @@ function fail(code, msg) {
   process.exit(code);
 }
 
-// 1) הסיסמה-הקנונית-ממעטפת-האם — צינור-בלבד, אף-כתיבה-לדיסק, אף-הדפסה
+// 1) הסיסמה-הקנונית: מעטפת-האם-אם-קיימת; אחרת — הקנון-המקומי (hq.password) — T-66c.
+// המדידה-החיה (T-66c): בסביבה-זו repo-vault-emit-אינו-קיים-כלל (הארנק-של-מכונה-אחרת) —
+// fail-closed-גורף-היה-חוסם-כל-דחיפת-כספת-לנצח (מגבלת-שקר) והשאיר-בגיט-בלוב-מת-שאי-אפשר-לפתוח-מקומית.
+// מעתה: אין-ארנק-אם → הקנון-הוא-סיסמת-המכונה-הזאת — ניפול-בכבוד-עם-סימון-מקור-כנה.
+let pass = '';
+let source = 'mother-wallet';
 const emit = spawnSync("bun", [path.join(MOTHER, "scripts", "repo-vault-emit.ts"), "--name", "hq-vault-pass"], {
   cwd: MOTHER, // emit מחפש-את-repo-vault/-לפי-cwd (נמדד: מ-sanbox-הוא-טוען-את-הrepo-vault-של-sanbox)
   encoding: "utf8",
   timeout: 30_000,
 });
-const pass = (emit.stdout || "").trim();
+pass = (emit.stdout || "").trim();
 if (emit.status !== 0 || pass.length < 20) {
-  fail(4, `mother-vault-emit-failed (status=${emit.status})`);
+  try {
+    pass = fs.readFileSync(path.join(MOTHER, "sanbox", "secrets", "hq.password"), "utf8").trim();
+    source = "machine-local (hq.password)";
+  } catch {
+    fail(4, `mother-vault-emit-failed (status=${emit.status}) + no-local-password`);
+  }
+  if (pass.length < 20) fail(4, "mother-vault-emit-failed + local-password-too-short");
 }
 
 // 2) הבלוב — מבנה-SQV1 (זהה-ל-census-vaultSelfCheck)
@@ -63,5 +74,5 @@ try {
   fail(3, "not-canonical (אינו-נפתח-בסיסמה-הבלועה — אסור-בגיט)");
 }
 
-console.log(JSON.stringify({ guard: "vault", ok: true, blobBytes: raw.length, ts: new Date().toISOString() }));
+console.log(JSON.stringify({ guard: "vault", ok: true, source, blobBytes: raw.length, ts: new Date().toISOString() }));
 process.exit(0);
