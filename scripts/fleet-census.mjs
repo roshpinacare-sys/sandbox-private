@@ -98,9 +98,12 @@ function lastEvents(file, n) {
  * קיצוץ-מדווח-בכנות (truncated:true) — לא-שקר-של-השמטה.
  */
 function receiptIntegrity() {
+  // T-64: הרחבה — גם-קבלות-האם (saos-control-center/receipts/*.jsonl), לא-רק-הסנדבוקס
+  const ccReceipts = (() => { try { return readdirSync(`${PROJECT}/receipts`).filter((f) => f.endsWith('.jsonl')).map((f) => `${PROJECT}/receipts/${f}`); } catch { return []; } })();
   const SCAN = [
     ...readdirSync(`${PROJECT}/sanbox/receipts`).filter((f) => f.endsWith('.jsonl'))
       .map((f) => `${PROJECT}/sanbox/receipts/${f}`),
+    ...ccReceipts,
     `${process.env.HOME}/.sovereign/guardian.jsonl`,
   ];
   const CAP = 4 * 1024 * 1024;
