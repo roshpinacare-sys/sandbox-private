@@ -78,8 +78,15 @@ if [ "${PUSH_GITLAB_DRYRUN:-0}" = "1" ]; then
 fi
 
 # --- דחיפה: כל-הענפים + תגיות-אם-קיימות (mirror-חי-של-הריבונות) ---
+# mirror-חוזה: העותק-בגיטלאב-תמיד-כנוע-לאמת-המקומית — אחרי-rebase-בגיטהאב
+# ההיסטוריה-משתנה-והמראה-חייבת-להתאים-את-עצמה (force-כגיבוי, לא-כברירת-מחדל).
 ERR_ALL=0
+FORCED=0
 OUT_ALL="$(git push gitlab --all 2>&1)" || ERR_ALL=1
+if [ "$ERR_ALL" = "1" ]; then
+  echo '[gitlab] דחיפה-רגילה-נדחתה — mirror-מתכנס-עם-force (המראה-כנועה-לאמת)'
+  OUT_ALL="$(git push gitlab --all --force 2>&1)" && { ERR_ALL=0; FORCED=1; } || ERR_ALL=1
+fi
 echo "$OUT_ALL" | sed -E 's/(glpat-|oauth2:)[A-Za-z0-9._-]+/\1••••/g' | tail -3
 ERR_TAGS=0
 if [ -n "$(git tag --list | head -1)" ]; then
@@ -88,8 +95,8 @@ if [ -n "$(git tag --list | head -1)" ]; then
 fi
 
 if [ "$ERR_ALL" = "0" ]; then
-  echo "[gitlab] דחיפה-אל-החיים-השני: ok commit=$HEAD_COMMIT"
-  log_gl true "push" "$HEAD_COMMIT" "all+tags errs=$ERR_TAGS"
+  echo "[gitlab] דחיפה-אל-החיים-השני: ok commit=$HEAD_COMMIT forced=$FORCED"
+  log_gl true "push" "$HEAD_COMMIT" "all+tags errs=$ERR_TAGS forced=$FORCED"
   exit 0
 else
   echo "[gitlab] דחיפה-נכשלה (fail-open — לא-מפיל-כלום-אחר) commit=$HEAD_COMMIT"
