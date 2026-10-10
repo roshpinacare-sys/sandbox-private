@@ -210,3 +210,5 @@ watchdog · snapshot · shift-history(60s) · lineage-guard(90s) · health_monit
 - **חמש-שכבות-זיכרון:** GitHub · GitLab · Postgres · **Pages-מגדלור (חי!)** · GitLab-CI (שער-יחיד-נותר). ארבע-עובדות-ללא-בעלים.
 - **boot-all-הוכיח-התקנה-עצמית-בפועל:** ראנר-מת-התגלה-בסיור → הוקם-מהכספת (pid=19257 · online:true). החייאה-עצמית-אינה-תיאוריה-עוד.
 - **לקח-מזוקק:** קרא-את-הודעת-השער-מילה-מילה — התנאי-המדויק ("פרטי") הוא-הדלת-הסודית. escalations: github-pages-plan→RESOLVED-BY-BYPASS.
+
+
