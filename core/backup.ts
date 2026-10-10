@@ -88,6 +88,36 @@ function vaultBlobOpens(password: string): boolean {
   }
 }
 
+/**
+ * T-66c: vaultBlobContentMatches — הבלוב-לא-רק-נפתח — הוא-**מכיל-בדיוק**-את-תוכן-ה-hash.
+ * הפטולוגיה-שנמדדה-חי (מלחמת-הבלובים): קבלה-של-תוכן-11-סודות-דשדשה-עם-בלוב-3-סודות-
+ * של-מכונה-אחרת — הבלוב-נפתח-בקנון (אותו-מפתח-מאוחד!) ולכן-הריפוי-העצמי-השאיר-אותו,
+ * והכספת-בגיט-חדלה-לשאת-את-מלוא-הסודות. מעתה: פענוח → חישוב-hash-פנימי-על-הfiles
+ * → השוואה-מול-hash-הקבלה. אי-התאמה = הבלוב-איננו-התוכן → נכתב-מחדש (ריפוי-אמיתי).
+ */
+function vaultBlobContentMatches(password: string, hash: string): boolean {
+  try {
+    const encoded = readFileSync(VAULT_ENC_PATH, 'utf8');
+    const blob = Buffer.from(encoded, 'base64');
+    if (blob.length <= MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN) return false;
+    if (blob.subarray(0, MAGIC.length).toString('ascii') !== MAGIC) return false;
+    const salt = blob.subarray(MAGIC.length, MAGIC.length + SALT_LEN);
+    const iv = blob.subarray(MAGIC.length + SALT_LEN, MAGIC.length + SALT_LEN + IV_LEN);
+    const tag = blob.subarray(MAGIC.length + SALT_LEN + IV_LEN, MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN);
+    const ct = blob.subarray(MAGIC.length + SALT_LEN + IV_LEN + TAG_LEN);
+    const key = scryptSync(password, salt, KEY_LEN);
+    const d = createDecipheriv('aes-256-gcm', key, iv);
+    d.setAuthTag(tag);
+    const plain = Buffer.concat([d.update(ct), d.final()]).toString('utf8');
+    const parsed = JSON.parse(plain) as { files?: { name: string; b64: string }[] };
+    if (!Array.isArray(parsed.files)) return false;
+    const innerHash = createHash('sha256').update(JSON.stringify(parsed.files)).digest('hex');
+    return innerHash === hash;
+  } catch {
+    return false;
+  }
+}
+
 /** תוצאת-פעולת-כספת — מוסקת-בלבד (אף-שדה-כאן-אינו-מכיל-תוכן-סודות) */
 export interface VaultBackupResult {
   ok: boolean;
@@ -180,7 +210,7 @@ export async function vaultBackup(): Promise<VaultBackupResult> {
     })();
     const prev = prevReceipt;
     // T-65: hash-זהה-מחייב-גם-פענוח-תקין — מעטפת-שאינה-נפתחת = נכתבת-מחדש (ריפוי-עצמי)
-    if (prev && typeof prev.hash === 'string' && prev.hash === hash && vaultBlobOpens(password)) {
+    if (prev && typeof prev.hash === 'string' && prev.hash === hash && vaultBlobContentMatches(password, hash)) {
       const prevBytes = typeof prev.bytes === 'number' ? prev.bytes : undefined;
       writeReceipt(VAULT_BACKUP_RECEIPT, { hash, ts, bytes: prevBytes, files: files.length, hashShort });
       return { ok: true, written: false, bytes: prevBytes, files: files.length, hashShort, ts };
