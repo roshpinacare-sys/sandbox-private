@@ -20,12 +20,20 @@
  * כלכלה: מינימום-25 דק' בין-פוסטים; אין-ראיות-חדשות=skip-שקט-עם-nextRunAt;
  * keep-alive-כל-6 שעות גם-בלי-ראיות (פועם-אך-לא-מזייף-רעש).
  * דוקטרינה: fail-open · execPath-אגנוסטי (node/bun) · יציאה-0-תמיד.
+ *
+ * T-67-שחרור: מעתה הפוסטים-גם-יוצאים-לשרשרת-באמת — Hive (posting-authority,
+ * המפתח-מ-sanbox/secrets/hive-posting.wif 600 · gitignored · לעולם-לא-נכנס-לפוסט).
+ * כלכלת-שרשרת: מינימום-60 דק' בין-פרסומי-שרשרת (RC-mana) · קבלות-כנות:
+ * recorded (=נרשם-מקומית) נפרד-מ-chain-hive (=אושר-בשרשרת-מget_content).
+ * אין-מפתח/כשל-RC/כשל-רשת = קבלה-כנה ok:false והרישום-המקומי-נשאר.
+ * GRID_FORCE=1 — שער-בדיקה (מדלג-על too-soon/too-soon-chain) לצורך-תרגילים-ידניים.
  */
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync, statSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -35,6 +43,10 @@ const RECEIPTS = join(HERE, 'receipts.jsonl');
 const RECEIPT_TAIL = 200;
 const MIN_INTERVAL_MS = 25 * 60_000;
 const KEEPALIVE_MS = 6 * 3_600_000;
+const CHAIN_MIN_INTERVAL_MS = 60 * 60_000;
+const CHAIN_AUTHOR = 'headcorner';
+const CHAIN_WIF_PATH = join(ROOT, 'secrets/hive-posting.wif');
+const LIGHTHOUSE_URL = 'https://roshpinacare-sys.github.io/sovereign-lighthouse/';
 
 /* --- אותו-גורם-סודות-כמו-המגדלור (T-60) — פגיעה-חוסמת-פרסום --- */
 const SECRET_RX = /(glrt-[A-Za-z0-9_\-]{10,}|ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-or-[A-Za-z0-9\-]{10,}|nvapi-[A-Za-z0-9\-]{10,}|eyJ[A-Za-z0-9_\-]{20,}|xox[baprs]-[A-Za-z0-9\-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)/;
@@ -137,14 +149,15 @@ function summarize(sourceKey, line) {
   }
 }
 
-function main() {
+async function main() {
   const now = Date.now();
+  const force = process.env.GRID_FORCE === '1';
   const idx = readJson(INDEX, {}) || {};
   const lastPostAt = idx.lastPostAt ? Date.parse(idx.lastPostAt) : 0;
 
-  /* --- כלכלה: too-soon → skip-שקט-עם-nextRunAt --- */
+  /* --- כלכלה: too-soon → skip-שקט-עם-nextRunAt (GRID_FORCE מדלג-לתרגילים) --- */
   const sinceLast = lastPostAt ? now - lastPostAt : Infinity;
-  if (lastPostAt && sinceLast < MIN_INTERVAL_MS) {
+  if (!force && lastPostAt && sinceLast < MIN_INTERVAL_MS) {
     writeReceipt({ op: 'grid', ok: true, skipped: 'too-soon', msSinceLast: sinceLast, nextRunAt: new Date(lastPostAt + MIN_INTERVAL_MS).toISOString() });
     return;
   }
@@ -188,7 +201,7 @@ function main() {
   const hasEvidence = commits.length > 0 || lines.length > 0 || heartChanged;
   const keepaliveDue = lastPostAt && now - lastPostAt >= KEEPALIVE_MS;
 
-  if (!hasEvidence && !keepaliveDue) {
+  if (!force && !hasEvidence && !keepaliveDue) {
     writeReceipt({ op: 'grid', ok: true, skipped: 'no-evidence', newEvents: 0, nextRunAt: new Date(now + Math.max(MIN_INTERVAL_MS - (lastPostAt ? now - lastPostAt : 0), 60_000)).toISOString() });
     return;
   }
@@ -223,6 +236,9 @@ function main() {
     return;
   }
 
+  /* --- T-67: פרסום-שרשרת-אמיתי (Hive · posting-authority · כנות-מלאה) --- */
+  post.chain = await publishToChain(post, idx, force);
+
   /* --- כתיבה: פוסט יומי + אינדקס --- */
   const day = post.ts.slice(0, 10);
   try {
@@ -230,19 +246,60 @@ function main() {
   } catch { /* fail-open */ }
 
   const recent = Array.isArray(idx.recent) ? idx.recent : [];
-  recent.push({ id: post.id, ts: post.ts, kind: post.kind, title: post.title });
+  recent.push({ id: post.id, ts: post.ts, kind: post.kind, title: post.title, chain: post.chain && post.chain.hive ? { ok: post.chain.hive.ok, permlink: post.chain.hive.permlink, url: post.chain.hive.url } : undefined });
   const newIndex = {
     schema: 'sanbox.grid/1',
     asof: post.ts,
     total: (idx.total ?? 0) + 1,
     lastPostAt: post.ts,
     lastTitle: post.title,
+    lastChainAt: post.chain?.hive?.ok ? post.ts : (idx.lastChainAt ?? null),
     cursor: { commit: headNow, lineCounts: Object.fromEntries(SOURCES.map((s) => [s.key, lineCount(s.path)])), escalOpen, heartChain: heart.chain ?? '' },
     recent: recent.slice(-8),
   };
   try { writeFileSync(INDEX, JSON.stringify(newIndex, null, 1) + '\n'); } catch { /* fail-open */ }
-  writeReceipt({ op: 'grid', ok: true, posted: post.id, kind, title, commits: commits.length, newEvents: totalNewEvents });
+  writeReceipt({ op: 'grid', ok: true, recorded: post.id, kind, title, commits: commits.length, newEvents: totalNewEvents, chain: post.chain?.hive?.ok ? post.chain.hive.permlink : (post.chain?.hive?.error ?? post.chain?.hive?.skipped ?? 'no-key') });
 }
 
-try { main(); } catch (e) { writeReceipt({ op: 'grid', ok: false, error: e instanceof Error ? e.message : '?' }); }
-process.exit(0);
+/* --- T-67: Hive פרסום — posting-WIF-מהסודות (600·gitignored) · get_content-מזהה-כפילויות
+ *    · תוצאה-מאומתת-רק-מget_content (לא-מההבטחה-של-הbroadcast) · כל-כשל-כנה-ולא-חוסם-רישום-מקומי --- */
+async function publishToChain(post, idx, force) {
+  const out = { hive: { ok: false } };
+  try {
+    if (!existsSync(CHAIN_WIF_PATH)) { out.hive.skipped = 'no-key'; return out; }
+    const lastChainAt = idx.lastChainAt ? Date.parse(idx.lastChainAt) : 0;
+    if (!force && lastChainAt && Date.now() - lastChainAt < CHAIN_MIN_INTERVAL_MS) { out.hive.skipped = 'chain-too-soon'; return out; }
+    const wif = readFileSync(CHAIN_WIF_PATH, 'utf8').trim();
+    if (!/^[5KL][1-9A-HJ-NP-Za-km-z]{50,52}$/.test(wif)) { out.hive.skipped = 'bad-key-shape'; return out; }
+    const hive = createRequire('/home/z/my-project/package.json')('@hiveio/hive-js');
+    try { hive.api.setOptions({ url: 'https://api.hive.blog' }); } catch { /* ברירת-מחדל-כן */ }
+    const permlink = `saos-grid-${post.id.toLowerCase()}`;
+    const exists = await new Promise((resolve) => {
+      try { hive.api.getContent(CHAIN_AUTHOR, permlink, (e, r) => resolve(!e && r && r.author === CHAIN_AUTHOR)); } catch { resolve(false); }
+    });
+    if (exists) { out.hive = { ok: true, already: true, permlink, url: `https://hive.blog/@${CHAIN_AUTHOR}/${permlink}` }; return out; }
+    const body = [
+      post.title,
+      '',
+      ...post.lines,
+      '',
+      `ראיות: קומיטים ${post.evidence.commits} · שורות-קבלות-חדשות ${post.evidence.newReceiptLines} · לב ${post.evidence.heartChain || '?'} · HEAD ${post.evidence.head || '?'}`,
+      `מקור: צי-ריבוני-עצמאי · מגדלור-ראיות-מלא: ${LIGHTHOUSE_URL}`,
+    ].join('\n');
+    const meta = { tags: ['saos', 'sovereignty', 'autonomy', 'hive', 'grid'], app: 'saos-grid/1.1', format: 'markdown', lighthouse: LIGHTHOUSE_URL };
+    const bc = await new Promise((resolve) => {
+      try { hive.broadcast.comment(wif, '', 'saos', CHAIN_AUTHOR, permlink, post.title, body, meta, (e, r) => resolve({ e, r })); } catch (e) { resolve({ e }); }
+    });
+    if (bc.e) { out.hive.error = String(bc.e.message || bc.e).slice(0, 200); return out; }
+    const verified = await new Promise((resolve) => {
+      setTimeout(() => {
+        try { hive.api.getContent(CHAIN_AUTHOR, permlink, (e, r) => resolve(!e && r && r.author === CHAIN_AUTHOR ? r : null)); } catch { resolve(null); }
+      }, 2500);
+    });
+    if (verified) { out.hive = { ok: true, permlink, url: `https://hive.blog/@${CHAIN_AUTHOR}/${permlink}`, created: verified.created, txId: String(verified.transaction_id || '').slice(0, 16) || undefined }; writeReceipt({ op: 'chain-hive', ok: true, permlink, url: out.hive.url, txId: out.hive.txId, postId: post.id }); }
+    else out.hive.error = 'broadcast-accepted-but-content-not-visible-yet';
+  } catch (e) { out.hive.error = String(e && e.message || e).slice(0, 200); }
+  return out;
+}
+
+main().catch((e) => { writeReceipt({ op: 'grid', ok: false, error: e instanceof Error ? e.message : '?' }); }).finally(() => process.exit(0));

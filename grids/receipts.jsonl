@@ -10,3 +10,6 @@
 {"ts":"2026-10-10T14:56:50.587Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":528723,"nextRunAt":"2026-10-10T15:13:01.864Z"}
 {"ts":"2026-10-10T15:01:36.000Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":814135,"nextRunAt":"2026-10-10T15:13:01.864Z"}
 {"ts":"2026-10-10T15:16:37.870Z","op":"grid","ok":true,"posted":"gmv2jeslv","kind":"report","title":"4 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":4,"newEvents":1}
+{"ts":"2026-10-10T15:31:39.728Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901874,"nextRunAt":"2026-10-10T15:41:37.853Z"}
+{"ts":"2026-10-10T15:46:41.740Z","op":"grid","ok":true,"posted":"gmv2khghs","kind":"report","title":"1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":1,"newEvents":19}
+{"ts":"2026-10-10T15:59:26.155Z","op":"grid","ok":true,"recorded":"gmv2kxswb","kind":"report","title":"פעילות-צי: 1 אירועים-ראויים-צוינו מ-3 שורות-קבלות-חדשות","commits":0,"newEvents":3,"chain":"payer has not enough RC mana for transaction:has_mana: Account: headcorner has 1041129839 RC, needs 1139502840 RC. Please wait to transact or power up HIVE."}
