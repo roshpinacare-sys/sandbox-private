@@ -2,11 +2,11 @@
   "ok": true,
   "stage": "push",
   "repo": "roshpinacare-sys/SovereignConsole.git",
-  "commit": "763aff4",
+  "commit": "6d9f2e9",
   "pushed": true,
-  "pushedAt": "2026-10-09T21:55:28.011Z",
-  "files": 1183,
-  "scanned": 1174,
+  "pushedAt": "2026-10-10T03:48:44.027Z",
+  "files": 1174,
+  "scanned": 1165,
   "genericWarnings": 17,
-  "durationMs": 6290
+  "durationMs": 14863
 }
