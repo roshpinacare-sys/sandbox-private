@@ -1,5 +1,15 @@
 # sanbox — השרת-המפעיל / הסנדבוקס-המקיף של-הרשת
 
+**ROLE (declared 2026-10-11, task 10-c un-silence sweep):** the
+**operator's local HQ server** (Bun :3010, scrypt door, secrets vault, git
+pusher) — the human-side sandbox this whole fleet was steered from, and the
+heart-writer home (lighthouse-sync). Died with the operator's machine on
+10-10 (last heart tick 17:40 local) — dormancy is environmental, not
+abandonment. Known risk recorded: `vault/vault-backup.enc` tracked in git.
+Revival path: boot the machine, run the heart tick — the sovereign-heart
+workflow stays dispatch-only with its honest billing header, and the 30-min
+HQ-sync resumes by itself.
+
 > נבנה-משותף-על-ידי-5 סוכנים (Task 42) — במקום-הסנדבוקסים-הזמניים-שנמחקים.
 > הבעלים-הורה: כל-מה-שתלוי-סנדבוקס — נבנה-כאן, קבוע, ריבוני.
 
