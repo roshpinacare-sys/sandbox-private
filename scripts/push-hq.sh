@@ -142,7 +142,7 @@ fi
 if ! git diff --cached --quiet; then
   MSG="HQ sync $(now_iso)"
   if ! git commit -m "$MSG" 2>/dev/null; then
-    git -c user.name=hq -c user.email=hq@localhost commit -m "$MSG"
+    git -c user.name=roshpinacare-sys -c user.email=326012154+roshpinacare-sys@users.noreply.github.com commit -m "$MSG"
   fi
 fi
 COMMIT="$(git rev-parse --short HEAD)"
