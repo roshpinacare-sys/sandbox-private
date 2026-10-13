@@ -1,0 +1,27 @@
+{"ts":"2026-10-10T13:10:16.200Z","op":"grid","ok":true,"posted":"gmv2ewakf","kind":"report","title":"5 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":5,"newEvents":1}
+{"ts":"2026-10-10T13:17:54.009Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":457811,"nextRunAt":"2026-10-10T13:35:16.198Z"}
+{"ts":"2026-10-10T13:32:55.338Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":1359139,"nextRunAt":"2026-10-10T13:35:16.198Z"}
+{"ts":"2026-10-10T13:47:56.688Z","op":"grid","ok":true,"posted":"gmv2g8qr1","kind":"report","title":"7 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":7,"newEvents":12}
+{"ts":"2026-10-10T14:02:57.923Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901257,"nextRunAt":"2026-10-10T14:12:56.665Z"}
+{"ts":"2026-10-10T14:17:59.263Z","op":"grid","ok":true,"posted":"gmv2hbdnc","kind":"report","title":"2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":2,"newEvents":10}
+{"ts":"2026-10-10T14:22:10.949Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":251686,"nextRunAt":"2026-10-10T14:42:59.262Z"}
+{"ts":"2026-10-10T14:33:00.562Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901300,"nextRunAt":"2026-10-10T14:42:59.262Z"}
+{"ts":"2026-10-10T14:48:01.864Z","op":"grid","ok":true,"posted":"gmv2ie0jm","kind":"report","title":"2 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":2,"newEvents":9}
+{"ts":"2026-10-10T14:56:50.587Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":528723,"nextRunAt":"2026-10-10T15:13:01.864Z"}
+{"ts":"2026-10-10T15:01:36.000Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":814135,"nextRunAt":"2026-10-10T15:13:01.864Z"}
+{"ts":"2026-10-10T15:16:37.870Z","op":"grid","ok":true,"posted":"gmv2jeslv","kind":"report","title":"4 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":4,"newEvents":1}
+{"ts":"2026-10-10T15:31:39.728Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901874,"nextRunAt":"2026-10-10T15:41:37.853Z"}
+{"ts":"2026-10-10T15:46:41.740Z","op":"grid","ok":true,"posted":"gmv2khghs","kind":"report","title":"1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":1,"newEvents":19}
+{"ts":"2026-10-10T15:59:26.155Z","op":"grid","ok":true,"recorded":"gmv2kxswb","kind":"report","title":"פעילות-צי: 1 אירועים-ראויים-צוינו מ-3 שורות-קבלות-חדשות","commits":0,"newEvents":3,"chain":"payer has not enough RC mana for transaction:has_mana: Account: headcorner has 1041129839 RC, needs 1139502840 RC. Please wait to transact or power up HIVE."}
+{"ts":"2026-10-10T16:01:43.578Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":139272,"nextRunAt":"2026-10-10T16:24:24.306Z"}
+{"ts":"2026-10-10T15:03:03.205Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901341,"nextRunAt":"2026-10-10T15:13:01.864Z"}
+{"ts":"2026-10-10T15:31:35.481Z","op":"grid","ok":true,"posted":"gmv2jy171","kind":"report","title":"1 קומיטים חדשים בריפו-הריבוני — הצי-מתקדם","commits":1,"newEvents":7}
+{"ts":"2026-10-10T15:46:37.024Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901542,"nextRunAt":"2026-10-10T15:56:35.481Z"}
+{"ts":"2026-10-10T15:55:35.462Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":1439980,"nextRunAt":"2026-10-10T15:56:35.481Z"}
+{"ts":"2026-10-10T16:10:37.034Z","op":"grid","ok":true,"posted":"gmv2lc7z0","kind":"report","title":"6 קומיטים: HQ sync 2026-10-10T15:56:21.858Z (+5 עוד)","commits":6,"newEvents":20}
+{"ts":"2026-10-10T16:25:38.394Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901360,"nextRunAt":"2026-10-10T16:35:37.033Z"}
+{"ts":"2026-10-10T16:40:39.823Z","op":"grid","ok":true,"recorded":"gmv2mev0g","kind":"report","title":"8 קומיטים: T-66c-final: PROVEN=true (sovereignty-drill-11/11) · ריפוי-תוכן-בלוב (va (+7 עוד)","commits":8,"newEvents":14,"chain":"no-key"}
+{"ts":"2026-10-10T16:55:41.171Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901349,"nextRunAt":"2026-10-10T17:05:39.822Z"}
+{"ts":"2026-10-10T17:10:42.625Z","op":"grid","ok":true,"recorded":"gmv2nhi2e","kind":"report","title":"1 קומיטים: HQ sync 2026-10-10T16:47:18.859Z","commits":1,"newEvents":7,"chain":"no-key"}
+{"ts":"2026-10-10T17:25:43.939Z","op":"grid","ok":true,"skipped":"too-soon","msSinceLast":901311,"nextRunAt":"2026-10-10T17:35:42.624Z"}
+{"ts":"2026-10-10T17:40:45.354Z","op":"grid","ok":true,"recorded":"gmv2ok528","kind":"report","title":"1 קומיטים: HQ sync 2026-10-10T17:17:18.831Z","commits":1,"newEvents":7,"chain":"no-key"}

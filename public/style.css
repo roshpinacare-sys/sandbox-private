@@ -1,0 +1,625 @@
+/* ============================================================
+   Head Corner — עיצוב משותף לשער-הכניסה וללוח-המפעיל
+   כהה · RTL · אופליין-מלא (אפס-פונטים חיצוניים, system-ui)
+   פלטה: רקעים-ניטרליים-כהים + הדגשות ירוק/אדום בלבד (אפס-כחול)
+   ============================================================ */
+
+:root {
+  /* רקעים */
+  --bg: #0d0e10;
+  --bg-elev: #131417;
+  --bg-elev-2: #191b1f;
+  --bg-inset: #0a0b0d;
+  --bg-hover: #202227;
+
+  /* קווי-מתאר */
+  --border: #26282c;
+  --border-strong: #34373c;
+
+  /* טקסט */
+  --text: #eceeed;
+  --text-2: #a6abb0;
+  --text-3: #74787e;
+
+  /* סטטוס — ירוק/אדום בלבד */
+  --ok: #3ecf8e;
+  --ok-hover: #35bd80;
+  --ok-strong: #2fb377;
+  --ok-dim: rgba(62, 207, 142, 0.12);
+  --ok-ink: #07130d;
+  --danger: #f05a4e;
+  --danger-dim: rgba(240, 90, 78, 0.12);
+  --danger-text: #ff9c93;
+
+  /* צורה */
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ---------- בסיס ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background:
+    radial-gradient(900px 420px at 50% -120px, #15171b 0%, rgba(21, 23, 27, 0) 70%),
+    var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew",
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+::selection {
+  background: rgba(62, 207, 142, 0.25);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ok);
+  outline-offset: 2px;
+}
+
+/* ---------- פסי-גלילה ---------- */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2f3236 transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2f3236;
+  border-radius: 999px;
+  border: 2px solid var(--bg-elev);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3b3f45;
+}
+
+/* ---------- כפתורים (מינימום 44px) ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  border-color: #41454b;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+  transform: none;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ok);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background: var(--ok-strong);
+  border-color: var(--ok-strong);
+  color: var(--ok-ink);
+}
+
+.btn-primary:hover {
+  background: var(--ok-hover);
+  border-color: var(--ok-hover);
+}
+
+.btn-danger {
+  background: transparent;
+  border-color: rgba(240, 90, 78, 0.45);
+  color: var(--danger-text);
+}
+
+.btn-danger:hover {
+  background: var(--danger-dim);
+  border-color: var(--danger);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ---------- כרזות-שגיאה ---------- */
+
+.banner {
+  border: 1px solid rgba(240, 90, 78, 0.45);
+  background: var(--danger-dim);
+  color: var(--danger-text);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+/* ---------- כרטיסים ---------- */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-head .cicon {
+  color: var(--text-2);
+  flex: none;
+}
+
+.card-head h2 {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.card-head .chip {
+  margin-inline-start: auto;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+
+/* ---------- שער הכניסה ---------- */
+
+.login-wrap {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: min(420px, 100%);
+  padding: 30px 28px 22px;
+  gap: 20px;
+  box-shadow: var(--shadow);
+}
+
+.brand {
+  text-align: center;
+}
+
+.brand .mark {
+  color: var(--ok);
+}
+
+.brand h1 {
+  margin: 10px 0 2px;
+  font-size: 24px;
+  letter-spacing: 0.3px;
+}
+
+.brand .sub {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14.5px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pw-row {
+  position: relative;
+}
+
+.pw-row input {
+  width: 100%;
+  min-height: 54px;
+  padding-inline: 14px 64px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.pw-row input:focus-visible {
+  outline: 2px solid var(--ok);
+  outline-offset: 2px;
+  border-color: var(--ok);
+}
+
+.pw-toggle {
+  position: absolute;
+  inset-inline-end: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 44px;
+  padding: 0 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text-2);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.pw-toggle:hover {
+  color: var(--text);
+  background: var(--bg-elev-2);
+}
+
+.login-foot {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--text-3);
+  font-size: 12.5px;
+  text-align: center;
+}
+
+/* ---------- לוח המפעיל ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 20px;
+  background: rgba(13, 14, 16, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: start;
+}
+
+.topbar .mark {
+  color: var(--ok);
+  flex: none;
+}
+
+.brand-name {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.3px;
+}
+
+.brand-sep {
+  color: var(--text-3);
+}
+
+.brand-sub {
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+.top-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex: none;
+}
+
+.dot.ok {
+  background: var(--ok);
+  animation: pulse 2.4s ease-out infinite;
+}
+
+.dot.err {
+  background: var(--danger);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.45);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 9px rgba(62, 207, 142, 0);
+  }
+}
+
+.wrap {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 22px 20px 48px;
+}
+
+.wrap > .banner {
+  margin: 0 0 16px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* שורות מפתח↔ערך */
+
+.kv {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.kv-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.kv-row:last-child {
+  border-bottom: 0;
+}
+
+.kv-row dt {
+  color: var(--text-2);
+  font-size: 13.5px;
+  flex: none;
+}
+
+.kv-row dd {
+  margin: 0;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+/* טבלת הכספת */
+
+.tbl-wrap {
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+}
+
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+.tbl th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-elev-2);
+  color: var(--text-2);
+  text-align: start;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-strong);
+  white-space: nowrap;
+}
+
+.tbl td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+
+.tbl tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.tbl tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.tbl tbody tr:hover {
+  background: var(--bg-elev-2);
+}
+
+.masked {
+  color: var(--text-2);
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.foot-note {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 12.5px;
+}
+
+/* פעולות + לוג */
+
+.actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.actions-row .btn {
+  flex: 1 1 auto;
+  min-width: 140px;
+}
+
+.log {
+  direction: ltr;
+  text-align: left;
+  background: var(--bg-inset);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  min-height: 120px;
+  max-height: 220px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.log:empty::before {
+  content: "No actions yet — אין פעולות עדיין.";
+  color: var(--text-3);
+}
+
+.log-line {
+  display: flex;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+
+.log-time {
+  color: var(--text-3);
+  flex: none;
+}
+
+.log-msg {
+  color: var(--text-2);
+}
+
+.log-ok .log-msg {
+  color: var(--ok);
+}
+
+.log-err .log-msg {
+  color: var(--danger-text);
+}
+
+/* ---------- מובייל ---------- */
+
+@media (max-width: 520px) {
+  .actions-row .btn {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .brand-sep,
+  .brand-sub {
+    display: none;
+  }
+
+  .wrap {
+    padding: 16px 14px 40px;
+  }
+
+  .login-card {
+    padding: 26px 20px 18px;
+  }
+}
+
+/* ---------- תנועה-מצומצמת ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,258 @@
+#!/usr/bin/env bun
+/**
+ * fleet-census.mjs — פקודת-האמת-האחת של-הצי (stdlib-בלבד · אפס-תלויות · אפס-סודות-בפלט).
+ *
+ * T-55 (הוראת-המפעיל: "לזקק להסיק ליישם"): כל-סוכן-חדש/שחזור/ספק — פקודה-אחת-מחזירה
+ * את-כל-האמת-הנמדדת: מכונה · תהליכים · פורטים · 4-ריפו · קבלות · כספות-קיימות-והרשאות.
+ * העיקרון (RECOVERY-PLAYBOOK P7): טענה-בלי-census = בדיה. אסור.
+ *
+ * T-61 (שיעור-עמית): קבלת-JSON-פגומה היא פרצה-שקטה לניטור — ה-census סורק-עתה
+ * את-תקינות-כל-שורה-בכל-קבלות-הצי (receipts/*.jsonl + guardian.jsonl) ונועל-ok-עליה.
+ *
+ * שימוש:  bun sanbox/scripts/fleet-census.mjs   (או node — stdlib-בלבד)
+ * יציאה:  JSON-אחת לstdout. אפס-תוכן-סוד — רק-קיום+הרשאות.
+ */
+import os from 'node:os';
+import net from 'node:net';
+import http from 'node:http';
+import { execFileSync } from 'node:child_process';
+import { readFileSync, existsSync, statSync, readdirSync, openSync, readSync, closeSync } from 'node:fs';
+import { createDecipheriv, scryptSync } from 'node:crypto';
+
+const PROJECT = '/home/z/my-project';
+const REPOS = {
+  'saos-control-center': PROJECT,
+  sanbox: `${PROJECT}/sanbox`,
+  'saos-dex': `${PROJECT}/saos-dex`,
+};
+const CONSOLE_MIRROR = `${process.env.HOME}/.sovereign/mirror`;
+const SUPERVISOR_PID = `${PROJECT}/sanbox/db/supervisor.pid`;
+
+/** בדיקת-TCP בלבד (לא מספיקה לשירות-חי — רק-סימן) */
+function tcpAlive(port, timeout = 1200) {
+  return new Promise((resolve) => {
+    const s = net.connect({ port, timeout });
+    s.on('connect', () => { s.destroy(); resolve(true); });
+    s.on('error', () => resolve(false));
+    s.on('timeout', () => { s.destroy(); resolve(false); });
+  });
+}
+
+/** בדיקת-HTTP-אמיתית (הלקח-מ-T-47: TCP-בלבד-זייף-חיים) */
+function httpAlive(port, path, timeout = 2500) {
+  return new Promise((resolve) => {
+    const req = http.get({ host: '127.0.0.1', port, path, timeout }, (res) => {
+      res.resume();
+      resolve(res.statusCode !== undefined && res.statusCode < 500);
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+  });
+}
+
+function pidsByPattern(pattern) {
+  try {
+    return execFileSync('pgrep', ['-f', pattern], { encoding: 'utf8', timeout: 4000 })
+      .split('\n').filter(Boolean);
+  } catch { return []; }
+}
+
+function pidAlive(pid) {
+  try { process.kill(Number(pid), 0); return true; } catch { return false; }
+}
+
+function repoTruth(dir, name) {
+  const g = (args) => {
+    try { return execFileSync('git', ['-C', dir, ...args], { encoding: 'utf8', timeout: 6000 }).trim(); }
+    catch (e) { return `error:${String(e.status ?? 'unknown')}`; }
+  };
+  return {
+    name,
+    path: dir,
+    exists: existsSync(`${dir}/.git`),
+    branch: g(['rev-parse', '--abbrev-ref', 'HEAD']),
+    head: g(['rev-parse', '--short', 'HEAD']),
+    dirty: g(['status', '--porcelain']).split('\n').filter(Boolean).length,
+  };
+}
+
+function fileTruth(p) {
+  try {
+    if (!existsSync(p)) return { path: p, exists: false };
+    const m = statSync(p).mode & 0o777;
+    return { path: p.replace(process.env.HOME ?? '', '~'), exists: true, mode: m.toString(8) };
+  } catch { return { path: p, exists: 'error' }; }
+}
+
+function lastEvents(file, n) {
+  try {
+    if (!existsSync(file)) return [];
+    return readFileSync(file, 'utf8').trim().split('\n').slice(-n)
+      .map((l) => { try { const j = JSON.parse(l); return { ts: j.ts, type: j.type }; } catch { return null; } })
+      .filter(Boolean);
+  } catch { return []; }
+}
+
+/**
+ * T-61: תקינות-קבלות — כל-שורה-בכל-jsonl-חייבת-להיפרס-כJSON.
+ * קריאה-מוגבלת (4MB-אחרונים-לכל-קובץ) כדי-שה-census-יישאר-מהיר-גם-בקבצים-גדלים;
+ * קיצוץ-מדווח-בכנות (truncated:true) — לא-שקר-של-השמטה.
+ */
+function receiptIntegrity() {
+  // T-64: הרחבה — גם-קבלות-האם (saos-control-center/receipts/*.jsonl), לא-רק-הסנדבוקס
+  const ccReceipts = (() => { try { return readdirSync(`${PROJECT}/receipts`).filter((f) => f.endsWith('.jsonl')).map((f) => `${PROJECT}/receipts/${f}`); } catch { return []; } })();
+  const SCAN = [
+    ...readdirSync(`${PROJECT}/sanbox/receipts`).filter((f) => f.endsWith('.jsonl'))
+      .map((f) => `${PROJECT}/sanbox/receipts/${f}`),
+    ...ccReceipts,
+    `${process.env.HOME}/.sovereign/guardian.jsonl`,
+  ];
+  const CAP = 4 * 1024 * 1024;
+  const out = { files: 0, totalLines: 0, corrupt: 0, corruptFiles: [] };
+  for (const f of SCAN) {
+    let txt;
+    try {
+      if (!existsSync(f)) continue;
+      const st = statSync(f);
+      if (!st.isFile() || st.size === 0) continue;
+      const fh = openSync(f, 'r');
+      const start = Math.max(0, st.size - CAP);
+      const len = st.size - start;
+      const buf = Buffer.alloc(len);
+      readSync(fh, buf, 0, len, start);
+      closeSync(fh);
+      txt = buf.toString('utf8');
+      if (start > 0) out.truncated = true;
+    } catch { out.corruptFiles.push(`${f.replace(process.env.HOME ?? '', '~')}:unreadable`); out.corrupt += 1; continue; }
+    out.files += 1;
+    for (const line of txt.split('\n')) {
+      const s = line.trim();
+      if (!s) continue;
+      out.totalLines += 1;
+      try { JSON.parse(s); } catch {
+        out.corrupt += 1;
+        const short = f.replace(process.env.HOME ?? '', '~').split('/').slice(-2).join('/');
+        if (!out.corruptFiles.includes(short)) out.corruptFiles.push(short);
+      }
+    }
+  }
+  return out;
+}
+const receiptsIntegrity = receiptIntegrity();
+
+const mem = {};
+try {
+  const mi = readFileSync('/proc/meminfo', 'utf8');
+  mem.totalMB = Math.round(Number(mi.match(/MemTotal:\s+(\d+)/)?.[1] ?? 0) / 1024);
+  mem.availMB = Math.round(Number(mi.match(/MemAvailable:\s+(\d+)/)?.[1] ?? 0) / 1024);
+  mem.pressured = mem.availMB > 0 && mem.availMB < 350; // MEM_PRESSURE_AVAIL_MB-ברירת-המחדל
+} catch { mem.error = true; }
+
+let supervisor = { pidfile: false };
+try {
+  const pid = Number(readFileSync(SUPERVISOR_PID, 'utf8').trim());
+  supervisor = { pidfile: true, pid, alive: pidAlive(pid) };
+} catch { /* אין-קובץ — כנות */ }
+
+const escal = {};
+try {
+  const j = JSON.parse(readFileSync(`${PROJECT}/repo-vault/escalations.json`, 'utf8'));
+  const arr = Array.isArray(j) ? j : (Array.isArray(j.items) ? j.items : Array.isArray(j.escalations) ? j.escalations : []);
+  escal.total = arr.length;
+  // T-56-fix: "RESOLVED-EXEC-CD-29"/"RESOLVED-T-55" וכד' — כל-סטטוס-שמתחיל-בRESOLVED-נסגר
+  escal.open = arr.filter((e) => e && !String(e.status ?? 'OPEN').toUpperCase().startsWith('RESOLVED')).length;
+} catch { escal.error = true; }
+
+// T-64: בדיקה-עצמית-קריפטוגרפית של מעטפת-הכספת — פענוח-GCM-אמיתי מול הסיסמה-החיה.
+// השיעור: מעטפת-ישנה/מוחזרת (קדנס pull -X theirs) יכלה-לשבת-בשקט-שעות-בלי-שאף-עין-תבחין.
+// בדיקה-זו-נועלת-ok: מעטפת-שאינה-נפתחת = פרצה-ריבונות-שקטה. אפס-תוכן-סוד-בפלט.
+function vaultSelfCheck() {
+  const out = { exists: false, magic: false, decrypts: false, sealedFiles: 0, bytesMatchReceipt: false };
+  try {
+    const encPath = `${PROJECT}/sanbox/vault/vault-backup.enc`;
+    if (!existsSync(encPath)) return out;
+    out.exists = true;
+    const encoded = readFileSync(encPath, 'utf8');
+    const blob = Buffer.from(encoded, 'base64');
+    out.magic = blob.subarray(0, 4).toString('ascii') === 'SQV1';
+    if (!out.magic || blob.length <= 48) return out;
+    const salt = blob.subarray(4, 20);
+    const iv = blob.subarray(20, 32);
+    const tag = blob.subarray(32, 48);
+    const ct = blob.subarray(48);
+    let password = '';
+    try { password = readFileSync(`${PROJECT}/sanbox/secrets/hq.password`, 'utf8').trim(); } catch {}
+    if (password.length === 0) return out;
+    try {
+      const key = scryptSync(password, salt, 32);
+      const d = createDecipheriv('aes-256-gcm', key, iv);
+      d.setAuthTag(tag);
+      const plain = Buffer.concat([d.update(ct), d.final()]);
+      const payload = JSON.parse(plain.toString('utf8'));
+      out.decrypts = Array.isArray(payload.files);
+      out.sealedFiles = out.decrypts ? payload.files.length : 0;
+    } catch { out.decrypts = false; }
+    try {
+      const rc = JSON.parse(readFileSync(`${PROJECT}/sanbox/db/vault-backup.json`, 'utf8'));
+      out.bytesMatchReceipt = typeof rc.bytes === 'number' ? rc.bytes === Buffer.byteLength(encoded, 'utf8') : false;
+    } catch {}
+    return out;
+  } catch { return out; }
+}
+const vaultSelf = vaultSelfCheck();
+
+const census = {
+  asof: new Date().toISOString(),
+  machine: {
+    uptimeH: +(os.uptime() / 3600).toFixed(2),
+    load: os.loadavg().map((x) => +x.toFixed(2)),
+    mem,
+  },
+  fleet: {
+    supervisor,
+    guardian: { alive: pidsByPattern('sovereign/guardian.ts').length > 0 },
+    consoleWatchers: pidsByPattern('mini-services/web/index.ts').length, // >1 = מחלה-מחזרת
+    nextDev3050: pidsByPattern('next dev -p 3050').length,
+    nextDev3010: pidsByPattern('next dev -p 3010').length,
+    gridRunner: pidsByPattern('grids/run.mjs').length,
+  },
+  ports: {
+    3000: { tcp: await tcpAlive(3000) },
+    3010: { http: await httpAlive(3010, '/saos-dex/') }, // / מחזיר-404-בכוונה (basePath)
+    3011: { http: await httpAlive(3011, '/') },
+    3050: { http: await httpAlive(3050, '/') },
+  },
+  repos: [
+    repoTruth(REPOS['saos-control-center'], 'saos-control-center'),
+    repoTruth(REPOS.sanbox, 'sanbox'),
+    repoTruth(REPOS['saos-dex'], 'saos-dex'),
+    repoTruth(CONSOLE_MIRROR, 'SovereignConsole-mirror'),
+  ],
+  receipts: {
+    supervisor: lastEvents(`${PROJECT}/sanbox/receipts/supervisor.jsonl`, 5),
+    guardian: lastEvents(`${process.env.HOME}/.sovereign/guardian.jsonl`, 3),
+    integrity: receiptsIntegrity, // T-61: אפס-קבלות-פגומות-מותר — corrupt>0=פרצה-שקטה-שנתפסה
+  },
+  vaults: {
+    walletEnc: fileTruth(`${PROJECT}/repo-vault/wallet.enc.json`),
+    secretsBackup: fileTruth(`${PROJECT}/sanbox/vault/vault-backup.enc`),
+    secretsSelfCheck: vaultSelf, // T-64: המעטפת-נפתחת-בפועל-מול-הסיסמה-החיה + התאמת-בייטים-לקבלה
+    patEnv: fileTruth(`${PROJECT}/upload/pat.env`),
+    sovereignRemote: fileTruth(`${process.env.HOME}/.sovereign/remote.env`),
+    agentKey: fileTruth(`${process.env.HOME}/.sovereign/agent-key.env`),
+    hqPassword: fileTruth(`${process.env.HOME}/.sovereign/hq.password`),
+    guardianTs: fileTruth(`${process.env.HOME}/.sovereign/guardian.ts`),
+  },
+  escalations: escal,
+};
+
+const ok =
+  supervisor.alive === true &&
+  census.fleet.guardian.alive &&
+  census.ports[3011].http &&
+  census.ports[3050].http &&
+  receiptsIntegrity.corrupt === 0 && // T-61: שרשרת-הראיות-חייבת-להיות-שלמה
+  vaultSelf.decrypts === true && // T-64: מעטפת-הכספת-נפתחת-בפועל (אנטי-החזרה-שקטה-של-בלוב-ישן)
+  census.repos.every((r) => r.exists === true && !String(r.head).startsWith('error'));
+
+console.log(JSON.stringify({ ...census, ok }, null, 1));

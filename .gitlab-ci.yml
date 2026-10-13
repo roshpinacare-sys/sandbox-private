@@ -1,0 +1,16 @@
+# .gitlab-ci.yml — T-57: המגדלור-הריבוני-חוץ-מכונה (GitLab-Pages) + צופה-שלמות.
+#
+# רץ-על-ברזל-חוץ-מכונה (שיתופי-גיטלאב): כל-דחיפה-מאמתת-שלמות-מאגר (fail-closed-בתוך-ה-CI —
+# pipeline-נכשל=זעקה-ריבונית-בענן-השני) ומפרסם-את-קונסולת-החיים-ל-Pages.
+# אפס-סודות-ב-CI: הכל-ממצב-מקומט-בגיט-בלבד.
+
+pages:
+  stage: deploy
+  image: alpine:3.20
+  script:
+    - sh scripts/gen-pages-beacon.sh
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

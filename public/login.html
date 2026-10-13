@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="robots" content="noindex">
+  <title>Head Corner — שער הכניסה</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <main class="login-wrap">
+    <section class="card login-card" aria-labelledby="login-title">
+      <div class="brand">
+        <svg class="mark" viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <path d="M12 3l7 2.8v5.4c0 4.6-2.9 8-7 9.8-4.1-1.8-7-5.2-7-9.8V5.8L12 3z"></path>
+          <circle cx="12" cy="11" r="2.1"></circle>
+          <line x1="12" y1="13.1" x2="12" y2="16"></line>
+        </svg>
+        <h1 id="login-title">Head Corner</h1>
+        <p class="sub">שער הכניסה · גישה ישירה לשרת HQ</p>
+      </div>
+
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="password">סיסמה</label>
+          <div class="pw-row">
+            <input id="password" name="password" type="password" autocomplete="current-password" autofocus required>
+            <button type="button" id="toggle-pw" class="pw-toggle" aria-label="הצג סיסמה" aria-pressed="false">הצג</button>
+          </div>
+        </div>
+
+        <div id="error" class="banner" role="alert" hidden></div>
+
+        <button type="submit" id="submit" class="btn btn-primary btn-block">כניסה</button>
+      </form>
+
+      <p class="login-foot">החיבור מאובטח בעוגיית-סשן (HttpOnly) · תוקף 7 ימים</p>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var form = document.getElementById('login-form');
+    var input = document.getElementById('password');
+    var toggle = document.getElementById('toggle-pw');
+    var submitBtn = document.getElementById('submit');
+    var errBox = document.getElementById('error');
+
+    var MSG = {
+      empty: 'הזינו סיסמה כדי להיכנס.',
+      wrong: 'סיסמה שגויה. נסו שוב.',
+      rate: 'יותר מדי ניסיונות. המתינו רגע ונסו שוב.',
+      net: 'השרת אינו זמין כרגע. נסו שוב מאוחר יותר.',
+      other: 'שגיאה לא צפויה. נסו שוב.'
+    };
+
+    function showError(msg) {
+      errBox.textContent = msg;
+      errBox.hidden = false;
+    }
+
+    function clearError() {
+      errBox.textContent = '';
+      errBox.hidden = true;
+    }
+
+    function setBusy(busy) {
+      submitBtn.disabled = busy;
+      submitBtn.textContent = busy ? 'מתחבר…' : 'כניסה';
+    }
+
+    function focusInput() {
+      input.focus();
+      if (input.value) input.select();
+    }
+
+    toggle.addEventListener('click', function () {
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      toggle.textContent = showing ? 'הצג' : 'הסתר';
+      toggle.setAttribute('aria-pressed', showing ? 'false' : 'true');
+      toggle.setAttribute('aria-label', showing ? 'הצג סיסמה' : 'הסתר סיסמה');
+      focusInput();
+    });
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      clearError();
+
+      var password = input.value;
+      if (!password) {
+        showError(MSG.empty);
+        focusInput();
+        return;
+      }
+
+      setBusy(true);
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ password: password })
+      }).then(function (res) {
+        if (res.ok) {
+          window.location.href = '/';
+          return;
+        }
+        if (res.status === 401) showError(MSG.wrong);
+        else if (res.status === 429) showError(MSG.rate);
+        else showError(MSG.other);
+        setBusy(false);
+        focusInput();
+      }).catch(function () {
+        showError(MSG.net);
+        setBusy(false);
+        focusInput();
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# === אף-סוד-לא-עובר-לגיט. לעולם. ===
+secrets/
+db/
+receipts/
+upload/
+
+# סודות-בשמות-מפורשים (רשת-ביטחון-כפולה)
+pat.env
+*.env
+*.password
+*.keys
+headcorner.txt
+pat.rar
+קלודפלרדודי.txt
+llm.txt
+
+# זמניים
+node_modules/
+.next/
+.tmp*/
+.DS_Store
+*.log
