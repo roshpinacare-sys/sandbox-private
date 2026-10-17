@@ -20,3 +20,6 @@ node_modules/
 .tmp*/
 .DS_Store
 *.log
+
+# P0-FAILCLOSE (2026-10-17): secret material must never be git-tracked (agent4/p0-purge-secrets)
+vault/vault-backup.enc
